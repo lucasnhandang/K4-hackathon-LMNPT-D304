@@ -32,3 +32,12 @@ Mai: thiết kế prompt, nguồn sự thật và logic routing.
 Phụng: prototype Discord/chat flow.
 Lợi: golden set và đánh giá kết quả.
 Thịnh: spec, validation và demo.
+
+| Người | Owner chính | Deliverable cụ thể |
+|---|---|---|
+| **Nhân** | Product, evidence, validation | JTBD/problem statement; bảng impact 3 ứng viên; evidence log; `spec.md` §1–§3; tuyển người thử; `validation/feedback-log.md`; tổng hợp changelog; hỗ trợ Thịnh trong backend |
+| **Phụng** | Data, retrieval và tools | Pipeline cào/làm sạch/ẩn danh; phương pháp mining có thể kiểm lại; index nguồn chính thức; các tool retrieve/search/escalate; trace và tài liệu cách chạy |
+| **Ngọc Mai** | Evaluation & quality | Định nghĩa metric; golden set; quality bar; promptfoo/eval runner; chạy regression; phân tích failure; `spec.md` §5 và §7 |
+| **Thịnh** | AI behavior & backend orchestration | Router `ANSWER / CLARIFY / ESCALATE`; prompt; grounding/confidence policy; gọi tool của Phụng; xử lý bốn đường đi; `spec.md` §4, §6 phần logic |
+| **Lợi** | UI, UX, integration, repo và demo | Discord-like flow; nối frontend–backend; hiển thị nguồn/lý do/chỉnh sửa; end-to-end logging; README; ghép slide và demo script; backup demo |
+
