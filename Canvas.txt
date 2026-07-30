@@ -1,7 +1,34 @@
-1. Chiến tuyến: Discord
-2. Ai đang làm việc này - một vai trò cụ thể: học viên 
-3. Họ vướng gì - ai, đang làm gì, vướng đâu, hậu quả gì:
-4. 1-2 bằng chứng đầu tiên:
-5. Lát cắt MỘT CÂU:
-6. AI tự làm đến đâu + 1 dòng lý do:
-7. >=3 người sẽ thử, phân công có tên:
+Chiến tuyến:
+Trợ lý Học viên trên Discord; tối ưu tính năng hiện có.
+
+Ai đang làm việc này — một vai trò cụ thể:
+Học viên đang học hoặc làm bài của khóa, bị kẹt và đặt câu hỏi trong Discord để tiếp tục học.
+
+Họ vướng gì — ai, đang làm gì, vướng đâu, hậu quả gì:
+Khi học viên hỏi để gỡ một vướng mắc trong khóa nhưng câu hỏi thiếu ngữ cảnh hoặc nằm ngoài phạm vi tài liệu, trợ lý hiện tại có thể trả lời theo nội dung gần nhất dù không liên quan, hoặc lập tức tag Mod mà không giúp làm rõ, khiến học viên mất thời gian chờ, giảm niềm tin và có nguy cơ hiểu sai kiến thức.
+
+1–2 bằng chứng đầu tiên:
+Chưa nên điền số khi chưa đo. Có thể trình bày tại CP1 theo dạng:
+Quan sát ban đầu: [15/28] câu hỏi thiếu ngữ cảnh bị trả lời không liên quan hoặc chuyển Mod ngay.
+Ví dụ đã ẩn danh: học viên hỏi “[deadline bao nhiu z]”, trợ lý trả lời “[Deadline nộp weekly sẽ là 12h00 trưa trước các buổi mentor duty. Các buổi mentor duty cố định hàng tuần diễn ra vào tối thứ 4 và thứ 7]”, trong khi thông tin còn thiếu là [deadline cho cái gì].
+Phỏng vấn nhanh: [4/7] học viên cho biết từng phải hỏi lại, chờ Mod hoặc tự tìm nguồn khác sau khi trợ lý không giải quyết đúng vấn đề.
+
+Lát cắt MỘT CÂU:
+Khi một học viên hỏi trên Discord để gỡ vướng trong khóa, trợ lý quyết định câu hỏi đã đủ rõ và có đủ căn cứ để trả lời, cần hỏi lại hay phải chuyển Mod, giúp học viên nhận được một bước xử lý đáng tin cậy thay vì câu trả lời phỏng đoán.
+Cấu trúc của câu:
+Một người dùng: học viên đang bị kẹt.
+Một công việc: gỡ vướng để tiếp tục học.
+Một quyết định AI: chọn trả lời / hỏi lại / chuyển Mod dựa trên độ rõ và căn cứ.
+Một kết quả: học viên nhận được bước xử lý đáng tin cậy.
+
+AI tự làm đến đâu + một dòng lý do:
+Conditional automation: trợ lý tự trả lời khi câu hỏi đủ rõ và câu trả lời truy xuất được từ nguồn chính thức; hỏi đúng một câu làm rõ khi thiếu thông tin; chỉ chuyển Mod khi đã làm rõ nhưng vẫn ngoài phạm vi hoặc không có căn cứ.
+Lý do: trả lời sai có thể khiến học viên học sai và mất niềm tin, trong khi chuyển Mod mọi trường hợp lại làm tăng thời gian chờ và tải công việc cho Mod.
+
+Ít nhất 3 người sẽ thử + phân công có tên:
+Người thử: Nhân, Mai, Phụng
+Nhân: mining Discord và lưu evidence.
+Mai: thiết kế prompt, nguồn sự thật và logic routing.
+Phụng: prototype Discord/chat flow.
+Lợi: golden set và đánh giá kết quả.
+Thịnh: spec, validation và demo.
