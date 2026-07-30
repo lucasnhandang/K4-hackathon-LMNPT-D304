@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trợ lý Học viên Discord — Prototype CP2 Demo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-primary: #313338;
+      --bg-secondary: #2b2d31;
+      --bg-tertiary: #1e1f22;
+      --bg-accent: #383a40;
+      --brand-color: #5865f2;
+      --brand-hover: #4752c4;
+      --text-normal: #dbdee1;
+      --text-muted: #949ba4;
+      --text-heading: #f2f3f5;
+      --text-link: #00a8fc;
+      --green-positive: #23a55a;
+      --red-danger: #f23f43;
+      --amber-warning: #f0b232;
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --bot-badge: #5865f2;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-tertiary);
+      color: var(--text-normal);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* Top Notice Banner */
+    .mock-banner {
+      background: linear-gradient(90deg, #4e5058, #383a40);
+      color: #f2f3f5;
+      padding: 6px 16px;
+      font-size: 13px;
+      font-weight: 500;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .mock-badge {
+      background-color: var(--amber-warning);
+      color: #111;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-weight: 700;
+      font-size: 11px;
+      text-transform: uppercase;
+    }
+
+    /* Main App Layout */
+    .app-container {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    /* Sidebar Discord Mock */
+    .sidebar {
+      width: 280px;
+      background-color: var(--bg-secondary);
+      display: flex;
+      flex-direction: column;
+      border-right: 1px solid var(--border-subtle);
+    }
+
+    .sidebar-header {
+      height: 48px;
+      padding: 0 16px;
+      display: flex;
+      align-items: center;
+      font-weight: 700;
+      color: var(--text-heading);
+      border-bottom: 1px solid var(--bg-tertiary);
+      box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+    }
+
+    .channel-list {
+      padding: 12px 8px;
+      flex: 1;
+    }
+
+    .channel-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 4px;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-weight: 500;
+      margin-bottom: 2px;
+      transition: background 0.15s, color 0.15s;
+    }
+
+    .channel-item.active, .channel-item:hover {
+      background-color: var(--bg-accent);
+      color: var(--text-heading);
+    }
+
+    .channel-icon {
+      font-size: 18px;
+      opacity: 0.7;
+    }
+
+    /* Demo Controller Panel in Sidebar */
+    .demo-controls {
+      background: var(--bg-tertiary);
+      margin: 12px 8px;
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border-subtle);
+    }
+
+    .demo-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      margin-bottom: 8px;
+      letter-spacing: 0.5px;
+    }
+
+    .btn-preset {
+      width: 100%;
+      text-align: left;
+      background: var(--bg-secondary);
+      color: var(--text-normal);
+      border: 1px solid var(--border-subtle);
+      padding: 8px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      cursor: pointer;
+      margin-bottom: 6px;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-preset:hover {
+      background: var(--brand-color);
+      color: #fff;
+      border-color: var(--brand-color);
+    }
+
+    /* Main Chat Area */
+    .chat-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background-color: var(--bg-primary);
+    }
+
+    .chat-header {
+      height: 48px;
+      padding: 0 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 1px solid var(--border-subtle);
+      box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+    }
+
+    .chat-title {
+      font-weight: 700;
+      color: var(--text-heading);
+    }
+
+    .chat-desc {
+      font-size: 12px;
+      color: var(--text-muted);
+      border-left: 1px solid var(--border-subtle);
+      padding-left: 10px;
+      margin-left: 6px;
+    }
+
+    /* Messages Container */
+    .messages-container {
+      flex: 1;
+      padding: 16px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* Single Message */
+    .message {
+      display: flex;
+      gap: 16px;
+      animation: fadeIn 0.25s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background-color: var(--brand-color);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      color: white;
+      flex-shrink: 0;
+    }
+
+    .avatar.user-avatar {
+      background-color: #23a55a;
+    }
+
+    .avatar.mod-avatar {
+      background-color: #f0b232;
+    }
+
+    .message-content {
+      flex: 1;
+    }
+
+    .message-author {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 4px;
+    }
+
+    .author-name {
+      font-weight: 600;
+      color: var(--text-heading);
+      font-size: 14px;
+    }
+
+    .bot-tag {
+      background-color: var(--bot-badge);
+      color: white;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 1px 4px;
+      border-radius: 3px;
+      text-transform: uppercase;
+    }
+
+    .message-time {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-left: 4px;
+    }
+
+    .message-text {
+      font-size: 14px;
+      line-height: 1.5;
+      color: var(--text-normal);
+    }
+
+    /* Interactive Embedded Cards / Button Groups in Bot Reply */
+    .bot-embed {
+      background-color: var(--bg-secondary);
+      border-left: 4px solid var(--brand-color);
+      border-radius: 4px;
+      padding: 12px;
+      margin-top: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-width: 520px;
+    }
+
+    .bot-embed.warning-embed {
+      border-left-color: var(--amber-warning);
+    }
+
+    .bot-embed.escalate-embed {
+      border-left-color: var(--red-danger);
+    }
+
+    .bot-embed.muted-embed {
+      border-left-color: var(--text-muted);
+    }
+
+    .embed-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-heading);
+    }
+
+    .options-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .btn-option {
+      background-color: var(--bg-accent);
+      color: var(--text-heading);
+      border: 1px solid rgba(255,255,255,0.1);
+      padding: 6px 12px;
+      border-radius: 4px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .btn-option:hover {
+      background-color: var(--brand-color);
+      color: #fff;
+    }
+
+    .btn-option.btn-success {
+      background-color: rgba(35, 165, 90, 0.2);
+      border-color: var(--green-positive);
+      color: #fff;
+    }
+    .btn-option.btn-success:hover {
+      background-color: var(--green-positive);
+    }
+
+    .btn-option.btn-danger {
+      background-color: rgba(242, 63, 67, 0.2);
+      border-color: var(--red-danger);
+      color: #fff;
+    }
+    .btn-option.btn-danger:hover {
+      background-color: var(--red-danger);
+    }
+
+    /* Source Quote Box */
+    .source-box {
+      background: rgba(0,0,0,0.2);
+      border: 1px solid var(--border-subtle);
+      border-radius: 4px;
+      padding: 8px 10px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .source-box strong {
+      color: var(--text-heading);
+    }
+
+    /* Input Bar */
+    .chat-input-area {
+      padding: 0 16px 24px 16px;
+    }
+
+    .input-wrapper {
+      background-color: #383a40;
+      border-radius: 8px;
+      padding: 0 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .chat-input {
+      width: 100%;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--text-heading);
+      font-size: 14px;
+      height: 44px;
+    }
+
+    .btn-send {
+      background: var(--brand-color);
+      color: white;
+      border: none;
+      padding: 6px 14px;
+      border-radius: 4px;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 13px;
+      transition: background 0.15s;
+    }
+
+    .btn-send:hover {
+      background: var(--brand-hover);
+    }
+
+    /* Source Modal */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    .modal-card {
+      background: var(--bg-secondary);
+      width: 480px;
+      border-radius: 8px;
+      border: 1px solid var(--border-subtle);
+      padding: 20px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .modal-title {
+      font-weight: 700;
+      color: var(--text-heading);
+      font-size: 16px;
+    }
+
+    .modal-close {
+      cursor: pointer;
+      font-size: 18px;
+      color: var(--text-muted);
+    }
+
+    .modal-body {
+      font-size: 13px;
+      line-height: 1.6;
+      color: var(--text-normal);
+      background: var(--bg-tertiary);
+      padding: 12px;
+      border-radius: 6px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Notice Banner -->
+  <div class="mock-banner">
+    <div>
+      <span class="mock-badge">CP2 Prototype Mockup</span>
+      <span style="margin-left: 8px;">K4 Hackathon Track B — Trợ lý Học viên Discord</span>
+    </div>
+    <div style="font-size: 12px; opacity: 0.9;">
+      📌 Quyết định AI đang hardcode theo kịch bản demo (Chưa nối AI thật)
+    </div>
+  </div>
+
+  <div class="app-container">
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <div class="sidebar-header">
+        📚 AI Thực Chiến K4
+      </div>
+      <div class="channel-list">
+        <div class="channel-item active">
+          <span class="channel-icon">#</span> gỡ-vướng-học-tập
+        </div>
+        <div class="channel-item">
+          <span class="channel-icon">#</span> thông-báo-chung
+        </div>
+        <div class="channel-item">
+          <span class="channel-icon">#</span> mentor-duty
+        </div>
+      </div>
+
+      <!-- Quick Demo Presets -->
+      <div class="demo-controls">
+        <div class="demo-title">⚡ Kịch bản Demo CP2</div>
+        <button class="btn-preset" onclick="runPresetMainFlow()">
+          <span>🎯</span> Demo 1: Hỏi mơ hồ (Main Flow)
+        </button>
+        <button class="btn-preset" onclick="runPresetDirectAnswer()">
+          <span>✅</span> Demo 2: Hỏi rõ (Trả lời thẳng)
+        </button>
+        <button class="btn-preset" onclick="runPresetEscalate()">
+          <span>🆘</span> Demo 3: Không căn cứ (Escalate Mod)
+        </button>
+        <button class="btn-preset" onclick="runPresetOutOfScope()">
+          <span>🚫</span> Demo 4: Ngoài phạm vi / Vi phạm (Không tag Mod)
+        </button>
+        <button class="btn-preset" style="margin-top: 8px; background: rgba(255,255,255,0.05);" onclick="resetChat()">
+          <span>🔄</span> Đặt lại hội thoại (Reset)
+        </button>
+      </div>
+    </div>
+
+    <!-- Main Chat Area -->
+    <div class="chat-area">
+      <div class="chat-header">
+        <span style="font-size: 20px; color: var(--text-muted);">#</span>
+        <span class="chat-title">gỡ-vướng-học-tập</span>
+        <span class="chat-desc">Hỏi đáp thắc mắc bài tập & logistics khóa học</span>
+      </div>
+
+      <!-- Messages Area -->
+      <div class="messages-container" id="chat-messages">
+        <!-- Initial Bot Welcome Message -->
+        <div class="message">
+          <div class="avatar">AI</div>
+          <div class="message-content">
+            <div class="message-author">
+              <span class="author-name">Trợ lý Học viên</span>
+              <span class="bot-tag">BOT</span>
+              <span class="message-time">Hôm nay lúc 16:00</span>
+            </div>
+            <div class="message-text">
+              Chào bạn! Mình là Trợ lý Học viên. Nếu bạn gặp vướng mắc về bài tập hoặc thông tin khóa học, hãy nhập câu hỏi bên dưới nhé!
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Input Bar -->
+      <div class="chat-input-area">
+        <div class="input-wrapper">
+          <input type="text" id="user-input" class="chat-input" placeholder="Gõ câu hỏi... (Ví dụ: Deadline bao nhiêu z? / Hướng dẫn làm bom...)" onkeypress="handleKeyPress(event)">
+          <button class="btn-send" onclick="sendUserMessage()">Gửi</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Source Modal -->
+  <div class="modal-overlay" id="source-modal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <span class="modal-title">📄 Căn cứ & Nguồn chính thức</span>
+        <span class="modal-close" onclick="closeSourceModal()">✕</span>
+      </div>
+      <div class="modal-body" id="modal-content">
+        <!-- Dynamic Content -->
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const chatContainer = document.getElementById('chat-messages');
+    const userInput = document.getElementById('user-input');
+
+    function getTimeString() {
+      const now = new Date();
+      return `Hôm nay lúc ${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
+    }
+
+    function appendUserMessage(text) {
+      const msgDiv = document.createElement('div');
+      msgDiv.className = 'message';
+      msgDiv.innerHTML = `
+        <div class="avatar user-avatar">HV</div>
+        <div class="message-content">
+          <div class="message-author">
+            <span class="author-name">Học viên</span>
+            <span class="message-time">${getTimeString()}</span>
+          </div>
+          <div class="message-text">${escapeHtml(text)}</div>
+        </div>
+      `;
+      chatContainer.appendChild(msgDiv);
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+
+    function appendBotMessage(htmlContent) {
+      const msgDiv = document.createElement('div');
+      msgDiv.className = 'message';
+      msgDiv.innerHTML = `
+        <div class="avatar">AI</div>
+        <div class="message-content">
+          <div class="message-author">
+            <span class="author-name">Trợ lý Học viên</span>
+            <span class="bot-tag">BOT</span>
+            <span class="message-time">${getTimeString()}</span>
+          </div>
+          <div class="message-text">${htmlContent}</div>
+        </div>
+      `;
+      chatContainer.appendChild(msgDiv);
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+
+    function escapeHtml(text) {
+      return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+
+    function handleKeyPress(e) {
+      if (e.key === 'Enter') sendUserMessage();
+    }
+
+    function sendUserMessage() {
+      const text = userInput.value.trim();
+      if (!text) return;
+      
+      appendUserMessage(text);
+      userInput.value = '';
+
+      // Match input intent for hardcoded CP2 demo
+      setTimeout(() => {
+        const lower = text.toLowerCase();
+        
+        // Out-of-scope or Harmful/Violating cases
+        if (lower.includes('bom') || lower.includes('vũ khí') || lower.includes('tư vấn') || lower.includes('thời tiết') || lower.includes('tin tức') || lower.includes('phi pháp') || lower.includes('ngoài phạm vi') || lower.includes('vi phạm')) {
+          step_OutofScope();
+        } 
+        // Main Clarification flow
+        else if (lower.includes('deadline bao nhiêu') || lower.includes('deadline bao nhieu') || lower.includes('mơ hồ')) {
+          step1_BotAskClarify();
+        } 
+        // Direct answer flow
+        else if (lower.includes('weekly report tuần này') || lower.includes('rõ')) {
+          step_DirectAnswer();
+        } 
+        // Escalate case (No source in domain)
+        else if (lower.includes('nộp bù') || lower.includes('không có căn cứ')) {
+          step_EscalateNoSource();
+        } 
+        // Default to Clarification for CP2 Demo
+        else {
+          step1_BotAskClarify();
+        }
+      }, 500);
+    }
+
+    // Step 1: Bot recognizes ambiguity -> Clarifies without guessing
+    function step1_BotAskClarify() {
+      const html = `
+        Bạn đang muốn hỏi <strong>deadline của nội dung nào</strong> vậy?
+        <div class="bot-embed warning-embed">
+          <div class="embed-title">🔍 Chọn nội dung bạn cần kiểm tra:</div>
+          <div class="options-grid">
+            <button class="btn-option" onclick="handleChoiceCategory('Weekly report')">📌 Weekly report</button>
+            <button class="btn-option" onclick="handleChoiceCategory('Bài tập tuần')">📝 Bài tập tuần</button>
+            <button class="btn-option" onclick="handleChoiceCategory('Đăng ký Mentor Duty')">🤝 Đăng ký Mentor Duty</button>
+            <button class="btn-option" onclick="handleChoiceCategory('Nội dung khác')">💬 Nội dung khác</button>
+          </div>
+        </div>
+      `;
+      appendBotMessage(html);
+    }
+
+    // Step 2: User choices category -> Bot asks sub-period
+    function handleChoiceCategory(cat) {
+      appendUserMessage(cat);
+      setTimeout(() => {
+        if (cat === 'Weekly report') {
+          const html = `
+            Bạn đang muốn kiểm tra Weekly report của <strong>tuần nào</strong>?
+            <div class="bot-embed">
+              <div class="embed-title">📅 Chọn thời gian:</div>
+              <div class="options-grid">
+                <button class="btn-option" onclick="handleChoiceTime('Tuần hiện tại')">Tuần hiện tại</button>
+                <button class="btn-option" onclick="handleChoiceTime('Tuần trước')">Tuần trước</button>
+                <button class="btn-option" onclick="handleChoiceTime('Tuần khác')">Tuần khác</button>
+              </div>
+            </div>
+          `;
+          appendBotMessage(html);
+        } else {
+          step_EscalateNoSource();
+        }
+      }, 400);
+    }
+
+    // Step 3: User choices time -> Bot returns grounded answer
+    function handleChoiceTime(time) {
+      appendUserMessage(time);
+      setTimeout(() => {
+        const html = `
+          Deadline <strong>Weekly Report tuần này</strong> là <strong>12:00 trưa Thứ 4 (ngày 30/07)</strong> trước buổi Mentor Duty.
+          <div class="bot-embed" style="border-left-color: var(--green-positive);">
+            <div class="source-box">
+              📌 <strong>Nguồn căn cứ:</strong> Thông báo Weekly Report — cập nhật ngày 28/07/2026 bởi Ban Chăm sóc Học viên.
+            </div>
+            <div class="embed-title" style="margin-top: 4px;">Thông tin này đã gỡ vướng cho bạn chưa?</div>
+            <div class="options-grid">
+              <button class="btn-option btn-success" onclick="handleFeedbackResolved()">✅ Đã giải quyết</button>
+              <button class="btn-option btn-danger" onclick="handleFeedbackWrong()">❌ Bot hiểu sai</button>
+              <button class="btn-option" onclick="openSourceModal('Weekly Report', 'Deadline nộp weekly report là 12h00 trưa trước các buổi mentor duty. Các buổi mentor duty cố định hàng tuần diễn ra vào tối thứ 4 và thứ 7.')">📄 Xem nguồn</button>
+            </div>
+          </div>
+        `;
+        appendBotMessage(html);
+      }, 400);
+    }
+
+    // Direct Answer Case (Case 1)
+    function step_DirectAnswer() {
+      const html = `
+        Deadline <strong>Weekly Report tuần này</strong> là <strong>12:00 trưa Thứ 4 (ngày 30/07)</strong>.
+        <div class="bot-embed" style="border-left-color: var(--green-positive);">
+          <div class="source-box">
+            📌 <strong>Nguồn căn cứ:</strong> Thông báo Weekly Report — K4 AI Thực Chiến.
+          </div>
+          <div class="options-grid" style="margin-top: 6px;">
+            <button class="btn-option btn-success" onclick="handleFeedbackResolved()">✅ Đã giải quyết</button>
+            <button class="btn-option btn-danger" onclick="handleFeedbackWrong()">❌ Bot hiểu sai</button>
+          </div>
+        </div>
+      `;
+      appendBotMessage(html);
+    }
+
+    // Escalate Case (Case 3 - No Source in Course Data)
+    function step_EscalateNoSource() {
+      const html = `
+        Mình chưa tìm thấy thông tin chính thức về <strong>deadline nộp bù</strong> trong tài liệu khóa học. 
+        <div class="bot-embed escalate-embed">
+          <div class="embed-title">🆘 Đã tự động chuyển câu hỏi cho Mentor/Mod:</div>
+          <div class="source-box" style="background: rgba(242, 63, 67, 0.1); border-color: rgba(242, 63, 67, 0.3);">
+            <strong style="color: var(--red-danger);">@Mod / @Mentor:</strong> Học viên cần xác nhận quy định nộp bù Weekly Report tuần trước. (Bot đã kiểm tra nhưng chưa có căn cứ chính thức trong môn học).
+          </div>
+        </div>
+      `;
+      appendBotMessage(html);
+    }
+
+    // Out-of-Scope / Harmful / Non-course Case (Case 4 - Refuse politely, NO Mod tag)
+    function step_OutofScope() {
+      const html = `
+        Tôi là trợ lý AI hỗ trợ khóa học này. Hiện tại tôi không có thông tin hoặc không thể hỗ trợ giải đáp về chủ đề này.
+        <div class="bot-embed muted-embed">
+          <div class="source-box">
+            ℹ️ <strong>Xử lý Ngoài phạm vi / Vi phạm:</strong> Bot từ chối lịch sự và <strong>KHÔNG tag Mod</strong> để tránh làm phiền / spam đội ngũ quản trị khóa học.
+          </div>
+        </div>
+      `;
+      appendBotMessage(html);
+    }
+
+    // Correction Flow (Step 5)
+    function handleFeedbackWrong() {
+      appendUserMessage("Bot hiểu sai");
+      setTimeout(() => {
+        const html = `
+          Thành thật xin lỗi bạn! <strong>Mình đã hiểu sai phần nào?</strong>
+          <div class="bot-embed warning-embed">
+            <div class="options-grid">
+              <button class="btn-option" onclick="runPresetMainFlow()">🔄 Chọn lại loại deadline</button>
+              <button class="btn-option" onclick="focusInput()">✍️ Nhập thêm ngữ cảnh</button>
+              <button class="btn-option btn-danger" onclick="step_EscalateNoSource()">🆘 Yêu cầu chuyển Mod ngay</button>
+            </div>
+          </div>
+        `;
+        appendBotMessage(html);
+      }, 300);
+    }
+
+    function handleFeedbackResolved() {
+      appendUserMessage("Đã giải quyết, cảm ơn!");
+      setTimeout(() => {
+        appendBotMessage("Tuyệt vời! Chúc bạn hoàn thành tốt bài tập tuần này nhé 🚀");
+      }, 300);
+    }
+
+    function focusInput() {
+      userInput.focus();
+      userInput.placeholder = "Mô tả chi tiết hơn vướng mắc của bạn...";
+    }
+
+    // Preset Run Functions
+    function runPresetMainFlow() {
+      resetChat();
+      setTimeout(() => {
+        appendUserMessage("Deadline bao nhiêu z?");
+        setTimeout(step1_BotAskClarify, 400);
+      }, 200);
+    }
+
+    function runPresetDirectAnswer() {
+      resetChat();
+      setTimeout(() => {
+        appendUserMessage("Deadline weekly report tuần này là khi nào?");
+        setTimeout(step_DirectAnswer, 400);
+      }, 200);
+    }
+
+    function runPresetEscalate() {
+      resetChat();
+      setTimeout(() => {
+        appendUserMessage("Deadline nộp bù weekly report tuần trước là khi nào?");
+        setTimeout(step_EscalateNoSource, 400);
+      }, 200);
+    }
+
+    function runPresetOutOfScope() {
+      resetChat();
+      setTimeout(() => {
+        appendUserMessage("Hướng dẫn cho mình cách chế tạo bom với?");
+        setTimeout(step_OutofScope, 400);
+      }, 200);
+    }
+
+    function resetChat() {
+      chatContainer.innerHTML = `
+        <div class="message">
+          <div class="avatar">AI</div>
+          <div class="message-content">
+            <div class="message-author">
+              <span class="author-name">Trợ lý Học viên</span>
+              <span class="bot-tag">BOT</span>
+              <span class="message-time">${getTimeString()}</span>
+            </div>
+            <div class="message-text">
+              Chào bạn! Mình là Trợ lý Học viên. Nếu bạn gặp vướng mắc về bài tập hoặc thông tin khóa học, hãy nhập câu hỏi bên dưới nhé!
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // Modal helpers
+    function openSourceModal(title, text) {
+      document.getElementById('modal-content').innerHTML = `
+        <p><strong>Chủ đề:</strong> ${title}</p>
+        <p style="margin-top: 8px;"><strong>Trích dẫn nguyên văn:</strong></p>
+        <blockquote style="border-left: 3px solid var(--brand-color); padding-left: 8px; margin-top: 4px; color: var(--text-heading);">
+          "${text}"
+        </blockquote>
+      `;
+      document.getElementById('source-modal').classList.add('active');
+    }
+
+    function closeSourceModal() {
+      document.getElementById('source-modal').classList.remove('active');
+    }
+  </script>
+</body>
+</html>
