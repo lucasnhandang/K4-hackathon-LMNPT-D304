@@ -118,6 +118,11 @@ def run_single_test(orchestrator: ChatbotOrchestrator, case: dict) -> dict:
         channel_id=meta.get("channel_id", "test_channel"),
         pending_clarification=pending,
         conversation_history=history or None,
+        cohort=(
+            inp.get("learning_context", {}).get("cohort")
+            or inp.get("runtime", {}).get("cohort")
+        ),
+        at=meta.get("timestamp"),
     )
 
     # --- Scoring ---

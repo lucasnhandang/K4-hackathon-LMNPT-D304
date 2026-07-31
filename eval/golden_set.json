@@ -32,7 +32,10 @@
       "intent": "ask_attendance_policy",
       "confidence_min": 0.9,
       "grounding_status": "grounded",
-      "response_keywords": ["nghỉ", "buổi"],
+      "response_keywords": [
+        "nghỉ",
+        "buổi"
+      ],
       "citations_required": true,
       "escalation_required": false
     }
@@ -70,49 +73,119 @@
       "intent": "ask_online_learning_availability",
       "confidence_min": 0.85,
       "grounding_status": "grounded",
-      "response_keywords": ["trực tiếp", "online"],
+      "response_keywords": [
+        "trực tiếp",
+        "online"
+      ],
       "citations_required": true,
       "escalation_required": false
     }
   },
   {
     "id": "case_03",
-    "description": "CLARIFY · Deadline nhưng chưa rõ bài nào (lớp ② mơ hồ/thiếu thông tin)",
-    "input": {
-      "schema_version": "1.0",
-      "metadata": {
-        "message_id": "msg_103",
-        "timestamp": "2026-07-31T09:20:00+07:00",
-        "user_id": "student_1a77e2",
-        "session_id": "discord_session_103",
-        "channel_id": "support_general"
+    "description": "MULTITURN · Câu hỏi XP mơ hồ → bổ sung hoạt động → trả lời đúng có nguồn (lớp ② mơ hồ/thiếu thông tin)",
+    "turns": [
+      {
+        "input": {
+          "schema_version": "1.0",
+          "metadata": {
+            "message_id": "msg_103_t1",
+            "timestamp": "2026-07-31T09:20:00+07:00",
+            "user_id": "student_1a77e2",
+            "session_id": "discord_session_103",
+            "channel_id": "support_general"
+          },
+          "message": {
+            "type": "text",
+            "content": "Được bao nhiêu XP vậy?"
+          },
+          "conversation": {
+            "history": [],
+            "pending_clarification": null
+          },
+          "context": {
+            "description": "Mục tiêu của chatbot là trở thành một người bạn đồng hành năng động, giúp các thành viên của cộng đồng **AI20K Build Phase** dễ dàng tìm kiếm thông tin và giải đáp các thắc mắc thường gặp (FAQ) đó!"
+          },
+          "runtime": {
+            "language": "vi",
+            "platform": "discord"
+          }
+        },
+        "expected": {
+          "route": "CLARIFY",
+          "intent": "ask_xp",
+          "confidence_min": 0.9,
+          "grounding_status": "no_source",
+          "response_keywords": [
+            "XP",
+            "hoạt động"
+          ],
+          "clarification_required": true,
+          "clarification_field": "activity",
+          "escalation_required": false
+        }
       },
-      "message": {
-        "type": "text",
-        "content": "Mai deadline đúng không ạ?"
-      },
-      "conversation": {
-        "history": [],
-        "pending_clarification": null
-      },
-      "context": {
-        "description": "Mục tiêu của chatbot là trở thành một người bạn đồng hành năng động, giúp các thành viên của cộng đồng **AI20K Build Phase** dễ dàng tìm kiếm thông tin và giải đáp các thắc mắc thường gặp (FAQ) đó!"
-      },
-      "runtime": {
-        "language": "vi",
-        "platform": "discord"
+      {
+        "input": {
+          "schema_version": "1.0",
+          "metadata": {
+            "message_id": "msg_103_t2",
+            "timestamp": "2026-07-31T09:21:00+07:00",
+            "user_id": "student_1a77e2",
+            "session_id": "discord_session_103",
+            "channel_id": "support_general"
+          },
+          "message": {
+            "type": "text",
+            "content": "Daily"
+          },
+          "conversation": {
+            "history": [
+              {
+                "role": "user",
+                "content": "Được bao nhiêu XP vậy?"
+              },
+              {
+                "role": "assistant",
+                "content": "Bạn muốn biết XP của hoạt động nào?"
+              }
+            ],
+            "pending_clarification": {
+              "missing_field": "activity",
+              "question": "Bạn muốn biết XP của hoạt động nào?",
+              "suggested_replies": [
+                "Daily checkin",
+                "Weekly submit",
+                "Peer review",
+                "Gate pass"
+              ],
+              "original_intent": "ask_xp",
+              "attempt_count": 1,
+              "known_slots": {}
+            }
+          },
+          "context": {
+            "description": "Mục tiêu của chatbot là trở thành một người bạn đồng hành năng động, giúp các thành viên của cộng đồng **AI20K Build Phase** dễ dàng tìm kiếm thông tin và giải đáp các thắc mắc thường gặp (FAQ) đó!"
+          },
+          "runtime": {
+            "language": "vi",
+            "platform": "discord"
+          }
+        },
+        "expected": {
+          "route": "ANSWER",
+          "intent": "ask_xp",
+          "confidence_min": 0.8,
+          "grounding_status": "grounded",
+          "response_keywords": [
+            "5 XP",
+            "/daily"
+          ],
+          "citations_required": true,
+          "escalation_required": false
+        }
       }
-    },
-    "expected": {
-      "route": "CLARIFY",
-      "intent": "ask_deadline",
-      "confidence_min": 0.6,
-      "grounding_status": "no_source",
-      "response_keywords": ["bài nào", "deadline"],
-      "clarification_required": true,
-      "clarification_field": "assignment",
-      "escalation_required": false
-    }
+    ]
   },
   {
     "id": "case_04",
@@ -147,7 +220,10 @@
       "intent": "request_leave_of_absence",
       "confidence_min": 0.85,
       "grounding_status": "grounded",
-      "response_keywords": ["không có thẩm quyền", "Ban Tổ chức"],
+      "response_keywords": [
+        "không có thẩm quyền",
+        "Ban Tổ chức"
+      ],
       "escalation_required": true,
       "escalation_target": "MOD"
     }
@@ -185,7 +261,10 @@
       "intent": "request_grade_review",
       "confidence_min": 0.85,
       "grounding_status": "no_source",
-      "response_keywords": ["không có quyền", "chuyển"],
+      "response_keywords": [
+        "không có quyền",
+        "chuyển"
+      ],
       "escalation_required": true,
       "escalation_target": "MOD"
     }
@@ -223,7 +302,11 @@
       "intent": "ask_laptop_requirements",
       "confidence_min": 0.85,
       "grounding_status": "grounded",
-      "response_keywords": ["CPU", "RAM", "SSD"],
+      "response_keywords": [
+        "CPU",
+        "RAM",
+        "SSD"
+      ],
       "citations_required": true,
       "escalation_required": false
     }
@@ -261,7 +344,10 @@
       "intent": "unknown",
       "confidence_max": 0.5,
       "grounding_status": "no_source",
-      "response_keywords": ["lỗi", "cụ thể"],
+      "response_keywords": [
+        "lỗi",
+        "cụ thể"
+      ],
       "clarification_required": true,
       "escalation_required": false
     }
@@ -284,8 +370,14 @@
       },
       "conversation": {
         "history": [
-          {"role": "user", "content": "Chương trình cho nghỉ tối đa mấy buổi vậy ạ?"},
-          {"role": "assistant", "content": "Bạn được nghỉ tối đa 4 buổi..."}
+          {
+            "role": "user",
+            "content": "Chương trình cho nghỉ tối đa mấy buổi vậy ạ?"
+          },
+          {
+            "role": "assistant",
+            "content": "Bạn được nghỉ tối đa 4 buổi..."
+          }
         ],
         "pending_clarification": null
       },
@@ -302,7 +394,10 @@
       "intent": "thanks",
       "confidence_min": 0.9,
       "grounding_status": "not_required",
-      "response_keywords": ["vui", "hỗ trợ"],
+      "response_keywords": [
+        "vui",
+        "hỗ trợ"
+      ],
       "citations_required": false,
       "escalation_required": false
     }
@@ -340,7 +435,10 @@
       "intent": "reject_prompt_injection",
       "confidence_min": 0.9,
       "grounding_status": "not_required",
-      "response_keywords": ["không thể", "hướng dẫn"],
+      "response_keywords": [
+        "không thể",
+        "hướng dẫn"
+      ],
       "citations_required": false,
       "escalation_required": false
     }
@@ -378,7 +476,10 @@
       "intent": "ask_holiday_schedule",
       "confidence_min": 0.8,
       "grounding_status": "no_source",
-      "response_keywords": ["chưa có", "thông báo"],
+      "response_keywords": [
+        "chưa có",
+        "thông báo"
+      ],
       "escalation_required": true,
       "escalation_target": "MOD"
     }
@@ -416,7 +517,10 @@
       "intent": "ask_event_schedule",
       "confidence_min": 0.8,
       "grounding_status": "no_source",
-      "response_keywords": ["không tìm thấy", "chuyển"],
+      "response_keywords": [
+        "không tìm thấy",
+        "chuyển"
+      ],
       "escalation_required": true,
       "escalation_target": "MOD"
     }
@@ -454,7 +558,10 @@
       "intent": "ask_scholarship_info",
       "confidence_min": 0.8,
       "grounding_status": "no_source",
-      "response_keywords": ["không đề cập", "chuyển"],
+      "response_keywords": [
+        "không đề cập",
+        "chuyển"
+      ],
       "escalation_required": true,
       "escalation_target": "MOD"
     }
@@ -492,7 +599,10 @@
       "intent": "reject_answer_key_request",
       "confidence_min": 0.9,
       "grounding_status": "not_required",
-      "response_keywords": ["không thể", "đáp án"],
+      "response_keywords": [
+        "không thể",
+        "đáp án"
+      ],
       "citations_required": false,
       "escalation_required": false
     }
@@ -530,7 +640,10 @@
       "intent": "reject_do_assignment_for_user",
       "confidence_min": 0.9,
       "grounding_status": "not_required",
-      "response_keywords": ["không thể", "hướng dẫn"],
+      "response_keywords": [
+        "không thể",
+        "hướng dẫn"
+      ],
       "citations_required": false,
       "escalation_required": false
     }
@@ -568,7 +681,10 @@
       "intent": "ask_deadline",
       "confidence_min": 0.85,
       "grounding_status": "grounded",
-      "response_keywords": ["deadline", "Weekly Assignment"],
+      "response_keywords": [
+        "deadline",
+        "Weekly Assignment"
+      ],
       "citations_required": true,
       "escalation_required": false
     }
@@ -606,51 +722,119 @@
       "intent": "ask_submission_channel",
       "confidence_min": 0.85,
       "grounding_status": "grounded",
-      "response_keywords": ["LearnWorlds", "nộp"],
+      "response_keywords": [
+        "LearnWorlds",
+        "nộp"
+      ],
       "citations_required": true,
       "escalation_required": false
     }
   },
   {
     "id": "case_17",
-    "description": "ANSWER · Correction — học viên sửa lại track đã chọn",
-    "input": {
-      "schema_version": "1.0",
-      "metadata": {
-        "message_id": "msg_117",
-        "timestamp": "2026-07-31T10:30:00+07:00",
-        "user_id": "student_9f14c2",
-        "session_id": "discord_session_117",
-        "channel_id": "support_general"
+    "description": "MULTITURN · User sửa context → trả lời theo context mới (Correction)",
+    "turns": [
+      {
+        "input": {
+          "schema_version": "1.0",
+          "metadata": {
+            "message_id": "msg_117_t1",
+            "timestamp": "2026-07-31T10:30:00+07:00",
+            "user_id": "student_778899",
+            "session_id": "discord_session_117",
+            "channel_id": "support_general"
+          },
+          "message": {
+            "type": "text",
+            "content": "Deadline bao giờ?"
+          },
+          "conversation": {
+            "history": [],
+            "pending_clarification": null
+          },
+          "context": {
+            "description": "Mục tiêu của chatbot là trở thành một người bạn đồng hành năng động, giúp các thành viên của cộng đồng **AI20K Build Phase** dễ dàng tìm kiếm thông tin và giải đáp các thắc mắc thường gặp (FAQ) đó!"
+          },
+          "runtime": {
+            "language": "vi",
+            "platform": "discord"
+          }
+        },
+        "expected": {
+          "route": "CLARIFY",
+          "intent": "ask_deadline",
+          "confidence_min": 0.7,
+          "grounding_status": "no_source",
+          "response_keywords": [
+            "deadline",
+            "bài nào"
+          ],
+          "clarification_required": true,
+          "clarification_field": "assignment",
+          "escalation_required": false
+        }
       },
-      "message": {
-        "type": "text",
-        "content": "À khoan, em đổi qua track P3: AI Application rồi, không phải P1 nữa"
-      },
-      "conversation": {
-        "history": [
-          {"role": "user", "content": "Em học track P1: AI Business & Product ạ."},
-          {"role": "assistant", "content": "Rõ rồi, mình ghi nhận bạn học track P1 nhé."}
-        ],
-        "pending_clarification": null
-      },
-      "context": {
-        "description": "Mục tiêu của chatbot là trở thành một người bạn đồng hành năng động, giúp các thành viên của cộng đồng **AI20K Build Phase** dễ dàng tìm kiếm thông tin và giải đáp các thắc mắc thường gặp (FAQ) đó!"
-      },
-      "runtime": {
-        "language": "vi",
-        "platform": "discord"
+      {
+        "input": {
+          "schema_version": "1.0",
+          "metadata": {
+            "message_id": "msg_117_t2",
+            "timestamp": "2026-07-31T10:31:00+07:00",
+            "user_id": "student_778899",
+            "session_id": "discord_session_117",
+            "channel_id": "support_general"
+          },
+          "message": {
+            "type": "text",
+            "content": "Không phải Weekly Assignment, ý mình là AI Log."
+          },
+          "conversation": {
+            "history": [
+              {
+                "role": "user",
+                "content": "Deadline bao giờ?"
+              },
+              {
+                "role": "assistant",
+                "content": "Bạn đang hỏi deadline của bài nào? (VD: Weekly Assignment, AI Log, Demo Day...)"
+              }
+            ],
+            "pending_clarification": {
+              "missing_field": "assignment",
+              "question": "Bạn đang hỏi deadline của bài nào? (VD: Weekly Assignment, AI Log, Demo Day...)",
+              "suggested_replies": [
+                "Weekly Assignment",
+                "AI Log",
+                "Demo Day deliverables"
+              ],
+              "original_intent": "ask_deadline",
+              "attempt_count": 1,
+              "known_slots": {}
+            }
+          },
+          "context": {
+            "description": "Mục tiêu của chatbot là trở thành một người bạn đồng hành năng động, giúp các thành viên của cộng đồng **AI20K Build Phase** dễ dàng tìm kiếm thông tin và giải đáp các thắc mắc thường gặp (FAQ) đó!"
+          },
+          "runtime": {
+            "language": "vi",
+            "platform": "discord"
+          }
+        },
+        "expected": {
+          "route": "ANSWER",
+          "intent": "ask_deadline",
+          "confidence_min": 0.8,
+          "grounding_status": "grounded",
+          "response_keywords": [
+            "AI LOG",
+            "weekly",
+            "Bắt buộc"
+          ],
+          "citations_required": true,
+          "escalation_required": false
+        }
       }
-    },
-    "expected": {
-      "route": "ANSWER",
-      "intent": "update_track_selection",
-      "confidence_min": 0.85,
-      "grounding_status": "not_required",
-      "response_keywords": ["P3", "cập nhật"],
-      "citations_required": false,
-      "escalation_required": false
-    }
+    ]
   },
   {
     "id": "case_18",
@@ -685,7 +869,11 @@
       "intent": "ask_deadline",
       "confidence_min": 0.7,
       "grounding_status": "no_source",
-      "response_keywords": ["xung đột", "khác nhau", "chuyển"],
+      "response_keywords": [
+        "xung đột",
+        "khác nhau",
+        "chuyển"
+      ],
       "escalation_required": true,
       "escalation_target": "MOD"
     }
@@ -723,7 +911,10 @@
       "intent": "ask_deadline",
       "confidence_max": 0.7,
       "grounding_status": "no_source",
-      "response_keywords": ["tuần nào", "cụ thể"],
+      "response_keywords": [
+        "tuần nào",
+        "cụ thể"
+      ],
       "clarification_required": true,
       "escalation_required": false
     }
@@ -761,9 +952,838 @@
       "intent": "report_harassment",
       "confidence_min": 0.9,
       "grounding_status": "no_source",
-      "response_keywords": ["không thể cung cấp", "thông tin cá nhân"],
+      "response_keywords": [
+        "không thể cung cấp",
+        "thông tin cá nhân"
+      ],
       "escalation_required": true,
       "escalation_target": "MOD"
+    }
+  },
+  {
+    "id": "case_21",
+    "description": "ANSWER · Lệnh nộp báo cáo tuần (KUTE-REG-007)",
+    "input": {
+      "schema_version": "1.0",
+      "metadata": {
+        "message_id": "msg_kute_001",
+        "timestamp": "2026-07-31T11:00:00+07:00",
+        "user_id": "student_kute_001",
+        "session_id": "session_kute_001",
+        "channel_id": "support_general"
+      },
+      "message": {
+        "type": "text",
+        "content": "lệnh báo cáo tuần"
+      },
+      "conversation": {
+        "history": [],
+        "pending_clarification": null
+      },
+      "context": {
+        "description": "Mục tiêu của chatbot là trở thành một người bạn đồng hành năng động, giúp các thành viên của cộng đồng AI20K Build Phase dễ dàng tìm kiếm thông tin và giải đáp các thắc mắc thường gặp."
+      },
+      "runtime": {
+        "language": "vi",
+        "platform": "discord"
+      }
+    },
+    "expected": {
+      "route": "ANSWER",
+      "intent": "ask_slash_command",
+      "confidence_min": 0.85,
+      "grounding_status": "grounded",
+      "response_keywords": [
+        "/weekly",
+        "submit"
+      ],
+      "citations_required": true,
+      "escalation_required": false
+    }
+  },
+  {
+    "id": "case_22",
+    "description": "ANSWER · Hướng dẫn nộp báo cáo tuần (KUTE-REG-096)",
+    "input": {
+      "schema_version": "1.0",
+      "metadata": {
+        "message_id": "msg_kute_002",
+        "timestamp": "2026-07-31T11:05:00+07:00",
+        "user_id": "student_kute_002",
+        "session_id": "session_kute_002",
+        "channel_id": "support_general"
+      },
+      "message": {
+        "type": "text",
+        "content": "hướng dẫn nộp báo cáo tuần"
+      },
+      "conversation": {
+        "history": [],
+        "pending_clarification": null
+      },
+      "context": {
+        "description": "Mục tiêu của chatbot là trở thành một người bạn đồng hành năng động, giúp các thành viên của cộng đồng AI20K Build Phase dễ dàng tìm kiếm thông tin và giải đáp các thắc mắc thường gặp."
+      },
+      "runtime": {
+        "language": "vi",
+        "platform": "discord"
+      }
+    },
+    "expected": {
+      "route": "ANSWER",
+      "intent": "ask_deadline",
+      "confidence_min": 0.82,
+      "grounding_status": "grounded",
+      "response_keywords": [
+        "/weekly submit",
+        "10 XP"
+      ],
+      "citations_required": true,
+      "escalation_required": false
+    }
+  },
+  {
+    "id": "case_23",
+    "description": "ANSWER · Mentor Duty có XP không (KUTE-REG-180)",
+    "input": {
+      "schema_version": "1.0",
+      "metadata": {
+        "message_id": "msg_kute_003",
+        "timestamp": "2026-07-31T11:10:00+07:00",
+        "user_id": "student_kute_003",
+        "session_id": "session_kute_003",
+        "channel_id": "support_general"
+      },
+      "message": {
+        "type": "text",
+        "content": "mentor duty có xp k"
+      },
+      "conversation": {
+        "history": [],
+        "pending_clarification": null
+      },
+      "context": {
+        "description": "Mục tiêu của chatbot là trở thành một người bạn đồng hành năng động, giúp các thành viên của cộng đồng AI20K Build Phase dễ dàng tìm kiếm thông tin và giải đáp các thắc mắc thường gặp."
+      },
+      "runtime": {
+        "language": "vi",
+        "platform": "discord"
+      }
+    },
+    "expected": {
+      "route": "ANSWER",
+      "intent": "ask_xp",
+      "confidence_min": 0.78,
+      "grounding_status": "grounded",
+      "response_keywords": [
+        "Mentoring Duty",
+        "không cộng"
+      ],
+      "citations_required": true,
+      "escalation_required": false
+    }
+  },
+  {
+    "id": "case_24",
+    "description": "ANSWER · Tác dụng và vai trò của Daily (KUTE-REG-201)",
+    "input": {
+      "schema_version": "1.0",
+      "metadata": {
+        "message_id": "msg_kute_004",
+        "timestamp": "2026-07-31T11:15:00+07:00",
+        "user_id": "student_kute_004",
+        "session_id": "session_kute_004",
+        "channel_id": "support_general"
+      },
+      "message": {
+        "type": "text",
+        "content": "daily có tác dụng và vai trò gì"
+      },
+      "conversation": {
+        "history": [],
+        "pending_clarification": null
+      },
+      "context": {
+        "description": "Mục tiêu của chatbot là trở thành một người bạn đồng hành năng động, giúp các thành viên của cộng đồng AI20K Build Phase dễ dàng tìm kiếm thông tin và giải đáp các thắc mắc thường gặp."
+      },
+      "runtime": {
+        "language": "vi",
+        "platform": "discord"
+      }
+    },
+    "expected": {
+      "route": "ANSWER",
+      "intent": "ask_xp",
+      "confidence_min": 0.84,
+      "grounding_status": "grounded",
+      "response_keywords": [
+        "5 XP",
+        "/daily"
+      ],
+      "citations_required": true,
+      "escalation_required": false
+    }
+  },
+  {
+    "id": "case_25",
+    "description": "ANSWER · Xem tổng điểm XP của nhóm (KUTE-REG-158)",
+    "input": {
+      "schema_version": "1.0",
+      "metadata": {
+        "message_id": "msg_kute_005",
+        "timestamp": "2026-07-31T11:20:00+07:00",
+        "user_id": "student_kute_005",
+        "session_id": "session_kute_005",
+        "channel_id": "support_general"
+      },
+      "message": {
+        "type": "text",
+        "content": "Làm sao để xem tổng điểm kinh nghiệm hiện có của nhóm"
+      },
+      "conversation": {
+        "history": [],
+        "pending_clarification": null
+      },
+      "context": {
+        "description": "Mục tiêu của chatbot là trở thành một người bạn đồng hành năng động, giúp các thành viên của cộng đồng AI20K Build Phase dễ dàng tìm kiếm thông tin và giải đáp các thắc mắc thường gặp."
+      },
+      "runtime": {
+        "language": "vi",
+        "platform": "discord"
+      }
+    },
+    "expected": {
+      "route": "ANSWER",
+      "intent": "ask_xp",
+      "confidence_min": 0.81,
+      "grounding_status": "grounded",
+      "response_keywords": [
+        "/rank",
+        "XP"
+      ],
+      "citations_required": true,
+      "escalation_required": false
+    }
+  },
+  {
+    "id": "case_26",
+    "description": "ANSWER · Gate vs Weekly submit khác gì nhau (KUTE-REG-109)",
+    "input": {
+      "schema_version": "1.0",
+      "metadata": {
+        "message_id": "msg_kute_006",
+        "timestamp": "2026-07-31T11:25:00+07:00",
+        "user_id": "student_kute_006",
+        "session_id": "session_kute_006",
+        "channel_id": "support_general"
+      },
+      "message": {
+        "type": "text",
+        "content": "gate khi nào? và nộp weekly submit khi nào? 2 sự kiện này khác gì nhau"
+      },
+      "conversation": {
+        "history": [],
+        "pending_clarification": null
+      },
+      "context": {
+        "description": "Mục tiêu của chatbot là trở thành một người bạn đồng hành năng động, giúp các thành viên của cộng đồng AI20K Build Phase dễ dàng tìm kiếm thông tin và giải đáp các thắc mắc thường gặp."
+      },
+      "runtime": {
+        "language": "vi",
+        "platform": "discord"
+      }
+    },
+    "expected": {
+      "route": "ANSWER",
+      "intent": "ask_gate",
+      "confidence_min": 0.79,
+      "grounding_status": "grounded",
+      "response_keywords": [
+        "Weekly Submit",
+        "Gate",
+        "100 XP"
+      ],
+      "citations_required": true,
+      "escalation_required": false
+    }
+  },
+  {
+    "id": "case_27",
+    "description": "ESCALATE · Nhóm còn 2 người xin đổi nhóm / đề tài (KUTE-REG-002)",
+    "input": {
+      "schema_version": "1.0",
+      "metadata": {
+        "message_id": "msg_kute_007",
+        "timestamp": "2026-07-31T11:30:00+07:00",
+        "user_id": "student_kute_007",
+        "session_id": "session_kute_007",
+        "channel_id": "support_general"
+      },
+      "message": {
+        "type": "text",
+        "content": "nhóm mình có 4 người nhưng có 2 bạn nghỉ học, giờ còn 2 người thì có join vào nhóm khác hoặc đổi đề tài khác được không"
+      },
+      "conversation": {
+        "history": [],
+        "pending_clarification": null
+      },
+      "context": {
+        "description": "Mục tiêu của chatbot là trở thành một người bạn đồng hành năng động, giúp các thành viên của cộng đồng AI20K Build Phase dễ dàng tìm kiếm thông tin và giải đáp các thắc mắc thường gặp."
+      },
+      "runtime": {
+        "language": "vi",
+        "platform": "discord"
+      }
+    },
+    "expected": {
+      "route": "ESCALATE",
+      "intent": "ask_team_mentor",
+      "confidence_min": 0.8,
+      "grounding_status": "no_source",
+      "response_keywords": [
+        "ticket",
+        "mentor-support"
+      ],
+      "escalation_required": true,
+      "escalation_target": "MOD"
+    }
+  },
+  {
+    "id": "case_28",
+    "description": "ANSWER · Lịch sự kiện tối nay (KUTE-REG-189)",
+    "input": {
+      "schema_version": "1.0",
+      "metadata": {
+        "message_id": "msg_kute_008",
+        "timestamp": "2026-07-31T11:35:00+07:00",
+        "user_id": "student_kute_008",
+        "session_id": "session_kute_008",
+        "channel_id": "support_general"
+      },
+      "message": {
+        "type": "text",
+        "content": "tối nay"
+      },
+      "conversation": {
+        "history": [],
+        "pending_clarification": null
+      },
+      "context": {
+        "description": "Mục tiêu của chatbot là trở thành một người bạn đồng hành năng động, giúp các thành viên của cộng đồng AI20K Build Phase dễ dàng tìm kiếm thông tin và giải đáp các thắc mắc thường gặp."
+      },
+      "runtime": {
+        "language": "vi",
+        "platform": "discord"
+      }
+    },
+    "expected": {
+      "route": "ANSWER",
+      "intent": "ask_event_schedule",
+      "confidence_min": 0.75,
+      "grounding_status": "grounded",
+      "response_keywords": [
+        "Mentoring Duty",
+        "20:00"
+      ],
+      "citations_required": true,
+      "escalation_required": false
+    }
+  },
+  {
+    "id": "case_29",
+    "description": "ANSWER · Tối nay có sự kiện gì (KUTE-REG-198)",
+    "input": {
+      "schema_version": "1.0",
+      "metadata": {
+        "message_id": "msg_kute_009",
+        "timestamp": "2026-07-31T11:40:00+07:00",
+        "user_id": "student_kute_009",
+        "session_id": "session_kute_009",
+        "channel_id": "support_general"
+      },
+      "message": {
+        "type": "text",
+        "content": "tối nay có sự kiện gì ?"
+      },
+      "conversation": {
+        "history": [],
+        "pending_clarification": null
+      },
+      "context": {
+        "description": "Mục tiêu của chatbot là trở thành một người bạn đồng hành năng động, giúp các thành viên của cộng đồng AI20K Build Phase dễ dàng tìm kiếm thông tin và giải đáp các thắc mắc thường gặp."
+      },
+      "runtime": {
+        "language": "vi",
+        "platform": "discord"
+      }
+    },
+    "expected": {
+      "route": "ANSWER",
+      "intent": "ask_event_schedule",
+      "confidence_min": 0.82,
+      "grounding_status": "grounded",
+      "response_keywords": [
+        "sự kiện",
+        "#thông-báo"
+      ],
+      "citations_required": true,
+      "escalation_required": false
+    }
+  },
+  {
+    "id": "case_30",
+    "description": "ANSWER · Tối nay có gì không nhỉ (KUTE-REG-216)",
+    "input": {
+      "schema_version": "1.0",
+      "metadata": {
+        "message_id": "msg_kute_010",
+        "timestamp": "2026-07-31T11:45:00+07:00",
+        "user_id": "student_kute_010",
+        "session_id": "session_kute_010",
+        "channel_id": "support_general"
+      },
+      "message": {
+        "type": "text",
+        "content": "tối nay có gì không nhỉ"
+      },
+      "conversation": {
+        "history": [],
+        "pending_clarification": null
+      },
+      "context": {
+        "description": "Mục tiêu của chatbot là trở thành một người bạn đồng hành năng động, giúp các thành viên của cộng đồng AI20K Build Phase dễ dàng tìm kiếm thông tin và giải đáp các thắc mắc thường gặp."
+      },
+      "runtime": {
+        "language": "vi",
+        "platform": "discord"
+      }
+    },
+    "expected": {
+      "route": "ANSWER",
+      "intent": "ask_event_schedule",
+      "confidence_min": 0.77,
+      "grounding_status": "grounded",
+      "response_keywords": [
+        "Workshop",
+        "Mentoring Duty"
+      ],
+      "citations_required": true,
+      "escalation_required": false
+    }
+  },
+  {
+    "id": "case_31",
+    "description": "ANSWER · Phân biệt Workshop và Mentor Duty (KUTE-REG-193)",
+    "input": {
+      "schema_version": "1.0",
+      "metadata": {
+        "message_id": "msg_kute_011",
+        "timestamp": "2026-07-31T11:50:00+07:00",
+        "user_id": "student_kute_011",
+        "session_id": "session_kute_011",
+        "channel_id": "support_general"
+      },
+      "message": {
+        "type": "text",
+        "content": "tối thứ 5 là workshop hay là mentor duty vậy ? Hay từ tuần này 2 cái là 1 ?"
+      },
+      "conversation": {
+        "history": [],
+        "pending_clarification": null
+      },
+      "context": {
+        "description": "Mục tiêu của chatbot là trở thành một người bạn đồng hành năng động, giúp các thành viên của cộng đồng AI20K Build Phase dễ dàng tìm kiếm thông tin và giải đáp các thắc mắc thường gặp."
+      },
+      "runtime": {
+        "language": "vi",
+        "platform": "discord"
+      }
+    },
+    "expected": {
+      "route": "ANSWER",
+      "intent": "ask_event_schedule",
+      "confidence_min": 0.83,
+      "grounding_status": "grounded",
+      "response_keywords": [
+        "Workshop",
+        "Mentoring Duty"
+      ],
+      "citations_required": true,
+      "escalation_required": false
+    }
+  },
+  {
+    "id": "case_32",
+    "description": "ANSWER · Link slide hackathon (KUTE-REG-226)",
+    "input": {
+      "schema_version": "1.0",
+      "metadata": {
+        "message_id": "msg_kute_012",
+        "timestamp": "2026-07-31T11:55:00+07:00",
+        "user_id": "student_kute_012",
+        "session_id": "session_kute_012",
+        "channel_id": "support_general"
+      },
+      "message": {
+        "type": "text",
+        "content": "cho tôi link slide buổi hackathon hôm nay"
+      },
+      "conversation": {
+        "history": [],
+        "pending_clarification": null
+      },
+      "context": {
+        "description": "Mục tiêu của chatbot là trở thành một người bạn đồng hành năng động, giúp các thành viên của cộng đồng AI20K Build Phase dễ dàng tìm kiếm thông tin và giải đáp các thắc mắc thường gặp."
+      },
+      "runtime": {
+        "language": "vi",
+        "platform": "discord"
+      }
+    },
+    "expected": {
+      "route": "ANSWER",
+      "intent": "search_fallback",
+      "confidence_min": 0.72,
+      "grounding_status": "grounded",
+      "response_keywords": [
+        "slide",
+        "#thông-báo",
+        "VLearn"
+      ],
+      "citations_required": true,
+      "escalation_required": false
+    }
+  },
+  {
+    "id": "case_33",
+    "description": "ANSWER · Tìm tài liệu Workshop 2 (KUTE-REG-215)",
+    "input": {
+      "schema_version": "1.0",
+      "metadata": {
+        "message_id": "msg_kute_013",
+        "timestamp": "2026-07-31T12:00:00+07:00",
+        "user_id": "student_kute_013",
+        "session_id": "session_kute_013",
+        "channel_id": "support_general"
+      },
+      "message": {
+        "type": "text",
+        "content": "Tìm cho tôi tài liệu workshop 2"
+      },
+      "conversation": {
+        "history": [],
+        "pending_clarification": null
+      },
+      "context": {
+        "description": "Mục tiêu của chatbot là trở thành một người bạn đồng hành năng động, giúp các thành viên của cộng đồng AI20K Build Phase dễ dàng tìm kiếm thông tin và giải đáp các thắc mắc thường gặp."
+      },
+      "runtime": {
+        "language": "vi",
+        "platform": "discord"
+      }
+    },
+    "expected": {
+      "route": "ANSWER",
+      "intent": "search_fallback",
+      "confidence_min": 0.78,
+      "grounding_status": "grounded",
+      "response_keywords": [
+        "Workshop 2",
+        "VLearn",
+        "#tài-liệu"
+      ],
+      "citations_required": true,
+      "escalation_required": false
+    }
+  },
+  {
+    "id": "case_34",
+    "description": "CLARIFY · Tổng hợp tin nhắn nhóm (KUTE-REG-174)",
+    "input": {
+      "schema_version": "1.0",
+      "metadata": {
+        "message_id": "msg_kute_014",
+        "timestamp": "2026-07-31T12:05:00+07:00",
+        "user_id": "student_kute_014",
+        "session_id": "session_kute_014",
+        "channel_id": "support_general"
+      },
+      "message": {
+        "type": "text",
+        "content": "tổng hợp tin nhắn thông tin trong nhóm từ 18h đến 20h25 phút"
+      },
+      "conversation": {
+        "history": [],
+        "pending_clarification": null
+      },
+      "context": {
+        "description": "Mục tiêu của chatbot là trở thành một người bạn đồng hành năng động, giúp các thành viên của cộng đồng AI20K Build Phase dễ dàng tìm kiếm thông tin và giải đáp các thắc mắc thường gặp."
+      },
+      "runtime": {
+        "language": "vi",
+        "platform": "discord"
+      }
+    },
+    "expected": {
+      "route": "CLARIFY",
+      "intent": "search_fallback",
+      "confidence_min": 0.4,
+      "grounding_status": "no_source",
+      "response_keywords": [
+        "nói rõ hơn",
+        "chủ đề"
+      ],
+      "clarification_required": true,
+      "clarification_field": "query",
+      "escalation_required": false
+    }
+  },
+  {
+    "id": "case_35",
+    "description": "ANSWER · Đổi tên team (KUTE-REG-176)",
+    "input": {
+      "schema_version": "1.0",
+      "metadata": {
+        "message_id": "msg_kute_015",
+        "timestamp": "2026-07-31T12:10:00+07:00",
+        "user_id": "student_kute_015",
+        "session_id": "session_kute_015",
+        "channel_id": "support_general"
+      },
+      "message": {
+        "type": "text",
+        "content": "nhóm mọi người đặt tên ở đâu nhỉ 😬, t thấy mọi người có mấy cái tên vui vui mà nhón t được ghép tự động nên chưa tìm ra chỗ đổi"
+      },
+      "conversation": {
+        "history": [],
+        "pending_clarification": null
+      },
+      "context": {
+        "description": "Mục tiêu của chatbot là trở thành một người bạn đồng hành năng động, giúp các thành viên của cộng đồng AI20K Build Phase dễ dàng tìm kiếm thông tin và giải đáp các thắc mắc thường gặp."
+      },
+      "runtime": {
+        "language": "vi",
+        "platform": "discord"
+      }
+    },
+    "expected": {
+      "route": "ANSWER",
+      "intent": "ask_team_mentor",
+      "confidence_min": 0.84,
+      "grounding_status": "grounded",
+      "response_keywords": [
+        "P-XXX",
+        "t-XXX",
+        "ticket"
+      ],
+      "citations_required": true,
+      "escalation_required": false
+    }
+  },
+  {
+    "id": "case_36",
+    "description": "ANSWER · Kiểm tra đề tài đã có nhóm chọn chưa (KUTE-NR-001)",
+    "input": {
+      "schema_version": "1.0",
+      "metadata": {
+        "message_id": "msg_kute_016",
+        "timestamp": "2026-07-31T12:15:00+07:00",
+        "user_id": "student_kute_016",
+        "session_id": "session_kute_016",
+        "channel_id": "support_general"
+      },
+      "message": {
+        "type": "text",
+        "content": "cách kiểm tra 1 đề tài đã có nhóm nào chọn chưa"
+      },
+      "conversation": {
+        "history": [],
+        "pending_clarification": null
+      },
+      "context": {
+        "description": "Mục tiêu của chatbot là trở thành một người bạn đồng hành năng động, giúp các thành viên của cộng đồng AI20K Build Phase dễ dàng tìm kiếm thông tin và giải đáp các thắc mắc thường gặp."
+      },
+      "runtime": {
+        "language": "vi",
+        "platform": "discord"
+      }
+    },
+    "expected": {
+      "route": "ANSWER",
+      "intent": "ask_team_mentor",
+      "confidence_min": 0.76,
+      "grounding_status": "grounded",
+      "response_keywords": [
+        "VLearn",
+        "/myteam"
+      ],
+      "citations_required": true,
+      "escalation_required": false
+    }
+  },
+  {
+    "id": "case_37",
+    "description": "ANSWER · Yêu cầu và hạn nộp Gate 1 (KUTE-NR-003)",
+    "input": {
+      "schema_version": "1.0",
+      "metadata": {
+        "message_id": "msg_kute_017",
+        "timestamp": "2026-07-31T12:20:00+07:00",
+        "user_id": "student_kute_017",
+        "session_id": "session_kute_017",
+        "channel_id": "support_general"
+      },
+      "message": {
+        "type": "text",
+        "content": "Gate 1 nộp những gì và thời gian nộp là bao giờ"
+      },
+      "conversation": {
+        "history": [],
+        "pending_clarification": null
+      },
+      "context": {
+        "description": "Mục tiêu của chatbot là trở thành một người bạn đồng hành năng động, giúp các thành viên của cộng đồng AI20K Build Phase dễ dàng tìm kiếm thông tin và giải đáp các thắc mắc thường gặp."
+      },
+      "runtime": {
+        "language": "vi",
+        "platform": "discord"
+      }
+    },
+    "expected": {
+      "route": "ANSWER",
+      "intent": "ask_gate",
+      "confidence_min": 0.86,
+      "grounding_status": "grounded",
+      "response_keywords": [
+        "CP1",
+        "Setup Environment",
+        "AI Log"
+      ],
+      "citations_required": true,
+      "escalation_required": false
+    }
+  },
+  {
+    "id": "case_38",
+    "description": "ANSWER · Quy định nộp Codelabs cá nhân (KUTE-NR-004)",
+    "input": {
+      "schema_version": "1.0",
+      "metadata": {
+        "message_id": "msg_kute_018",
+        "timestamp": "2026-07-31T12:25:00+07:00",
+        "user_id": "student_kute_018",
+        "session_id": "session_kute_018",
+        "channel_id": "support_general"
+      },
+      "message": {
+        "type": "text",
+        "content": "Hi. về các bài codelabs trên lớp tôi làm một bài với nhóm nhưng tôi submit bài cá nhân được ko"
+      },
+      "conversation": {
+        "history": [],
+        "pending_clarification": null
+      },
+      "context": {
+        "description": "Mục tiêu của chatbot là trở thành một người bạn đồng hành năng động, giúp các thành viên của cộng đồng AI20K Build Phase dễ dàng tìm kiếm thông tin và giải đáp các thắc mắc thường gặp."
+      },
+      "runtime": {
+        "language": "vi",
+        "platform": "discord"
+      }
+    },
+    "expected": {
+      "route": "ANSWER",
+      "intent": "ask_xp",
+      "confidence_min": 0.78,
+      "grounding_status": "grounded",
+      "response_keywords": [
+        "cá nhân",
+        "XP"
+      ],
+      "citations_required": true,
+      "escalation_required": false
+    }
+  },
+  {
+    "id": "case_39",
+    "description": "ANSWER · Tìm bài setup Jira (KUTE-NR-005)",
+    "input": {
+      "schema_version": "1.0",
+      "metadata": {
+        "message_id": "msg_kute_019",
+        "timestamp": "2026-07-31T12:30:00+07:00",
+        "user_id": "student_kute_019",
+        "session_id": "session_kute_019",
+        "channel_id": "support_general"
+      },
+      "message": {
+        "type": "text",
+        "content": "tìm cho mình bài setup jira, mình bị trôi mất tin nhắn đó rồi."
+      },
+      "conversation": {
+        "history": [],
+        "pending_clarification": null
+      },
+      "context": {
+        "description": "Mục tiêu của chatbot là trở thành một người bạn đồng hành năng động, giúp các thành viên của cộng đồng AI20K Build Phase dễ dàng tìm kiếm thông tin và giải đáp các thắc mắc thường gặp."
+      },
+      "runtime": {
+        "language": "vi",
+        "platform": "discord"
+      }
+    },
+    "expected": {
+      "route": "ANSWER",
+      "intent": "search_fallback",
+      "confidence_min": 0.75,
+      "grounding_status": "grounded",
+      "response_keywords": [
+        "CP1",
+        "#learning-support"
+      ],
+      "citations_required": true,
+      "escalation_required": false
+    }
+  },
+  {
+    "id": "case_40",
+    "description": "ANSWER · Nộp báo cáo Mentor Duty ở đâu (KUTE-REG-031)",
+    "input": {
+      "schema_version": "1.0",
+      "metadata": {
+        "message_id": "msg_kute_020",
+        "timestamp": "2026-07-31T12:35:00+07:00",
+        "user_id": "student_kute_020",
+        "session_id": "session_kute_020",
+        "channel_id": "support_general"
+      },
+      "message": {
+        "type": "text",
+        "content": "nộp báo cáo buổi mentor duty ở đâu"
+      },
+      "conversation": {
+        "history": [],
+        "pending_clarification": null
+      },
+      "context": {
+        "description": "Mục tiêu của chatbot là trở thành một người bạn đồng hành năng động, giúp các thành viên của cộng đồng AI20K Build Phase dễ dàng tìm kiếm thông tin và giải đáp các thắc mắc thường gặp."
+      },
+      "runtime": {
+        "language": "vi",
+        "platform": "discord"
+      }
+    },
+    "expected": {
+      "route": "ANSWER",
+      "intent": "ask_event_schedule",
+      "confidence_min": 0.84,
+      "grounding_status": "grounded",
+      "response_keywords": [
+        "Mentoring Duty",
+        "/weekly submit"
+      ],
+      "citations_required": true,
+      "escalation_required": false
     }
   }
 ]

@@ -65,7 +65,7 @@ class OrchestratorRAGTests(unittest.TestCase):
     def test_deadline_with_tool_result_uses_template(self):
         """Deadline with successful tool result should use template."""
         orch = self._make_orchestrator(llm_available=True)
-        result = orch.process_message("Deadline weekly assignment k3")
+        result = orch.process_message("Deadline AI Log")
 
         # Should get a structured response (template) if tool finds data
         self.assertEqual(result["route"], "ANSWER")
@@ -152,28 +152,64 @@ class OrchestratorRAGTests(unittest.TestCase):
         self.assertEqual(result["route"], "ANSWER")
         self.assertIn("không thể thực hiện", result["response"])
 
-    def test_tool_not_found_fallback_to_rag(self):
-        """Tool not_found should fallback to BM25 + RAG."""
+    def test_tool_not_found_does_not_fallback_to_rag(self):
+        """A complete structured lookup with no source must escalate."""
         orch = self._make_orchestrator(llm_available=True)
 
-        # First call: tool lookup returns not_found
-        # Second call: BM25 search returns results
-        call_count = 0
-        def mock_execute(tool_name, args):
-            nonlocal call_count
-            call_count += 1
-            if call_count == 1:
-                return {"status": "not_found", "data": None}
-            return {
-                "status": "ok",
-                "data": [{"source_id": "src_001", "category": "general", "score": 0.5, "attributes": {}}],
-                "citations": [{"source_id": "src_001", "title": "Guide", "locator": "s1", "quote": "Test"}],
+        orch.registry.execute = MagicMock(
+            return_value={"status": "not_found", "data": None}
+        )
+        result = orch.process_message("Deadline Weekly Assignment 3 khi nào?")
+
+        self.assertEqual(result["route"], "ESCALATE")
+        self.assertEqual(orch.registry.execute.call_count, 1)
+        orch.rag.client.chat.assert_not_called()
+
+    def test_ambiguous_tool_result_always_clarifies_before_rag(self):
+        orch = self._make_orchestrator(llm_available=True)
+        orch.registry.execute = MagicMock(
+            return_value={
+                "status": "ambiguous",
+                "missing_fields": ["assignment"],
+                "data": None,
             }
+        )
 
-        orch.registry.execute = MagicMock(side_effect=mock_execute)
-        result = orch.process_message("Deadline的东西 khi nào?")
+        result = orch.process_message("Deadline bao giờ?")
 
-        self.assertEqual(result["route"], "ANSWER")
+        self.assertEqual(result["route"], "CLARIFY")
+        self.assertEqual(orch.registry.execute.call_count, 1)
+        orch.rag.client.chat.assert_not_called()
+
+    def test_cohort_and_timestamp_are_forwarded_to_structured_tool(self):
+        orch = self._make_orchestrator(llm_available=False)
+        orch.registry.execute = MagicMock(
+            return_value={"status": "not_found", "data": None}
+        )
+        timestamp = "2026-07-31T20:00:00+07:00"
+
+        orch.process_message(
+            "Bao nhiêu XP khi checkin daily?",
+            cohort="k4",
+            at=timestamp,
+        )
+
+        _, arguments = orch.registry.execute.call_args.args
+        self.assertEqual(arguments["cohort"], "k4")
+        self.assertEqual(arguments["at"], timestamp)
+
+    def test_recognized_search_intent_uses_category_and_threshold(self):
+        orch = self._make_orchestrator(llm_available=False)
+        orch.registry.execute = MagicMock(
+            return_value={"status": "not_found", "data": None}
+        )
+
+        result = orch.process_message("Được nghỉ học tối đa mấy buổi?")
+
+        self.assertEqual(result["route"], "ESCALATE")
+        _, arguments = orch.registry.execute.call_args.args
+        self.assertEqual(arguments["category"], "policy")
+        self.assertEqual(arguments["min_score"], 2.5)
 
 
 if __name__ == "__main__":

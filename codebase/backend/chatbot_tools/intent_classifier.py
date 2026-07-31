@@ -73,6 +73,72 @@ INTENTS = {
         ],
     },
 
+    # Core course-support policies and resources
+    "ask_attendance_policy": {
+        "keywords": ["chuyen can", "nghi hoc", "vang hoc", "nghi toi da", "duoc nghi"],
+        "patterns": [
+            r"chuyen\s*can", r"nghi\s*(hoc|toi\s*da|may|bao\s*nhieu)",
+            r"vang\s*(hoc|mat)", r"duoc\s*nghi",
+        ],
+    },
+    "ask_online_learning_availability": {
+        "keywords": ["hoc online", "hoc truc tiep", "hoc offline", "hinh thuc hoc"],
+        "patterns": [
+            r"hoc\s*(online|offline|truc\s*tiep)",
+            r"(online|offline|truc\s*tiep)\s*(duoc\s*)?(khong|ko|k)?",
+            r"hinh\s*thuc\s*hoc",
+        ],
+    },
+    "ask_laptop_requirements": {
+        "keywords": ["cau hinh laptop", "cau hinh may", "cpu", "ram", "ssd", "may tinh"],
+        "patterns": [
+            r"cau\s*hinh\s*(laptop|may)", r"\bcpu\b", r"\bram\b", r"\bssd\b",
+            r"(laptop|may\s*tinh).*(toi\s*thieu|yeu\s*cau|can)",
+        ],
+    },
+    "ask_submission_channel": {
+        "keywords": ["nop o dau", "nop bao cao", "kenh nop", "noi nop", "submission"],
+        "patterns": [
+            r"nop.*o\s*dau", r"(kenh|noi)\s*nop", r"nop\s*bao\s*cao",
+            r"submission",
+        ],
+    },
+    "ask_learning_material": {
+        "keywords": ["tai lieu", "slide", "codelab", "jira", "syllabus", "bai setup"],
+        "patterns": [
+            r"tai\s*lieu", r"\bslide\b", r"\bcodelabs?\b", r"\bjira\b",
+            r"\bsyllabus\b", r"bai\s*setup",
+        ],
+    },
+    "ask_team_naming": {
+        "keywords": ["doi ten team", "dat ten team", "dat ten nhom", "ten nhom", "dat ten"],
+        "patterns": [
+            r"(doi|dat)\s*ten\s*(team|nhom)",
+            r"ten\s*(team|nhom).*(o\s*dau|the\s*nao)",
+            r"nhom.{0,30}dat\s*ten",
+            r"dat\s*ten.{0,20}(nhom|team|o\s*dau)",
+        ],
+    },
+    "ask_topic_availability": {
+        "keywords": ["kiem tra de tai", "de tai da co", "de tai co nhom"],
+        "patterns": [
+            r"kiem\s*tra.*de\s*tai", r"de\s*tai.*(da\s*co|co\s*nhom|nhom\s*nao)",
+        ],
+    },
+    "ask_holiday_schedule": {
+        "keywords": ["nghi tet", "tet", "lich nghi", "nghi le", "nghi bao nhieu ngay"],
+        "patterns": [
+            r"nghi\s*(tet|le)", r"lich\s*nghi",
+            r"nghi.*bao\s*nhieu\s*ngay",
+        ],
+    },
+    "ask_scholarship_info": {
+        "keywords": ["hoc bong", "du hoc"],
+        "patterns": [
+            r"hoc\s*bong", r"du\s*hoc",
+        ],
+    },
+
     # Deadline
     "ask_deadline": {
         "keywords": [
@@ -178,10 +244,11 @@ INTENTS = {
 
     # Team / Mentor
     "ask_team_mentor": {
-        "keywords": ["mentor", "team", "nhom", "gia su", "ho tro", "lien he"],
+        "keywords": ["mentor", "gia su", "team cua toi", "nhom cua toi", "lien he mentor"],
         "patterns": [
-            r"\bmentor\b", r"\bteam\b", r"\bnhom\b", r"gia\s*su",
-            r"ho\s*tro", r"lien\s*he", r"ai\s*la\s*mentor",
+            r"\bmentor\b", r"gia\s*su", r"ai\s*la\s*mentor",
+            r"(team|nhom)\s*(cua\s*)?(toi|minh|em)",
+            r"(team|nhom)\s*\d+",
         ],
         "slots": {
             "team": [
@@ -217,6 +284,19 @@ INTENTS = {
             r"extension",
         ],
     },
+    "request_leave_of_absence": {
+        "keywords": ["bao luu", "xin nghi khoa", "tam dung khoa", "nghi hoc dai han"],
+        "patterns": [
+            r"bao\s*luu", r"xin\s*nghi\s*khoa", r"tam\s*dung\s*khoa",
+            r"nghi\s*hoc\s*dai\s*han",
+        ],
+    },
+    "request_grade_review": {
+        "keywords": ["cham lai", "phuc khao", "sua diem", "xem lai diem"],
+        "patterns": [
+            r"cham\s*lai", r"phuc\s*khao", r"sua\s*diem", r"xem\s*lai\s*diem",
+        ],
+    },
 
     "report_issue": {
         "keywords": ["loi", "bug", "loi khong", "khong hoat dong", "bi loi", "error"],
@@ -224,6 +304,20 @@ INTENTS = {
             r"\bloi\b", r"\bbug\b", r"khong\s*hoat\s*dong", r"bi\s*loi",
             r"error",
         ],
+        "slots": {
+            "operation": [
+                r"dang\s*nhap", r"login", r"nop\s*bai", r"submit",
+                r"tai\s*(file|slide|tai\s*lieu)", r"mo\s*(link|file|slide)",
+                r"ket\s*noi\s*discord", r"chay\s*(code|app)",
+            ],
+            "error_code": [
+                r"\b([45]\d{2})\b",
+                r"(error\s*[\w-]+)",
+            ],
+            "platform": [
+                r"\b(discord|vlearn|learnworlds|jira|github)\b",
+            ],
+        },
     },
 
     "report_harassment": {
@@ -246,6 +340,42 @@ INTENTS = {
             r"ignore",
         ],
     },
+    "reject_answer_key_request": {
+        "keywords": ["xin dap an", "cho dap an", "dap an bai kiem tra", "answer key"],
+        "patterns": [
+            r"(xin|cho|gui).*(dap\s*an|answer\s*key)",
+            r"đap\s*an\s*bai\s*(kiem\s*tra|quiz)",
+            r"dap\s*an\s*bai\s*(kiem\s*tra|quiz)",
+        ],
+    },
+    "reject_do_assignment_for_user": {
+        "keywords": [
+            "lam bai ho", "code ho", "nop bai ho", "nop giup",
+            "lam assignment ho", "submit ho",
+        ],
+        "patterns": [
+            r"lam\s*(bai|assignment).*\bho\b",
+            r"code\s*(bai\s*)?\bho\b",
+            r"(nop|submit)\s*(bai\s*)?\bho\b",
+            r"(nop|submit).*\bgiup\b",
+        ],
+    },
+}
+
+
+INTENT_PRIORITY = {
+    "reject_prompt_injection": 100,
+    "report_harassment": 95,
+    "reject_answer_key_request": 90,
+    "reject_do_assignment_for_user": 90,
+    "request_deadline_exception": 85,
+    "request_leave_of_absence": 85,
+    "request_grade_review": 85,
+    "report_issue": 80,
+    "ask_team_naming": 60,
+    "greeting": 10,
+    "thanks": 10,
+    "help": 10,
 }
 
 
@@ -272,6 +402,7 @@ def classify_intent(message: str) -> IntentResult:
     best_intent = "unknown"
     best_score = 0.0
     best_slots: dict[str, Any] = {}
+    best_priority = -1
 
     for intent, config in INTENTS.items():
         score = 0.0
@@ -314,10 +445,12 @@ def classify_intent(message: str) -> IntentResult:
         # Normalize score
         score = min(score, 1.0)
 
-        if score > best_score:
+        priority = INTENT_PRIORITY.get(intent, 50)
+        if score > best_score or (score == best_score and score > 0 and priority > best_priority):
             best_score = score
             best_intent = intent
             best_slots = slots
+            best_priority = priority
 
     # Special handling: if no intent matched, check for question patterns
     if best_score == 0.0:
