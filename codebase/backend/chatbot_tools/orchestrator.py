@@ -100,14 +100,28 @@ class ChatbotOrchestrator:
         trace_id = f"trace_{uuid.uuid4().hex[:12]}"
         message_id = f"msg_{uuid.uuid4().hex[:12]}"
 
+        logger.info(
+            "BE chat received: trace_id=%s session_id=%s user_id=%s "
+            "channel_id=%s message_length=%d has_pending_clarification=%s "
+            "history_length=%d",
+            trace_id,
+            session_id or "-",
+            user_id,
+            channel_id,
+            len(message),
+            pending_clarification is not None,
+            len(conversation_history or []),
+        )
+
         # Step 1: Normalize and classify intent
         intent_result = classify_intent(message)
 
         logger.info(
-            "Intent classified: intent=%s, confidence=%.2f, slots=%s",
+            "BE intent classified: trace_id=%s intent=%s confidence=%.2f slot_keys=%s",
+            trace_id,
             intent_result.intent,
             intent_result.confidence,
-            intent_result.slots,
+            sorted(intent_result.slots),
         )
 
         # Step 2: Check for prompt injection (highest priority)
@@ -730,6 +744,17 @@ class ChatbotOrchestrator:
         escalation: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         """Build the final response dict following the I/O contract."""
+        logger.info(
+            "BE chat completed: trace_id=%s message_id=%s route=%s intent=%s "
+            "confidence=%.2f grounding_status=%s citation_count=%d",
+            trace_id,
+            message_id,
+            route,
+            intent,
+            confidence,
+            grounding_status,
+            len(citations or []),
+        )
         return {
             "schema_version": "1.0",
             "message_id": message_id,

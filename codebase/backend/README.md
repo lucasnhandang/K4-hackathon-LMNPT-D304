@@ -109,26 +109,33 @@ Chạy test:
 python -m unittest discover -s tests -v
 ```
 
-## Gắn vào LLM function-calling
+## LLM function-calling qua OpenRouter
+
+Frontend NiceGUI dùng `build_chat_orchestrator()` để gọi model cấu hình bởi
+`OPENROUTER_MODEL`. Model có thể yêu cầu các tool trong registry; backend thực thi
+tool cục bộ, gửi kết quả lại model và chỉ chuyển citation thật từ tool sang UI.
 
 ```python
-from chatbot_tools import build_default_registry
+from chatbot_tools import build_chat_orchestrator
 
-registry = build_default_registry()
-
-# Gửi registry.definitions() vào trường tools của SDK/model.
-definitions = registry.definitions()
-
-# Khi model yêu cầu gọi tool:
-result = registry.execute(
-    "lookup_deadline",
-    {
-        "assignment": "weekly_assignment_3",
-        "module": "rag",
-        "cohort": "k4",
-    },
-)
+chatbot = build_chat_orchestrator()
+response = chatbot.process_message("Deadline Weekly Assignment là khi nào?")
 ```
+
+Cấu hình trong `.env`:
+
+```env
+OPENROUTER_API_KEY=replace_with_openrouter_api_key
+OPENROUTER_BASE_URL=https://openrouter.ai/api/v1
+OPENROUTER_MODEL=replace_with_tool_capable_model_slug
+OPENROUTER_TIMEOUT_SECONDS=30
+OPENROUTER_MAX_TOOL_ROUNDS=4
+LLM_FALLBACK_TO_RULES=true
+```
+
+Không log API key hoặc nội dung chat nguyên văn. Khi OpenRouter lỗi và
+`LLM_FALLBACK_TO_RULES=true`, response có `runtime.engine=rules_fallback`; khi gọi
+LLM thành công, response có `runtime.engine=openrouter`, model, tool calls và usage.
 
 Không cho model gọi trực tiếp Discord channel ID. `TicketTools` ánh xạ category
 sang allowlist phía server. Khi nối Discord thật, thay `InMemoryTicketGateway`

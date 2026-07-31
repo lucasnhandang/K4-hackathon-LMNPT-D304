@@ -1,6 +1,7 @@
 # Hướng Dẫn Cấu Hình Frontend NiceGUI & Tích Hợp Backend
 
-Tài liệu này hướng dẫn chi tiết cho các thành viên trong nhóm về cách thiết lập môi trường chạy Frontend NiceGUI và cách đấu nối ứng dụng với Backend API (FastAPI / Express / Flask hoặc LLM Service).
+Tài liệu này hướng dẫn cách chạy Frontend NiceGUI với chatbot nằm trong
+`codebase/backend/chatbot_tools`.
 
 ---
 
@@ -9,9 +10,8 @@ Tài liệu này hướng dẫn chi tiết cho các thành viên trong nhóm v�
 ```text
 frontend/
 ├── main.py                # Giao diện chính NiceGUI (Layout Discord, Chat View, Options Grid, Tracepath)
-├── ai_router.py           # Mô-đun phân loại Intent & Nguồn căn cứ (Local AI Router / API Client)
+├── ai_router.py           # Adapter gọi trực tiếp codebase chatbot và ánh xạ dữ liệu sang UI
 ├── custom_styles.py       # Định nghĩa CSS Token, font Sora/Inter & phong cách Discord Dark Mode
-├── .env.example           # File mẫu cấu hình biến môi trường
 └── GUIDE_FRONTEND_BACKEND.md # Tài liệu hướng dẫn này
 ```
 
@@ -28,19 +28,17 @@ cd frontend
 # Kích hoạt venv (Windows)
 .\.venv\Scripts\Activate
 
-# Cài đặt NiceGUI và thư viện hỗ trợ gọi API
-pip install nicegui python-dotenv httpx pydantic
+# Cài đặt NiceGUI
+pip install -r requirements.txt
 ```
 
-### Bước 2.2: Khởi tạo tệp cấu hình `.env`
-Tạo tệp `.env` trong thư mục `frontend/` (hoặc thư mục gốc dự án):
+Frontend được khóa ở NiceGUI `3.14.0` để CSS layer và DOM do Quasar sinh ra
+không thay đổi ngoài kiểm soát giữa các lần cài.
 
-```env
-PORT=8080
-BACKEND_URL=http://localhost:8000/api/v1/chat
-USE_LOCAL_MOCK=false
-OPENAI_API_KEY=your_openai_api_key_here
-```
+### Bước 2.2: Cấu hình
+
+Frontend không cần API key hay backend HTTP riêng. Có thể đặt `PORT` để đổi cổng
+NiceGUI; mặc định là `8080`.
 
 ### Bước 2.3: Chạy ứng dụng Frontend
 ```bash
@@ -52,11 +50,31 @@ python ../codebase/app.py
 ```
 Ứng dụng sẽ mở tại địa chỉ: **`http://localhost:8080`**
 
+Khi người dùng gửi tin nhắn, console chạy NiceGUI sẽ hiện log backend dạng:
+
+```text
+INFO | chatbot_tools.orchestrator | BE chat received: trace_id=... message_length=...
+INFO | chatbot_tools.orchestrator | BE intent classified: trace_id=... intent=...
+INFO | chatbot_tools.orchestrator | BE chat completed: trace_id=... route=ANSWER ...
+```
+
+Log mặc định ở mức `INFO`. Có thể đặt biến môi trường `LOG_LEVEL` để đổi mức log.
+Nội dung chat và giá trị slot không được in nguyên văn; log chỉ chứa metadata phục
+vụ chẩn đoán để tránh lộ dữ liệu người dùng.
+
 ---
 
-## 🔗 3. Cách Kết Nối Frontend Với Backend API
+## 🔗 3. Cách Frontend Kết Nối Codebase
 
-Khi Backend chạy độc lập tại `http://localhost:8000`, hàm `call_backend_api_async` trong `ai_router.py` sẽ tự động đóng gói Request Input Payload và chuyển đổi Backend Output JSON sang giao diện Discord kèm **AI Tracepath & Tools Execution**.
+Mỗi phiên `DiscordChatApp` tạo một `BackendChatSession`. Session gọi
+`build_chat_orchestrator()` để sử dụng OpenRouter LLM và function-calling với các
+tool trong `codebase/backend/chatbot_tools`. Backend giữ `pending_clarification`
+và lịch sử hội thoại riêng, tự thực thi tool, sau đó chuyển contract sang giao
+diện Discord kèm **AI Tracepath & Tools Execution**.
+
+Khi LLM chạy thành công, trace hiển thị `OpenRouter · <model>` và các tool model
+đã gọi. Nếu provider lỗi, trace hiển thị `Rule-based fallback`; trường hợp này
+không được hiểu là câu trả lời do LLM tạo.
 
 ---
 
@@ -64,95 +82,40 @@ Khi Backend chạy độc lập tại `http://localhost:8000`, hàm `call_backen
 
 ### 📥 4.1. Request Template (Frontend ➔ Backend)
 
-Backend nhận dữ liệu JSON đầu vào từ Frontend theo cấu trúc dưới đây:
+Frontend gọi orchestrator với các tham số sau:
 
-```json
-{
-  "metadata": {
-    "message_id": "msg_001",
-    "timestamp": "2026-07-30T14:30:00Z",
-    "user_id": "student_123",
-    "session_id": "discord_session_001",
-    "channel_id": "support_python"
-  },
-
-  "message": {
-    "type": "text",
-    "content": "Deadline bao nhiêu z?"
-  },
-
-  "conversation": {
-    "history": [
-      {
-        "role": "user",
-        "content": "Em đang làm project cuối khóa."
-      },
-      {
-        "role": "assistant",
-        "content": "Bạn đang học module nào?"
-      }
-    ],
-    "current_step": "clarification"
-  },
-
-  "learning_context": {
-    "course": "Python Foundation",
-    "module": "Project",
-    "lesson": null,
-    "assignment": null
-  },
-
-  "runtime": {
-    "language": "vi",
-    "platform": "discord"
-  }
-}
+```python
+orchestrator.process_message(
+    message="Deadline bao nhiêu z?",
+    user_id="student_demo",
+    session_id="nicegui_session",
+    channel_id="go-vuong-hoc-tap",
+    pending_clarification=None,
+    conversation_history=[],
+)
 ```
 
 ---
 
 ### 📤 4.2. Response Template với TRACEPATH (Backend ➔ Frontend)
 
-Backend cần trả về kết quả JSON bao gồm trường `tracepath` để hiển thị các công cụ đã sử dụng (`tools_used`), thời gian xử lý (`latency_ms`), độ tin cậy (`confidence`) và danh sách các bước (`steps`):
+Codebase trả contract sau; adapter tạo `tracepath` cho UI từ kết quả thực thi:
 
 ```json
 {
-  "status": "need_clarification",
-
+  "schema_version": "1.0",
+  "route": "CLARIFY",
   "intent": "ask_deadline",
-
   "confidence": 0.71,
-
-  "action": "ask_follow_up",
-
   "response": "Bạn đang hỏi deadline của bài tập hay project nào?",
-
-  "follow_up": [
-    "Project cuối khóa",
-    "Weekly Assignment",
-    "Quiz",
-    "Khác"
-  ],
-
+  "grounding_status": "not_required",
+  "clarification": {
+    "missing_field": "assignment",
+    "suggested_replies": ["Weekly Assignment", "AI Log"]
+  },
   "citations": [],
-
-  "handoff": false,
-
-  "tracepath": {
-    "latency_ms": 124,
-    "confidence": 0.71,
-    "intent": "ask_deadline",
-    "tools_used": [
-      { "name": "Intent Classifier", "icon": "🔍", "status": "success" },
-      { "name": "VectorDB RAG Search", "icon": "📚", "status": "found" },
-      { "name": "Context Disambiguator", "icon": "❓", "status": "need_followup" }
-    ],
-    "steps": [
-      "Phân tích ý định câu hỏi: ask_deadline (Confidence: 71%)",
-      "Phát hiện ngữ cảnh mơ hồ ➔ Tự động kích hoạt câu hỏi làm rõ",
-      "Tạo danh sách lựa chọn follow_up cho học viên"
-    ]
-  }
+  "escalation": null,
+  "trace_id": "..."
 }
 ```
 
@@ -160,12 +123,11 @@ Backend cần trả về kết quả JSON bao gồm trường `tracepath` để 
 
 ### 🎯 4.3. Bảng Ánh Xạ Trạng Thái Backend ➔ Frontend UI
 
-| Trạng thái Backend (`status` / `action`) | `handoff` | Giao diện Frontend tự động hiển thị |
-|---|---|---|
-| `status: "need_clarification"` (`action: "ask_follow_up"`) | `false` | Thẻ **Warning Embed** (vàng) + Tự động tạo Nút bấm từ mảng `follow_up` + **AI Tracepath Box** |
-| `status: "resolved"` (`action: "direct_answer"`) | `false` | Thẻ **Success Embed** (xanh) + Nguồn `citations` + Nút phản hồi + **AI Tracepath Box** |
-| `status: "escalated"` / `action: "escalate_mod"` | `true` | Thẻ **Escalate Embed** (đỏ) + Auto tag **`@Mod / @Mentor`** + **AI Tracepath Box** |
-| `status: "out_of_scope"` / `action: "reject"` | `false` | Thẻ **Muted Embed** (xám) + Từ chối lịch sự, **KHÔNG tag Mod** + **AI Tracepath Box** |
+| `route` từ codebase | Giao diện Frontend tự động hiển thị |
+|---|---|
+| `CLARIFY` | Thẻ vàng + nút từ `clarification.suggested_replies` |
+| `ANSWER` | Thẻ xanh + citation thật + nút xem nguồn/phản hồi |
+| `ESCALATE` | Thẻ đỏ + thông tin người/kênh tiếp nhận |
 
 ---
 
@@ -175,5 +137,12 @@ Backend cần trả về kết quả JSON bao gồm trường `tracepath` để 
    - **Nguyên nhân**: Đã có 1 tiến trình python khác đang chiếm cổng 8080.
    - **Xử lý**: Tắt tiến trình python đang chạy bằng `Ctrl + C` hoặc đổi `PORT=8081` trong file `.env`.
 
-2. **Backend chưa khởi chạy**:
-   - Frontend có sẵn cơ chế **Fallback**. Nếu không gọi được Backend API, ứng dụng tự động dùng bộ Local AI Router để buổi Demo chạy liên tục không đứt đoạn.
+2. **Không import được `chatbot_tools`**:
+   - Chạy từ thư mục gốc bằng `py codebase/app.py` hoặc `py frontend/main.py`.
+   - Không đổi vị trí tương đối của `frontend/` và `codebase/backend/`.
+
+3. **Màu sắc đã đúng nhưng font hoặc một số chi tiết CSS chưa cập nhật**:
+   - Cài lại đúng dependency bằng `pip install -r frontend/requirements.txt`.
+   - Hard refresh trình duyệt (`Ctrl+F5`) để bỏ cache stylesheet/font cũ.
+   - Giao diện dùng `Inter` thay cho `gg sans`; `gg sans` là font riêng của
+     Discord và không được phục vụ bởi Google Fonts.

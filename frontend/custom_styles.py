@@ -4,12 +4,13 @@ CSS styles for 100% authentic Discord Dark Theme UI in NiceGUI
 Includes AI Tracepath & Tool Execution styling
 """
 
-DISCORD_CSS = """
+FONT_HEAD_HTML = """
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=gg+sans:wght@400;500;600;700&family=Sora:wght@600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Lora:ital,wght@1,500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;family=Lora:ital,wght@1,500&amp;family=Sora:wght@600;700&amp;display=swap" rel="stylesheet">
+"""
 
-<style>
+DISCORD_CSS = """
   :root {
     /* Authentic Discord Dark Colors */
     --bg-servers: #1e1f22;
@@ -38,7 +39,7 @@ DISCORD_CSS = """
     --cyan: #22d3ee;
     --purple: #8b6cf7;
 
-    --font-discord: 'Inter', 'gg sans', system-ui, -apple-system, sans-serif;
+    --font-discord: 'Inter', system-ui, -apple-system, sans-serif;
     --font-mono: 'JetBrains Mono', monospace;
     --font-quote: 'Lora', Georgia, serif;
   }
@@ -710,5 +711,4 @@ DISCORD_CSS = """
     width: 90vw;
     max-width: 500px;
   }
-</style>
 """

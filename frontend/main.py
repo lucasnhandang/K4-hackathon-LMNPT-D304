@@ -4,19 +4,29 @@ NiceGUI Application: 100% Authentic Discord UI for Student Assistant Bot
 """
 
 from datetime import datetime
-import sys
+import html
+import logging
 import os
 import re
 from typing import List, Dict, Any
 
+logging.basicConfig(
+    level=getattr(logging, os.environ.get("LOG_LEVEL", "INFO").upper(), logging.INFO),
+    format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
+)
+
 from nicegui import ui
 
-from custom_styles import DISCORD_CSS
-from ai_router import classify_and_route, handle_option_selection, KNOWLEDGE_BASE
+from custom_styles import DISCORD_CSS, FONT_HEAD_HTML
+from ai_router import BackendChatSession
 
 # Enable static Discord styles & fonts
-ui.add_head_html(DISCORD_CSS)
-ui.add_body_html('<script>function scrollToBottom(){ setTimeout(() => { const el = document.getElementById("chat-scroll"); if(el) el.scrollTop = el.scrollHeight; }, 50); }</script>')
+ui.add_head_html(FONT_HEAD_HTML, shared=True)
+ui.add_css(DISCORD_CSS, shared=True)
+ui.add_body_html(
+    '<script>function scrollToBottom(){ setTimeout(() => { const el = document.getElementById("chat-scroll"); if(el) el.scrollTop = el.scrollHeight; }, 50); }</script>',
+    shared=True,
+)
 
 class DiscordChatApp:
     def __init__(self):
@@ -24,6 +34,7 @@ class DiscordChatApp:
         self.is_typing: bool = False
         self.input_element = None
         self.messages_container = None
+        self.backend = BackendChatSession()
         
         # Initial Clean Welcome State (Mock messages removed)
         self.reset_messages()
@@ -75,7 +86,7 @@ class DiscordChatApp:
         ui.timer(0.6, lambda: self.process_bot_reply(text, user_name), once=True)
 
     def process_bot_reply(self, raw_user_text: str, reply_to_name: str):
-        route_res = classify_and_route(raw_user_text)
+        route_res = self.backend.send_message(raw_user_text)
         self.is_typing = False
         
         self.messages.append({
@@ -88,12 +99,17 @@ class DiscordChatApp:
         })
         self.update_chat_ui()
 
-    def handle_option_click(self, opt_value: str, opt_label: str):
+    def handle_option_click(
+        self,
+        opt_value: str,
+        opt_label: str,
+        citations: List[Dict[str, Any]] | None = None,
+    ):
         if self.is_typing:
             return
             
         if opt_value == "VIEW_SOURCE":
-            self.open_source_modal()
+            self.open_source_modal(citations or [])
             return
             
         if opt_value == "FOCUS_INPUT":
@@ -116,10 +132,14 @@ class DiscordChatApp:
         self.is_typing = True
         self.update_chat_ui()
         
-        ui.timer(0.5, lambda: self.process_option_reply(opt_value, user_name), once=True)
+        ui.timer(
+            0.5,
+            lambda: self.process_option_reply(opt_value, clean_label, user_name),
+            once=True,
+        )
 
-    def process_option_reply(self, opt_value: str, reply_to_name: str):
-        route_res = handle_option_selection(opt_value)
+    def process_option_reply(self, opt_value: str, opt_label: str, reply_to_name: str):
+        route_res = self.backend.select_option(opt_value, opt_label)
         self.is_typing = False
         
         self.messages.append({
@@ -132,30 +152,30 @@ class DiscordChatApp:
         })
         self.update_chat_ui()
 
-    def open_source_modal(self):
-        kb = KNOWLEDGE_BASE["weekly_report"]
+    def open_source_modal(self, citations: List[Dict[str, Any]]):
         with ui.dialog() as dialog, ui.card().classes("discord-dialog q-pa-md"):
             with ui.row().classes("items-center justify-between w-full q-mb-sm"):
                 ui.label("📄 Căn cứ & Nguồn chính thức").classes("text-weight-bold text-subtitle1 text-white")
                 ui.button(icon="close", on_click=dialog.close).props("flat round dense text-color=grey-5")
             
             with ui.column().classes("w-full gap-2 text-body2"):
-                ui.html(f"<div><strong style='color: var(--text-heading);'>Chủ đề:</strong> {kb['title']}</div>")
-                ui.html(f"<div><strong style='color: var(--text-heading);'>Nguồn phát hành:</strong> {kb['source']}</div>")
-                ui.html(f"""
-                <div style="margin-top: 10px;">
-                    <strong style="color: var(--text-heading);">Trích dẫn nguyên văn:</strong>
-                    <blockquote style="font-family: var(--font-quote); font-style: italic; border-left: 3px solid var(--brand); padding-left: 10px; margin-top: 6px; color: var(--text-heading); font-size: 13.5px;">
-                        "{kb['quote']}"
-                    </blockquote>
-                </div>
-                """)
+                for citation in citations:
+                    title = html.escape(str(citation.get("title") or citation.get("source_id", "Nguồn")))
+                    locator = html.escape(str(citation.get("locator", "")))
+                    quote = html.escape(str(citation.get("quote", "")))
+                    ui.html(
+                        f"<div><strong style='color: var(--text-heading);'>{title}</strong>"
+                        f"<div style='color: var(--text-muted);'>{locator}</div>"
+                        f"<blockquote style='border-left: 3px solid var(--brand); padding-left: 10px;'>"
+                        f"{quote}</blockquote></div>"
+                    )
         dialog.open()
 
     def render_msg_text(self, text: str) -> str:
-        formatted = re.sub(r'(@Trợ lý Kute|@Trợ lý Học viên|@Mod|@Mentor)', r'<span class="mention-pill">\1</span>', text)
+        formatted = html.escape(str(text))
+        formatted = re.sub(r'(@Trợ lý Kute|@Trợ lý Học viên|@Mod|@Mentor)', r'<span class="mention-pill">\1</span>', formatted)
         formatted = re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', formatted)
-        return formatted
+        return formatted.replace("\n", "<br>")
 
     def render_tracepath_html(self, trace_data: Dict[str, Any]) -> str:
         if not trace_data:
@@ -169,15 +189,17 @@ class DiscordChatApp:
         
         tools_html = ""
         for i, t in enumerate(tools):
-            name = t.get("name", "Tool")
-            icon = t.get("icon", "🔧")
+            name = html.escape(str(t.get("name", "Tool")))
+            icon = html.escape(str(t.get("icon", "🔧")))
             tools_html += f'<span class="trace-tool-pill"><span class="tool-icon">{icon}</span> {name}</span>'
             if i < len(tools) - 1:
                 tools_html += '<span class="trace-tool-arrow">➔</span>'
 
         steps_html = ""
         for s in steps:
-            steps_html += f'<div class="trace-step-item">{s}</div>'
+            steps_html += f'<div class="trace-step-item">{html.escape(str(s))}</div>'
+
+        safe_intent = html.escape(str(intent))
 
         return f'''
         <div class="discord-tracepath-box">
@@ -188,7 +210,7 @@ class DiscordChatApp:
                 <div class="trace-metrics-group">
                     <span class="trace-metric-badge">⏱️ {latency}ms</span>
                     <span class="trace-metric-badge">🎯 {int(confidence * 100)}% conf</span>
-                    <span class="trace-metric-badge">🔍 intent: {intent}</span>
+                    <span class="trace-metric-badge">🔍 intent: {safe_intent}</span>
                 </div>
             </div>
             
@@ -262,7 +284,9 @@ class DiscordChatApp:
                                             btn_cls = f"disc-btn {opt.get('class', '')}"
                                             ui.button(
                                                 opt["label"],
-                                                on_click=lambda o=opt: self.handle_option_click(o["value"], o["label"])
+                                                on_click=lambda o=opt, c=payload.get("citations", []): self.handle_option_click(
+                                                    o["value"], o["label"], c
+                                                )
                                             ).classes(btn_cls).props("no-caps unelevated dense")
 
                                 trace_data = payload.get("tracepath")
