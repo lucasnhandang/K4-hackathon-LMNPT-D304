@@ -55,6 +55,7 @@ class BM25Index:
         limit: int = 5,
         category: str | None = None,
         at: str | None = None,
+        min_score: float = 0.0,
     ) -> list[tuple[SourceRecord, float]]:
         query_terms = tokenize(query)
         if not query_terms or not self.records:
@@ -84,7 +85,7 @@ class BM25Index:
                 )
                 score += inverse_frequency * frequency * (self.k1 + 1) / denominator
 
-            if score > 0:
+            if score > 0 and score >= min_score:
                 candidates.append((record, round(score, 6)))
 
         return sorted(candidates, key=lambda item: item[1], reverse=True)[:limit]

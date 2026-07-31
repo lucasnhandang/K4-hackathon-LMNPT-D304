@@ -156,6 +156,8 @@ async def chat(payload: dict[str, Any]) -> dict[str, Any]:
     metadata = payload.get("metadata") or {}
     message = payload.get("message") or {}
     conversation = payload.get("conversation") or {}
+    learning_context = payload.get("learning_context") or {}
+    runtime = payload.get("runtime") or {}
 
     session_id = metadata.get("session_id") or "default_session"
     user_id = metadata.get("user_id") or "anonymous"
@@ -172,6 +174,12 @@ async def chat(payload: dict[str, Any]) -> dict[str, Any]:
         channel_id=channel_id,
         pending_clarification=pending,
         conversation_history=conversation.get("history", []),
+        cohort=(
+            learning_context.get("cohort")
+            or runtime.get("cohort")
+            or None
+        ),
+        at=metadata.get("timestamp"),
     )
     latency_ms = int((time.perf_counter() - start) * 1000)
 

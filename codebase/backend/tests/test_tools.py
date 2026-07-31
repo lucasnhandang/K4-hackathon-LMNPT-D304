@@ -32,6 +32,32 @@ class KnowledgeToolTests(unittest.TestCase):
         self.assertEqual(result["status"], "ok")
         self.assertGreater(len(result["data"]), 0)
 
+    def test_search_respects_minimum_score(self) -> None:
+        result = self.registry.execute(
+            "search_official_sources",
+            {
+                "query": "deadline",
+                "category": None,
+                "at": None,
+                "limit": 5,
+                "min_score": 3.0,
+            },
+        )
+        self.assertEqual(result["status"], "not_found")
+
+    def test_search_respects_category(self) -> None:
+        result = self.registry.execute(
+            "search_official_sources",
+            {
+                "query": "nghỉ tối đa mấy buổi",
+                "category": "policy",
+                "at": None,
+                "limit": 5,
+                "min_score": 0.0,
+            },
+        )
+        self.assertEqual(result["status"], "not_found")
+
     def test_unknown_arguments_are_rejected(self) -> None:
         result = self.registry.execute(
             "lookup_event",

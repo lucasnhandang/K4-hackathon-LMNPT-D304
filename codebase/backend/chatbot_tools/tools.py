@@ -192,6 +192,7 @@ class KnowledgeTools:
         category: str | None = None,
         at: str | None = None,
         limit: int = 5,
+        min_score: float = 0.0,
     ) -> ToolResult:
         if not query.strip():
             return ToolResult(
@@ -201,8 +202,16 @@ class KnowledgeTools:
             )
         if limit < 1 or limit > 10:
             return ToolResult(status="rejected", message="limit phải nằm trong khoảng 1..10.")
+        if min_score < 0:
+            return ToolResult(status="rejected", message="min_score phải không âm.")
 
-        hits = self.index.search(query, category=category, at=at, limit=limit)
+        hits = self.index.search(
+            query,
+            category=category,
+            at=at,
+            limit=limit,
+            min_score=min_score,
+        )
         if not hits:
             return ToolResult(
                 status="not_found",

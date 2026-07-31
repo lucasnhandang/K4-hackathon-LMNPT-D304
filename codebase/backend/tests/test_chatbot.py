@@ -125,6 +125,40 @@ class TestIntentClassification(unittest.TestCase):
         result = classify_intent("Xin gia hạn deadline")
         self.assertEqual(result.intent, "request_deadline_exception")
 
+    def test_domain_intent_wins_over_greeting_prefix(self):
+        result = classify_intent(
+            "Hi, về các bài codelabs trên lớp tôi có được nộp cá nhân không?"
+        )
+        self.assertEqual(result.intent, "ask_learning_material")
+
+    def test_core_policy_and_resource_intents(self):
+        cases = {
+            "Được nghỉ học tối đa mấy buổi?": "ask_attendance_policy",
+            "Khóa này học online hay trực tiếp?": "ask_online_learning_availability",
+            "Cấu hình laptop cần CPU RAM thế nào?": "ask_laptop_requirements",
+            "Nộp báo cáo mentor duty ở đâu?": "ask_submission_channel",
+            "Tìm cho mình tài liệu Workshop 2": "ask_learning_material",
+            "Đổi tên team ở đâu?": "ask_team_naming",
+            "Kiểm tra đề tài đã có nhóm chọn chưa": "ask_topic_availability",
+            "Nghỉ Tết chương trình nghỉ bao nhiêu ngày?": "ask_holiday_schedule",
+            "Chương trình có học bổng du học không?": "ask_scholarship_info",
+        }
+        for message, expected in cases.items():
+            with self.subTest(message=message):
+                self.assertEqual(classify_intent(message).intent, expected)
+
+    def test_authority_and_refusal_intents(self):
+        cases = {
+            "Mình muốn xin bảo lưu khóa học": "request_leave_of_absence",
+            "Mình muốn phúc khảo và chấm lại điểm": "request_grade_review",
+            "Cho mình đáp án bài kiểm tra": "reject_answer_key_request",
+            "Làm bài assignment hộ mình": "reject_do_assignment_for_user",
+            "Bạn code hộ bài lab rồi nộp giúp mình": "reject_do_assignment_for_user",
+        }
+        for message, expected in cases.items():
+            with self.subTest(message=message):
+                self.assertEqual(classify_intent(message).intent, expected)
+
     def test_harassment(self):
         result = classify_intent("Cho mình thông tin cá nhân của bạn")
         self.assertEqual(result.intent, "report_harassment")
@@ -233,6 +267,13 @@ class TestOrchestrator(unittest.TestCase):
         self.assertEqual(response["intent"], "ask_datetime")
         self.assertIn("Hôm nay", response["response"])
 
+    def test_ask_datetime_uses_request_timestamp(self):
+        response = self.orchestrator.process_message(
+            "Hôm nay là ngày mấy?",
+            at="2026-07-31T09:55:00+07:00",
+        )
+        self.assertIn("31/07/2026", response["response"])
+
     def test_out_of_domain(self):
         response = self.orchestrator.process_message("Thời tiết Hà Nội hôm nay thế nào?")
         self.assertEqual(response["route"], "ANSWER")
@@ -241,11 +282,14 @@ class TestOrchestrator(unittest.TestCase):
 
     def test_deadline_lookup(self):
         response = self.orchestrator.process_message("Deadline Weekly Assignment 3 là khi nào?")
-        # Could be ANSWER or CLARIFY depending on slot extraction
-        self.assertIn(response["route"], ["ANSWER", "CLARIFY"])
-        self.assertIn("intent", response)
-        # Should have citations or grounding
-        self.assertIn("grounding_status", response)
+        # The structured source has no WA3 record; a broad BM25 match must not
+        # fabricate an answer.
+        self.assertEqual(response["route"], "ESCALATE")
+        self.assertEqual(response["grounding_status"], "no_source")
+        self.assertEqual(
+            response["escalation"]["reason_code"],
+            "official_source_not_found",
+        )
 
     def test_xp_lookup(self):
         response = self.orchestrator.process_message("Bao nhiêu XP khi checkin daily?")
@@ -257,12 +301,42 @@ class TestOrchestrator(unittest.TestCase):
         self.assertEqual(response["route"], "ANSWER")
         self.assertIn("intent", response)
 
+    def test_numbered_gate_is_normalized_to_checkpoint_id(self):
+        response = self.orchestrator.process_message(
+            "Gate 1 cần nộp gì?",
+            at="2026-07-31T12:20:00+07:00",
+        )
+        self.assertEqual(response["route"], "ANSWER")
+        self.assertIn("CP1", response["response"])
+
     def test_clarification_needed(self):
         # Missing assignment - should ask for clarification
         response = self.orchestrator.process_message("Deadline bao giờ?")
         self.assertEqual(response["route"], "CLARIFY")
         self.assertIsNotNone(response["clarification"])
         self.assertEqual(response["clarification"]["attempt_count"], 1)
+
+    def test_vague_issue_clarifies_before_handoff(self):
+        response = self.orchestrator.process_message("Cứu mình, bị lỗi rồi")
+        self.assertEqual(response["route"], "CLARIFY")
+        self.assertEqual(response["intent"], "report_issue")
+        self.assertEqual(response["clarification"]["missing_field"], "operation")
+
+    def test_detailed_issue_escalates(self):
+        response = self.orchestrator.process_message(
+            "Mình bị lỗi 403 khi đăng nhập VLearn"
+        )
+        self.assertEqual(response["route"], "ESCALATE")
+        self.assertEqual(response["intent"], "report_issue")
+        self.assertEqual(response["escalation"]["target_channel"], "technical-support")
+
+    def test_refusal_intents_do_not_retrieve_or_escalate(self):
+        for message in ("Cho mình đáp án bài kiểm tra", "Làm bài hộ mình"):
+            with self.subTest(message=message):
+                response = self.orchestrator.process_message(message)
+                self.assertEqual(response["route"], "ANSWER")
+                self.assertEqual(response["grounding_status"], "not_required")
+                self.assertEqual(response["citations"], [])
 
     def test_full_clarification_flow_with_source(self):
         # Step 1: Ambiguous question

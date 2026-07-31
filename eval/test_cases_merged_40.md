@@ -123,14 +123,14 @@ Tất cả các test case đều được định dạng 100% theo contract `tem
 
 ---
 
-## Case 3 — CLARIFY · Deadline nhưng chưa rõ bài nào (lớp ② mơ hồ/thiếu thông tin)
+## Case 3 — MULTITURN · Câu hỏi XP mơ hồ → bổ sung hoạt động → trả lời đúng có nguồn (lớp ② mơ hồ/thiếu thông tin)
 
-### Input
+### Turn 1 — Input
 ```json
 {
   "schema_version": "1.0",
   "metadata": {
-    "message_id": "msg_103",
+    "message_id": "msg_103_t1",
     "timestamp": "2026-07-31T09:20:00+07:00",
     "user_id": "student_1a77e2",
     "session_id": "discord_session_103",
@@ -138,7 +138,7 @@ Tất cả các test case đều được định dạng 100% theo contract `tem
   },
   "message": {
     "type": "text",
-    "content": "Mai deadline đúng không ạ?"
+    "content": "Được bao nhiêu XP vậy?"
   },
   "conversation": {
     "history": [],
@@ -154,28 +154,106 @@ Tất cả các test case đều được định dạng 100% theo contract `tem
 }
 ```
 
-### Output
+### Turn 1 — Expected Output
 ```json
 {
   "schema_version": "1.0",
-  "message_id": "msg_103",
+  "message_id": "msg_103_t1",
   "route": "CLARIFY",
-  "intent": "ask_deadline",
-  "confidence": 0.88,
+  "intent": "ask_xp",
+  "confidence": 1.0,
   "grounding_status": "no_source",
-  "response": "Bạn đang hỏi hạn nộp của bài nào vậy — Weekly Assignment, dự án #build, hay bài khác?",
+  "response": "Bạn muốn biết XP của hoạt động nào?",
   "clarification": {
-    "missing_field": "assignment",
-    "question": "Bạn đang hỏi hạn nộp của bài nào vậy — Weekly Assignment, dự án #build, hay bài khác?",
+    "missing_field": "activity",
+    "question": "Bạn muốn biết XP của hoạt động nào?",
     "suggested_replies": [
-      "Weekly Assignment",
-      "Dự án #build",
-      "Bài khác"
-    ]
+      "Daily checkin",
+      "Weekly submit",
+      "Peer review",
+      "Gate pass"
+    ],
+    "original_intent": "ask_xp",
+    "attempt_count": 1,
+    "known_slots": {}
   },
   "citations": [],
   "escalation": null,
-  "trace_id": "trace_103"
+  "trace_id": "trace_103_t1"
+}
+```
+
+### Turn 2 — Input
+```json
+{
+  "schema_version": "1.0",
+  "metadata": {
+    "message_id": "msg_103_t2",
+    "timestamp": "2026-07-31T09:21:00+07:00",
+    "user_id": "student_1a77e2",
+    "session_id": "discord_session_103",
+    "channel_id": "support_general"
+  },
+  "message": {
+    "type": "text",
+    "content": "Daily"
+  },
+  "conversation": {
+    "history": [
+      {
+        "role": "user",
+        "content": "Được bao nhiêu XP vậy?"
+      },
+      {
+        "role": "assistant",
+        "content": "Bạn muốn biết XP của hoạt động nào?"
+      }
+    ],
+    "pending_clarification": {
+      "missing_field": "activity",
+      "question": "Bạn muốn biết XP của hoạt động nào?",
+      "suggested_replies": [
+        "Daily checkin",
+        "Weekly submit",
+        "Peer review",
+        "Gate pass"
+      ],
+      "original_intent": "ask_xp",
+      "attempt_count": 1,
+      "known_slots": {}
+    }
+  },
+  "context": {
+    "description": "Mục tiêu của chatbot là trở thành một người bạn đồng hành năng động, giúp các thành viên của cộng đồng **AI20K Build Phase** dễ dàng tìm kiếm thông tin và giải đáp các thắc mắc thường gặp (FAQ) đó! ✨"
+  },
+  "runtime": {
+    "language": "vi",
+    "platform": "discord"
+  }
+}
+```
+
+### Turn 2 — Expected Output
+```json
+{
+  "schema_version": "1.0",
+  "message_id": "msg_103_t2",
+  "route": "ANSWER",
+  "intent": "ask_xp",
+  "confidence": 0.8,
+  "grounding_status": "grounded",
+  "response": "🏆 **Checkin hàng ngày (/daily)**: +5 XP\n\n📊 **Bảng cấp độ:**\n• LV1: 0-50 XP\n• LV2: 51-150 XP\n• LV3: 151-300 XP\n• LV4: 301+ XP\n\n💡 Dùng `/daily` để thực hiện\n\n📎 Nguồn: Quy định XP — Checkin hàng ngày (XP System / /daily)",
+  "clarification": null,
+  "citations": [
+    {
+      "source_id": "official_xp_daily_k3",
+      "title": "Quy định XP — Checkin hàng ngày",
+      "locator": "XP System / /daily",
+      "quote": "Dùng /daily để checkin hàng ngày, nhận 5 XP. LV1: 0-50 XP, LV2: 51-150 XP, LV3: 151-300 XP, LV4: 301+ XP."
+    }
+  ],
+  "escalation": null,
+  "trace_id": "trace_103_t2"
 }
 ```
 
@@ -901,14 +979,14 @@ Tất cả các test case đều được định dạng 100% theo contract `tem
 
 ---
 
-## Case 17 — ANSWER · Đổi hướng học (Correction context)
+## Case 17 — MULTITURN · User sửa context → trả lời theo context mới (Correction)
 
-### Input
+### Turn 1 — Input
 ```json
 {
   "schema_version": "1.0",
   "metadata": {
-    "message_id": "msg_117",
+    "message_id": "msg_117_t1",
     "timestamp": "2026-07-31T10:30:00+07:00",
     "user_id": "student_778899",
     "session_id": "discord_session_117",
@@ -916,19 +994,10 @@ Tất cả các test case đều được định dạng 100% theo contract `tem
   },
   "message": {
     "type": "text",
-    "content": "Không phải, ý mình là muốn đổi từ Hướng A (VLearn) sang Hướng B (Discord Bot) cơ."
+    "content": "Deadline bao giờ?"
   },
   "conversation": {
-    "history": [
-      {
-        "role": "user",
-        "content": "Nhóm mình đang làm VLearn."
-      },
-      {
-        "role": "assistant",
-        "content": "Bạn cần hỗ trợ gì về VLearn?"
-      }
-    ],
+    "history": [],
     "pending_clarification": null
   },
   "context": {
@@ -941,27 +1010,104 @@ Tất cả các test case đều được định dạng 100% theo contract `tem
 }
 ```
 
-### Output
+### Turn 1 — Expected Output
 ```json
 {
   "schema_version": "1.0",
-  "message_id": "msg_117",
+  "message_id": "msg_117_t1",
+  "route": "CLARIFY",
+  "intent": "ask_deadline",
+  "confidence": 0.7,
+  "grounding_status": "no_source",
+  "response": "Bạn đang hỏi deadline của bài nào? (VD: Weekly Assignment, AI Log, Demo Day...)",
+  "clarification": {
+    "missing_field": "assignment",
+    "question": "Bạn đang hỏi deadline của bài nào? (VD: Weekly Assignment, AI Log, Demo Day...)",
+    "suggested_replies": [
+      "Weekly Assignment",
+      "AI Log",
+      "Demo Day deliverables"
+    ],
+    "original_intent": "ask_deadline",
+    "attempt_count": 1,
+    "known_slots": {}
+  },
+  "citations": [],
+  "escalation": null,
+  "trace_id": "trace_117_t1"
+}
+```
+
+### Turn 2 — Input
+```json
+{
+  "schema_version": "1.0",
+  "metadata": {
+    "message_id": "msg_117_t2",
+    "timestamp": "2026-07-31T10:31:00+07:00",
+    "user_id": "student_778899",
+    "session_id": "discord_session_117",
+    "channel_id": "support_general"
+  },
+  "message": {
+    "type": "text",
+    "content": "Không phải Weekly Assignment, ý mình là AI Log."
+  },
+  "conversation": {
+    "history": [
+      {
+        "role": "user",
+        "content": "Deadline bao giờ?"
+      },
+      {
+        "role": "assistant",
+        "content": "Bạn đang hỏi deadline của bài nào? (VD: Weekly Assignment, AI Log, Demo Day...)"
+      }
+    ],
+    "pending_clarification": {
+      "missing_field": "assignment",
+      "question": "Bạn đang hỏi deadline của bài nào? (VD: Weekly Assignment, AI Log, Demo Day...)",
+      "suggested_replies": [
+        "Weekly Assignment",
+        "AI Log",
+        "Demo Day deliverables"
+      ],
+      "original_intent": "ask_deadline",
+      "attempt_count": 1,
+      "known_slots": {}
+    }
+  },
+  "context": {
+    "description": "Mục tiêu của chatbot là trở thành một người bạn đồng hành năng động, giúp các thành viên của cộng đồng **AI20K Build Phase** dễ dàng tìm kiếm thông tin và giải đáp các thắc mắc thường gặp (FAQ) đó! ✨"
+  },
+  "runtime": {
+    "language": "vi",
+    "platform": "discord"
+  }
+}
+```
+
+### Turn 2 — Expected Output
+```json
+{
+  "schema_version": "1.0",
+  "message_id": "msg_117_t2",
   "route": "ANSWER",
-  "intent": "update_track_selection",
-  "confidence": 0.92,
+  "intent": "ask_deadline",
+  "confidence": 0.8,
   "grounding_status": "grounded",
-  "response": "Đã ghi nhận nhóm bạn chọn Hướng B — Trợ lý Học viên (Discord). Bạn nhớ cập nhật thông tin này trong file spec.md trước hạn nộp nhé!",
+  "response": "📋 **Thông tin bài nộp (AI LOG)**\n📌 Tần suất nộp: **weekly**\n⚠️ Trạng thái: **Bắt buộc**\n📝 Nội dung quy định: AI Log là deliverable bắt buộc. Phải nộp AI Log cho mỗi tuần học.\n\n📎 Nguồn: Yêu cầu AI Log — AI20K Cohort III (AI Log)",
   "clarification": null,
   "citations": [
     {
-      "source_id": "student_handbook_v1",
-      "title": "Sổ tay Hackathon — Đề bài 3 hướng",
-      "locator": "01-de-bai.md",
-      "quote": "Chọn 1 trong 3 hướng: Hướng A — VLearn, Hướng B — Trợ lý Học viên (Discord), Hướng C — Làn mở."
+      "source_id": "official_ai_log_k3",
+      "title": "Yêu cầu AI Log — AI20K Cohort III",
+      "locator": "AI Log",
+      "quote": "AI Log là deliverable bắt buộc. Phải nộp AI Log cho mỗi tuần học."
     }
   ],
   "escalation": null,
-  "trace_id": "trace_117"
+  "trace_id": "trace_117_t2"
 }
 ```
 
@@ -2307,7 +2453,7 @@ Tất cả các test case đều được định dạng 100% theo contract `tem
 |---|---|---|---|---|
 | 01 | Handbook v1 | ANSWER | ask_attendance_policy | grounded |
 | 02 | Handbook v1 | ANSWER | ask_online_learning_availability | grounded |
-| 03 | Handbook v1 | CLARIFY | ask_deadline | no_source |
+| 03 | Handbook v1 | CLARIFY → ANSWER | ask_xp | no_source → grounded |
 | 04 | Handbook v1 | ESCALATE | request_leave_of_absence | grounded |
 | 05 | Handbook v1 | ESCALATE | request_grade_review | no_source |
 | 06 | Handbook v1 | ANSWER | ask_laptop_requirements | grounded |
@@ -2321,7 +2467,7 @@ Tất cả các test case đều được định dạng 100% theo contract `tem
 | 14 | Handbook v1 | ANSWER | reject_do_assignment_for_user | not_required |
 | 15 | Handbook v1 | ANSWER | ask_deadline | grounded |
 | 16 | Handbook v1 | ANSWER | ask_submission_channel | grounded |
-| 17 | Handbook v1 | ANSWER | update_track_selection | grounded |
+| 17 | Handbook v1 | CLARIFY → ANSWER | ask_deadline | no_source → grounded |
 | 18 | Handbook v1 | ESCALATE | ask_deadline | no_source |
 | 19 | Handbook v1 | CLARIFY | ask_deadline_flexibility | no_source |
 | 20 | Handbook v1 | ESCALATE | report_harassment | no_source |
