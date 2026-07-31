@@ -1,5 +1,18 @@
-.DS_Store
-node_modules/
+# Virtual Environment (Bỏ qua thư viện Python)
+.venv/
+venv/
+ENV/
+env/
+frontend/.venv/
+
+# Python Bytecode & Cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Environment & Sensitive keys
+.env
 *.env
 __pycache__/
 *.py[cod]

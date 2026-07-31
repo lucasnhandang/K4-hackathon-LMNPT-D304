@@ -1,0 +1,1271 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trợ lý Học viên Discord — Prototype CP2 Demo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=Lora:ital,wght@1,500&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      /* --- Surfaces --- */
+      --bg-primary: #313338;
+      --bg-secondary: #2b2d31;
+      --bg-tertiary: #1e1f22;
+      --bg-elevated: #3a3d44;
+      --bg-elevated-hover: #43474f;
+      --border-subtle: rgba(255, 255, 255, 0.07);
+      --border-strong: rgba(255, 255, 255, 0.14);
+
+      /* --- Text --- */
+      --text-heading: #f2f3f5;
+      --text-normal: #d7d9dd;
+      --text-muted: #949ba4;
+      --text-faint: #72767d;
+
+      /* --- Human / system accent (Discord blurple) --- */
+      --brand: #5865f2;
+      --brand-hover: #4752c4;
+      --brand-soft: rgba(88, 101, 242, 0.16);
+
+      /* --- AI signature gradient --- */
+      --ai-start: #8b6cf7;
+      --ai-end: #22d3ee;
+      --ai-gradient: linear-gradient(135deg, var(--ai-start), var(--ai-end));
+      --ai-soft: rgba(139, 108, 247, 0.14);
+
+      /* --- Status --- */
+      --green: #23a55a;
+      --green-soft: rgba(35, 165, 90, 0.14);
+      --red: #f23f43;
+      --red-soft: rgba(242, 63, 67, 0.14);
+      --amber: #f0b232;
+      --amber-soft: rgba(240, 178, 50, 0.14);
+
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 14px;
+      --shadow-card: 0 6px 20px rgba(0, 0, 0, 0.28);
+      --font-display: 'Sora', 'Inter', system-ui, sans-serif;
+      --font-body: 'Inter', system-ui, -apple-system, sans-serif;
+      --font-quote: 'Lora', Georgia, serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: var(--font-body);
+      background-color: var(--bg-tertiary);
+      color: var(--text-normal);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--bg-elevated);
+      border-radius: 8px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--bg-elevated-hover);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+
+      *,
+      *::before,
+      *::after {
+        animation-duration: 0.001ms !important;
+        transition-duration: 0.001ms !important;
+      }
+    }
+
+    svg {
+      display: block;
+    }
+
+    /* ---------- Top Notice Banner ---------- */
+    .mock-banner {
+      background: linear-gradient(90deg, #232529, #1a1b1e);
+      color: var(--text-heading);
+      padding: 8px 18px;
+      font-size: 12.5px;
+      font-weight: 500;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border-subtle);
+      gap: 12px;
+    }
+
+    .mock-banner-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .mock-badge {
+      background: var(--ai-gradient);
+      color: #14121f;
+      padding: 3px 9px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 10.5px;
+      letter-spacing: 0.4px;
+      text-transform: uppercase;
+    }
+
+    .mock-track {
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .mock-note {
+      font-size: 11.5px;
+      color: var(--text-faint);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .mock-note svg {
+      width: 13px;
+      height: 13px;
+      flex-shrink: 0;
+      opacity: 0.8;
+    }
+
+    /* ---------- Main Layout ---------- */
+    .app-container {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    /* ---------- Sidebar ---------- */
+    .sidebar {
+      width: 272px;
+      background-color: var(--bg-secondary);
+      display: flex;
+      flex-direction: column;
+      border-right: 1px solid var(--border-subtle);
+    }
+
+    .sidebar-header {
+      height: 52px;
+      padding: 0 16px;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 14.5px;
+      color: var(--text-heading);
+      border-bottom: 1px solid var(--bg-tertiary);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+      letter-spacing: 0.1px;
+    }
+
+    .server-icon {
+      width: 26px;
+      height: 26px;
+      border-radius: 8px;
+      background: var(--ai-gradient);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .server-icon svg {
+      width: 15px;
+      height: 15px;
+      color: #14121f;
+    }
+
+    .channel-list {
+      padding: 14px 8px 6px;
+    }
+
+    .channel-group-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-faint);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 4px 10px 8px;
+    }
+
+    .channel-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 10px;
+      border-radius: var(--radius-sm);
+      color: var(--text-muted);
+      cursor: pointer;
+      font-weight: 500;
+      font-size: 14px;
+      margin-bottom: 2px;
+      transition: background 0.15s ease, color 0.15s ease;
+    }
+
+    .channel-item.active {
+      background-color: var(--bg-elevated);
+      color: var(--text-heading);
+    }
+
+    .channel-item:hover:not(.active) {
+      background-color: rgba(255, 255, 255, 0.04);
+      color: var(--text-normal);
+    }
+
+    .channel-item svg {
+      width: 17px;
+      height: 17px;
+      opacity: 0.75;
+      flex-shrink: 0;
+    }
+
+    /* ---------- Demo Controller Panel ---------- */
+    .demo-controls {
+      background: var(--bg-tertiary);
+      margin: 8px 10px 12px;
+      padding: 13px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-subtle);
+    }
+
+    .demo-title {
+      font-size: 10.5px;
+      font-weight: 700;
+      color: var(--text-faint);
+      text-transform: uppercase;
+      margin-bottom: 9px;
+      letter-spacing: 0.6px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .demo-title svg {
+      width: 12px;
+      height: 12px;
+      color: var(--ai-end);
+    }
+
+    .btn-preset {
+      width: 100%;
+      text-align: left;
+      background: var(--bg-secondary);
+      color: var(--text-normal);
+      border: 1px solid var(--border-subtle);
+      padding: 9px 10px;
+      border-radius: var(--radius-sm);
+      font-family: var(--font-body);
+      font-size: 12.5px;
+      font-weight: 500;
+      cursor: pointer;
+      margin-bottom: 6px;
+      transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-preset .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .btn-preset:nth-child(2) .dot {
+      background: var(--brand);
+    }
+
+    .btn-preset:nth-child(3) .dot {
+      background: var(--green);
+    }
+
+    .btn-preset:nth-child(4) .dot {
+      background: var(--red);
+    }
+
+    .btn-preset:nth-child(5) .dot {
+      background: var(--text-faint);
+    }
+
+    .btn-preset:hover {
+      background: var(--bg-elevated-hover);
+      border-color: var(--border-strong);
+      transform: translateX(1px);
+    }
+
+    .btn-preset.btn-reset {
+      background: transparent;
+      color: var(--text-muted);
+      justify-content: center;
+      margin-top: 4px;
+      margin-bottom: 0;
+    }
+
+    .btn-preset.btn-reset:hover {
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-heading);
+      transform: none;
+    }
+
+    /* ---------- Chat Area ---------- */
+    .chat-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background-color: var(--bg-primary);
+      min-width: 0;
+    }
+
+    .chat-header {
+      height: 52px;
+      padding: 0 18px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 1px solid var(--border-subtle);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+      flex-shrink: 0;
+    }
+
+    .chat-header svg.hash {
+      width: 20px;
+      height: 20px;
+      color: var(--text-faint);
+    }
+
+    .chat-title {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 15px;
+      color: var(--text-heading);
+    }
+
+    .chat-desc {
+      font-size: 12.5px;
+      color: var(--text-muted);
+      border-left: 1px solid var(--border-subtle);
+      padding-left: 11px;
+      margin-left: 3px;
+    }
+
+    /* ---------- Messages ---------- */
+    .messages-container {
+      flex: 1;
+      padding: 18px 20px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .message {
+      display: flex;
+      gap: 14px;
+      animation: fadeIn 0.28s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(6px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .avatar {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 12.5px;
+      color: white;
+      flex-shrink: 0;
+      position: relative;
+    }
+
+    .avatar.ai-avatar {
+      background: var(--ai-gradient);
+      box-shadow: 0 0 0 2px var(--bg-primary), 0 0 0 3.5px rgba(139, 108, 247, 0.35);
+    }
+
+    .avatar.ai-avatar::after {
+      content: '';
+      position: absolute;
+      bottom: -1px;
+      right: -1px;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--green);
+      border: 2px solid var(--bg-primary);
+    }
+
+    .avatar.user-avatar {
+      background: linear-gradient(135deg, #2fbf71, #1c8f52);
+    }
+
+    .message-content {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .message-author {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      margin-bottom: 3px;
+    }
+
+    .author-name {
+      font-family: var(--font-display);
+      font-weight: 600;
+      color: var(--text-heading);
+      font-size: 14px;
+    }
+
+    .bot-tag {
+      background: var(--ai-gradient);
+      color: #14121f;
+      font-size: 9.5px;
+      font-weight: 700;
+      padding: 2px 5px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    .message-time {
+      font-size: 11px;
+      color: var(--text-faint);
+      margin-left: 2px;
+    }
+
+    .message-text {
+      font-size: 14.5px;
+      line-height: 1.55;
+      color: var(--text-normal);
+    }
+
+    /* ---------- Typing indicator ---------- */
+    .typing-bubble {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: var(--bg-elevated);
+      padding: 9px 12px;
+      border-radius: var(--radius-md);
+      width: fit-content;
+    }
+
+    .typing-bubble span {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--text-muted);
+      animation: typingBounce 1.1s infinite ease-in-out;
+    }
+
+    .typing-bubble span:nth-child(2) {
+      animation-delay: 0.15s;
+    }
+
+    .typing-bubble span:nth-child(3) {
+      animation-delay: 0.3s;
+    }
+
+    @keyframes typingBounce {
+
+      0%,
+      60%,
+      100% {
+        transform: translateY(0);
+        opacity: 0.5;
+      }
+
+      30% {
+        transform: translateY(-4px);
+        opacity: 1;
+      }
+    }
+
+    /* ---------- Embed cards ---------- */
+    .bot-embed {
+      background-color: var(--bg-secondary);
+      border: 1px solid var(--border-subtle);
+      border-left: 3px solid var(--ai-end);
+      border-radius: var(--radius-md);
+      padding: 13px 14px;
+      margin-top: 9px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-width: 540px;
+      box-shadow: var(--shadow-card);
+    }
+
+    .bot-embed.warning-embed {
+      border-left-color: var(--amber);
+    }
+
+    .bot-embed.escalate-embed {
+      border-left-color: var(--red);
+    }
+
+    .bot-embed.muted-embed {
+      border-left-color: var(--text-faint);
+    }
+
+    .bot-embed.success-embed {
+      border-left-color: var(--green);
+    }
+
+    .embed-title {
+      font-family: var(--font-display);
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--text-heading);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .embed-title svg {
+      width: 14px;
+      height: 14px;
+      flex-shrink: 0;
+    }
+
+    .options-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 2px;
+    }
+
+    .btn-option {
+      background-color: var(--bg-elevated);
+      color: var(--text-heading);
+      border: 1px solid var(--border-strong);
+      padding: 7px 13px;
+      border-radius: 999px;
+      font-family: var(--font-body);
+      font-size: 12.5px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-option:hover {
+      background-color: var(--brand);
+      border-color: var(--brand);
+      color: #fff;
+      transform: translateY(-1px);
+    }
+
+    .btn-option.btn-success {
+      background-color: var(--green-soft);
+      border-color: rgba(35, 165, 90, 0.4);
+      color: #d3f5df;
+    }
+
+    .btn-option.btn-success:hover {
+      background-color: var(--green);
+      border-color: var(--green);
+      color: #fff;
+    }
+
+    .btn-option.btn-danger {
+      background-color: var(--red-soft);
+      border-color: rgba(242, 63, 67, 0.4);
+      color: #fdd;
+    }
+
+    .btn-option.btn-danger:hover {
+      background-color: var(--red);
+      border-color: var(--red);
+      color: #fff;
+    }
+
+    /* ---------- Source quote box ---------- */
+    .source-box {
+      background: rgba(0, 0, 0, 0.22);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 9px 11px;
+      font-size: 12.5px;
+      color: var(--text-muted);
+      line-height: 1.5;
+      display: flex;
+      gap: 8px;
+      align-items: flex-start;
+    }
+
+    .source-box svg {
+      width: 14px;
+      height: 14px;
+      flex-shrink: 0;
+      margin-top: 1px;
+      color: var(--ai-end);
+    }
+
+    .source-box strong {
+      color: var(--text-heading);
+      font-weight: 600;
+    }
+
+    .source-box.escalate-box {
+      background: var(--red-soft);
+      border-color: rgba(242, 63, 67, 0.25);
+    }
+
+    .source-box.escalate-box svg {
+      color: var(--red);
+    }
+
+    /* ---------- Input Bar ---------- */
+    .chat-input-area {
+      padding: 0 20px 22px;
+      flex-shrink: 0;
+    }
+
+    .input-wrapper {
+      background-color: var(--bg-elevated);
+      border: 1px solid transparent;
+      border-radius: var(--radius-md);
+      padding: 0 8px 0 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: border-color 0.15s ease;
+    }
+
+    .input-wrapper:focus-within {
+      border-color: var(--brand);
+    }
+
+    .chat-input {
+      width: 100%;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--text-heading);
+      font-family: var(--font-body);
+      font-size: 14px;
+      height: 46px;
+    }
+
+    .chat-input::placeholder {
+      color: var(--text-faint);
+    }
+
+    .btn-send {
+      background: var(--brand);
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: var(--radius-sm);
+      font-family: var(--font-body);
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 13px;
+      transition: background 0.15s ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .btn-send svg {
+      width: 14px;
+      height: 14px;
+    }
+
+    .btn-send:hover {
+      background: var(--brand-hover);
+    }
+
+    /* ---------- Modal ---------- */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(10, 10, 12, 0.65);
+      backdrop-filter: blur(3px);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+      animation: overlayIn 0.15s ease-out;
+    }
+
+    @keyframes overlayIn {
+      from {
+        opacity: 0;
+      }
+
+      to {
+        opacity: 1;
+      }
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    .modal-card {
+      background: var(--bg-secondary);
+      width: 460px;
+      max-width: 90vw;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border-strong);
+      padding: 22px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+      animation: modalIn 0.2s ease-out;
+    }
+
+    @keyframes modalIn {
+      from {
+        opacity: 0;
+        transform: translateY(8px) scale(0.98);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    .modal-title {
+      font-family: var(--font-display);
+      font-weight: 700;
+      color: var(--text-heading);
+      font-size: 15.5px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .modal-title svg {
+      width: 17px;
+      height: 17px;
+      color: var(--ai-end);
+    }
+
+    .modal-close {
+      cursor: pointer;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-muted);
+      transition: background 0.15s ease, color 0.15s ease;
+    }
+
+    .modal-close:hover {
+      background: var(--bg-elevated);
+      color: var(--text-heading);
+    }
+
+    .modal-close svg {
+      width: 15px;
+      height: 15px;
+    }
+
+    .modal-body {
+      font-size: 13px;
+      line-height: 1.6;
+      color: var(--text-normal);
+      background: var(--bg-tertiary);
+      padding: 14px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-subtle);
+    }
+
+    .modal-body p strong {
+      color: var(--text-heading);
+    }
+
+    .modal-body blockquote {
+      font-family: var(--font-quote);
+      font-style: italic;
+      border-left: 3px solid var(--ai-end);
+      padding-left: 10px;
+      margin-top: 6px;
+      color: var(--text-heading);
+      font-size: 13.5px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Top Notice Banner -->
+  <div class="mock-banner">
+    <div class="mock-banner-left">
+      <span class="mock-badge">CP2 Prototype Mockup</span>
+      <span class="mock-track">K4 Hackathon Track B — Trợ lý Học viên Discord</span>
+    </div>
+    <div class="mock-note">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10" />
+        <path d="M12 8v4M12 16h.01" />
+      </svg>
+      Quyết định AI đang hardcode theo kịch bản demo (Chưa nối AI thật)
+    </div>
+  </div>
+
+  <div class="app-container">
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <div class="sidebar-header">
+        <div class="server-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4">
+            <path d="M12 3l7 4v5c0 4.5-3 8-7 9-4-1-7-4.5-7-9V7l7-4z" />
+          </svg>
+        </div>
+        AI Thực Chiến K4
+      </div>
+      <div class="channel-list">
+        <div class="channel-group-label">Kênh văn bản</div>
+        <div class="channel-item active">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M4 9h16M4 15h16M10 3L8 21M16 3l-2 18" />
+          </svg> gỡ-vướng-học-tập
+        </div>
+        <div class="channel-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M4 9h16M4 15h16M10 3L8 21M16 3l-2 18" />
+          </svg> thông-báo-chung
+        </div>
+        <div class="channel-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M4 9h16M4 15h16M10 3L8 21M16 3l-2 18" />
+          </svg> mentor-duty
+        </div>
+      </div>
+
+      <!-- Quick Demo Presets -->
+      <div class="demo-controls">
+        <div class="demo-title">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z" />
+          </svg>
+          Kịch bản Demo CP2
+        </div>
+        <button class="btn-preset" onclick="runPresetMainFlow()"><span class="dot"></span> Demo 1: Hỏi mơ hồ (Main
+          Flow)</button>
+        <button class="btn-preset" onclick="runPresetDirectAnswer()"><span class="dot"></span> Demo 2: Hỏi rõ (Trả lời
+          thẳng)</button>
+        <button class="btn-preset" onclick="runPresetEscalate()"><span class="dot"></span> Demo 3: Không căn cứ
+          (Escalate Mod)</button>
+        <button class="btn-preset" onclick="runPresetOutOfScope()"><span class="dot"></span> Demo 4: Ngoài phạm vi / Vi
+          phạm</button>
+        <button class="btn-preset btn-reset" onclick="resetChat()">↺ Đặt lại hội thoại</button>
+      </div>
+    </div>
+
+    <!-- Main Chat Area -->
+    <div class="chat-area">
+      <div class="chat-header">
+        <svg class="hash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+          <path d="M4 9h16M4 15h16M10 3L8 21M16 3l-2 18" />
+        </svg>
+        <span class="chat-title">gỡ-vướng-học-tập</span>
+        <span class="chat-desc">Hỏi đáp thắc mắc bài tập & logistics khóa học</span>
+      </div>
+
+      <!-- Messages Area -->
+      <div class="messages-container" id="chat-messages">
+        <div class="message">
+          <div class="avatar ai-avatar">AI</div>
+          <div class="message-content">
+            <div class="message-author">
+              <span class="author-name">Trợ lý Học viên</span>
+              <span class="bot-tag">BOT</span>
+              <span class="message-time">Hôm nay lúc 16:00</span>
+            </div>
+            <div class="message-text">
+              Chào bạn! Mình là Trợ lý Học viên. Nếu bạn gặp vướng mắc về bài tập hoặc thông tin khóa học, hãy nhập câu
+              hỏi bên dưới nhé!
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Input Bar -->
+      <div class="chat-input-area">
+        <div class="input-wrapper">
+          <input type="text" id="user-input" class="chat-input"
+            placeholder="Gõ câu hỏi... (Ví dụ: Deadline bao nhiêu z?)" onkeypress="handleKeyPress(event)">
+          <button class="btn-send" onclick="sendUserMessage()">
+            Gửi <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4">
+              <path d="M5 12h14M13 6l6 6-6 6" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Source Modal -->
+  <div class="modal-overlay" id="source-modal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <span class="modal-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M6 2h9l5 5v15H6z" />
+            <path d="M15 2v5h5M8 13h8M8 17h5" />
+          </svg>
+          Căn cứ & Nguồn chính thức
+        </span>
+        <span class="modal-close" onclick="closeSourceModal()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4">
+            <path d="M6 6l12 12M18 6L6 18" />
+          </svg>
+        </span>
+      </div>
+      <div class="modal-body" id="modal-content"></div>
+    </div>
+  </div>
+
+  <script>
+    const chatContainer = document.getElementById('chat-messages');
+    const userInput = document.getElementById('user-input');
+    const ICON = {
+      search: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>',
+      calendar: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg>',
+      check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>',
+      alert: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9L2.5 17a2 2 0 0 0 1.7 3h15.6a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>',
+      info: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>',
+      doc: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2h9l5 5v15H6z"/><path d="M15 2v5h5"/></svg>'
+    };
+
+    function getTimeString() {
+      const now = new Date();
+      return `Hôm nay lúc ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+    }
+
+    function escapeHtml(text) {
+      return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+
+    function appendUserMessage(text) {
+      const msgDiv = document.createElement('div');
+      msgDiv.className = 'message';
+      msgDiv.innerHTML = `
+        <div class="avatar user-avatar">HV</div>
+        <div class="message-content">
+          <div class="message-author">
+            <span class="author-name">Học viên</span>
+            <span class="message-time">${getTimeString()}</span>
+          </div>
+          <div class="message-text">${escapeHtml(text)}</div>
+        </div>
+      `;
+      chatContainer.appendChild(msgDiv);
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+
+    function showTypingIndicator() {
+      const msgDiv = document.createElement('div');
+      msgDiv.className = 'message';
+      msgDiv.id = 'typing-indicator';
+      msgDiv.innerHTML = `
+        <div class="avatar ai-avatar">AI</div>
+        <div class="message-content">
+          <div class="message-author">
+            <span class="author-name">Trợ lý Học viên</span>
+            <span class="bot-tag">BOT</span>
+          </div>
+          <div class="typing-bubble"><span></span><span></span><span></span></div>
+        </div>
+      `;
+      chatContainer.appendChild(msgDiv);
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+
+    function removeTypingIndicator() {
+      const el = document.getElementById('typing-indicator');
+      if (el) el.remove();
+    }
+
+    function appendBotMessage(htmlContent) {
+      removeTypingIndicator();
+      const msgDiv = document.createElement('div');
+      msgDiv.className = 'message';
+      msgDiv.innerHTML = `
+        <div class="avatar ai-avatar">AI</div>
+        <div class="message-content">
+          <div class="message-author">
+            <span class="author-name">Trợ lý Học viên</span>
+            <span class="bot-tag">BOT</span>
+            <span class="message-time">${getTimeString()}</span>
+          </div>
+          <div class="message-text">${htmlContent}</div>
+        </div>
+      `;
+      chatContainer.appendChild(msgDiv);
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+
+    function botReply(builderFn, delay = 550) {
+      showTypingIndicator();
+      setTimeout(builderFn, delay);
+    }
+
+    function handleKeyPress(e) { if (e.key === 'Enter') sendUserMessage(); }
+
+    function sendUserMessage() {
+      const text = userInput.value.trim();
+      if (!text) return;
+      appendUserMessage(text);
+      userInput.value = '';
+
+      setTimeout(() => {
+        const lower = text.toLowerCase();
+        if (lower.includes('bom') || lower.includes('vũ khí') || lower.includes('tư vấn') || lower.includes('thời tiết') || lower.includes('tin tức') || lower.includes('phi pháp') || lower.includes('ngoài phạm vi') || lower.includes('vi phạm')) {
+          botReply(step_OutofScope);
+        } else if (lower.includes('deadline bao nhiêu') || lower.includes('deadline bao nhieu') || lower.includes('mơ hồ')) {
+          botReply(step1_BotAskClarify);
+        } else if (lower.includes('weekly report tuần này') || lower.includes('rõ')) {
+          botReply(step_DirectAnswer);
+        } else if (lower.includes('nộp bù') || lower.includes('không có căn cứ')) {
+          botReply(step_EscalateNoSource);
+        } else {
+          botReply(step1_BotAskClarify);
+        }
+      }, 150);
+    }
+
+    function step1_BotAskClarify() {
+      const html = `
+        Bạn đang muốn hỏi <strong>deadline của nội dung nào</strong> vậy?
+        <div class="bot-embed warning-embed">
+          <div class="embed-title">${ICON.search} Chọn nội dung bạn cần kiểm tra</div>
+          <div class="options-grid">
+            <button class="btn-option" onclick="handleChoiceCategory('Weekly report')">${ICON.doc} Weekly report</button>
+            <button class="btn-option" onclick="handleChoiceCategory('Bài tập tuần')">${ICON.check} Bài tập tuần</button>
+            <button class="btn-option" onclick="handleChoiceCategory('Đăng ký Mentor Duty')">${ICON.calendar} Mentor Duty</button>
+            <button class="btn-option" onclick="handleChoiceCategory('Nội dung khác')">Nội dung khác</button>
+          </div>
+        </div>
+      `;
+      appendBotMessage(html);
+    }
+
+    function handleChoiceCategory(cat) {
+      appendUserMessage(cat);
+      if (cat === 'Weekly report') {
+        botReply(() => {
+          const html = `
+            Bạn đang muốn kiểm tra Weekly report của <strong>tuần nào</strong>?
+            <div class="bot-embed">
+              <div class="embed-title">${ICON.calendar} Chọn thời gian</div>
+              <div class="options-grid">
+                <button class="btn-option" onclick="handleChoiceTime('Tuần hiện tại')">Tuần hiện tại</button>
+                <button class="btn-option" onclick="handleChoiceTime('Tuần trước')">Tuần trước</button>
+                <button class="btn-option" onclick="handleChoiceTime('Tuần khác')">Tuần khác</button>
+              </div>
+            </div>
+          `;
+          appendBotMessage(html);
+        }, 450);
+      } else {
+        botReply(step_EscalateNoSource, 450);
+      }
+    }
+
+    function handleChoiceTime(time) {
+      appendUserMessage(time);
+      botReply(() => {
+        const html = `
+          Deadline <strong>Weekly Report tuần này</strong> là <strong>12:00 trưa Thứ 4 (ngày 30/07)</strong> trước buổi Mentor Duty.
+          <div class="bot-embed success-embed">
+            <div class="source-box">
+              ${ICON.doc}
+              <span><strong>Nguồn căn cứ:</strong> Thông báo Weekly Report — cập nhật ngày 28/07/2026 bởi Ban Chăm sóc Học viên.</span>
+            </div>
+            <div class="embed-title">Thông tin này đã gỡ vướng cho bạn chưa?</div>
+            <div class="options-grid">
+              <button class="btn-option btn-success" onclick="handleFeedbackResolved()">${ICON.check} Đã giải quyết</button>
+              <button class="btn-option btn-danger" onclick="handleFeedbackWrong()">✕ Bot hiểu sai</button>
+              <button class="btn-option" onclick="openSourceModal('Weekly Report', 'Deadline nộp weekly report là 12h00 trưa trước các buổi mentor duty. Các buổi mentor duty cố định hàng tuần diễn ra vào tối thứ 4 và thứ 7.')">${ICON.doc} Xem nguồn</button>
+            </div>
+          </div>
+        `;
+        appendBotMessage(html);
+      }, 450);
+    }
+
+    function step_DirectAnswer() {
+      const html = `
+        Deadline <strong>Weekly Report tuần này</strong> là <strong>12:00 trưa Thứ 4 (ngày 30/07)</strong>.
+        <div class="bot-embed success-embed">
+          <div class="source-box">
+            ${ICON.doc}
+            <span><strong>Nguồn căn cứ:</strong> Thông báo Weekly Report — K4 AI Thực Chiến.</span>
+          </div>
+          <div class="options-grid">
+            <button class="btn-option btn-success" onclick="handleFeedbackResolved()">${ICON.check} Đã giải quyết</button>
+            <button class="btn-option btn-danger" onclick="handleFeedbackWrong()">✕ Bot hiểu sai</button>
+          </div>
+        </div>
+      `;
+      appendBotMessage(html);
+    }
+
+    function step_EscalateNoSource() {
+      const html = `
+        Mình chưa tìm thấy thông tin chính thức về <strong>deadline nộp bù</strong> trong tài liệu khóa học.
+        <div class="bot-embed escalate-embed">
+          <div class="embed-title">${ICON.alert} Đã tự động chuyển câu hỏi cho Mentor/Mod</div>
+          <div class="source-box escalate-box">
+            ${ICON.alert}
+            <span><strong>@Mod / @Mentor:</strong> Học viên cần xác nhận quy định nộp bù Weekly Report tuần trước. (Bot đã kiểm tra nhưng chưa có căn cứ chính thức trong môn học).</span>
+          </div>
+        </div>
+      `;
+      appendBotMessage(html);
+    }
+
+    function step_OutofScope() {
+      const html = `
+        Tôi là trợ lý AI hỗ trợ khóa học này. Hiện tại tôi không có thông tin hoặc không thể hỗ trợ giải đáp về chủ đề này.
+        <div class="bot-embed muted-embed">
+          <div class="source-box">
+            ${ICON.info}
+            <span><strong>Xử lý ngoài phạm vi / vi phạm:</strong> Bot từ chối lịch sự và <strong>không tag Mod</strong> để tránh làm phiền đội ngũ quản trị khóa học.</span>
+          </div>
+        </div>
+      `;
+      appendBotMessage(html);
+    }
+
+    function handleFeedbackWrong() {
+      appendUserMessage("Bot hiểu sai");
+      botReply(() => {
+        const html = `
+          Thành thật xin lỗi bạn! <strong>Mình đã hiểu sai phần nào?</strong>
+          <div class="bot-embed warning-embed">
+            <div class="options-grid">
+              <button class="btn-option" onclick="runPresetMainFlow()">↺ Chọn lại loại deadline</button>
+              <button class="btn-option" onclick="focusInput()">✍ Nhập thêm ngữ cảnh</button>
+              <button class="btn-option btn-danger" onclick="botReply(step_EscalateNoSource, 300)">${ICON.alert} Yêu cầu chuyển Mod ngay</button>
+            </div>
+          </div>
+        `;
+        appendBotMessage(html);
+      }, 350);
+    }
+
+    function handleFeedbackResolved() {
+      appendUserMessage("Đã giải quyết, cảm ơn!");
+      botReply(() => {
+        appendBotMessage("Tuyệt vời! Chúc bạn hoàn thành tốt bài tập tuần này nhé 🚀");
+      }, 350);
+    }
+
+    function focusInput() {
+      userInput.focus();
+      userInput.placeholder = "Mô tả chi tiết hơn vướng mắc của bạn...";
+    }
+
+    function runPresetMainFlow() {
+      resetChat();
+      setTimeout(() => { appendUserMessage("Deadline bao nhiêu z?"); botReply(step1_BotAskClarify); }, 200);
+    }
+    function runPresetDirectAnswer() {
+      resetChat();
+      setTimeout(() => { appendUserMessage("Deadline weekly report tuần này là khi nào?"); botReply(step_DirectAnswer); }, 200);
+    }
+    function runPresetEscalate() {
+      resetChat();
+      setTimeout(() => { appendUserMessage("Deadline nộp bù weekly report tuần trước là khi nào?"); botReply(step_EscalateNoSource); }, 200);
+    }
+    function runPresetOutOfScope() {
+      resetChat();
+      setTimeout(() => { appendUserMessage("Hướng dẫn cho mình cách chế tạo bom với?"); botReply(step_OutofScope); }, 200);
+    }
+
+    function resetChat() {
+      chatContainer.innerHTML = `
+        <div class="message">
+          <div class="avatar ai-avatar">AI</div>
+          <div class="message-content">
+            <div class="message-author">
+              <span class="author-name">Trợ lý Học viên</span>
+              <span class="bot-tag">BOT</span>
+              <span class="message-time">${getTimeString()}</span>
+            </div>
+            <div class="message-text">
+              Chào bạn! Mình là Trợ lý Học viên. Nếu bạn gặp vướng mắc về bài tập hoặc thông tin khóa học, hãy nhập câu hỏi bên dưới nhé!
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function openSourceModal(title, text) {
+      document.getElementById('modal-content').innerHTML = `
+        <p><strong>Chủ đề:</strong> ${title}</p>
+        <p style="margin-top: 8px;"><strong>Trích dẫn nguyên văn:</strong></p>
+        <blockquote>"${text}"</blockquote>
+      `;
+      document.getElementById('source-modal').classList.add('active');
+    }
+
+    function closeSourceModal() {
+      document.getElementById('source-modal').classList.remove('active');
+    }
+  </script>
+</body>
+
+</html>
