@@ -1,4 +1,4 @@
-# Reflection — Lợi
+# Reflection — Trần Bá Lợi
 
 > Bản nháp dựng từ nhật ký kỹ thuật thật trong repo (`frontend/main.py`, `run_app.sh`, `validation/feedback-log.md` mục My, `README.md`). Điền lại bằng lời của chính mình trước khi nộp — CP5/CP6 sẽ hỏi ngẫu nhiên đúng phần này.
 
