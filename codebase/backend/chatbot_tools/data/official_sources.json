@@ -1,0 +1,426 @@
+{
+  "fixture_notice": "Dữ liệu trích xuất từ handbook AI20K Cohort III (23/07/2026 - 01/09/2026)",
+  "records": [
+    {
+      "source_id": "official_timeline_k3_master",
+      "title": "Timeline tổng quan — AI20K Cohort III",
+      "locator": "Master Timeline",
+      "category": "event",
+      "text": "AI20K Cohort III diễn ra từ 23/07/2026 đến 01/09/2026, kéo dài 6 tuần. Demo Day vào 01/09/2026.",
+      "updated_at": "2026-07-23T00:00:00+07:00",
+      "valid_from": "2026-07-23T00:00:00+07:00",
+      "valid_to": "2026-09-01T23:59:59+07:00",
+      "attributes": {
+        "event_name": "timeline",
+        "cohort": "k3",
+        "start_date": "2026-07-23",
+        "end_date": "2026-09-01",
+        "duration_weeks": 6,
+        "demo_day": "2026-09-01"
+      },
+      "official": true
+    },
+    {
+      "source_id": "official_weekly_rhythm_k3",
+      "title": "Nhịp học hàng tuần — AI20K Cohort III",
+      "locator": "Weekly Rhythm",
+      "category": "event",
+      "text": "Mỗi tuần có: 2 Workshop, Office Hours, 2 buổi Mentoring Duty. Stand Up hàng ngày, Coaching Breakout Room, Mentoring 1-1.",
+      "updated_at": "2026-07-23T00:00:00+07:00",
+      "valid_from": null,
+      "valid_to": null,
+      "attributes": {
+        "event_name": "weekly_rhythm",
+        "cohort": "k3",
+        "workshops_per_week": 2,
+        "office_hours": true,
+        "mentoring_duty_per_week": 2,
+        "stand_up": true,
+        "coaching_breakout": true,
+        "mentoring_1on1": true
+      },
+      "official": true
+    },
+    {
+      "source_id": "official_workshop_schedule_k3",
+      "title": "Lịch Workshop — AI20K Cohort III",
+      "locator": "Workshop Schedule",
+      "category": "event",
+      "text": "Tổng cộng 14 Workshop chính + 2 Workshop bổ sung trong suốt 6 tuần.",
+      "updated_at": "2026-07-23T00:00:00+07:00",
+      "valid_from": null,
+      "valid_to": null,
+      "attributes": {
+        "event_name": "workshops",
+        "cohort": "k3",
+        "total_main": 14,
+        "total_supplementary": 2,
+        "total": 16
+      },
+      "official": true
+    },
+    {
+      "source_id": "official_demo_day_k3",
+      "title": "Demo Day — AI20K Cohort III",
+      "locator": "Demo Day",
+      "category": "event",
+      "text": "Demo Day là sự kiện cuối khóa, diễn ra ngày 01/09/2026. Có 10 deliverable bắt buộc phải nộp.",
+      "updated_at": "2026-07-23T00:00:00+07:00",
+      "valid_from": "2026-08-25T00:00:00+07:00",
+      "valid_to": "2026-09-01T23:59:59+07:00",
+      "attributes": {
+        "event_name": "demo_day",
+        "cohort": "k3",
+        "date": "2026-09-01",
+        "mandatory_deliverables": 10
+      },
+      "official": true
+    },
+    {
+      "source_id": "official_xp_daily_k3",
+      "title": "Quy định XP — Checkin hàng ngày",
+      "locator": "XP System / /daily",
+      "category": "xp",
+      "text": "Dùng /daily để checkin hàng ngày, nhận 5 XP. LV1: 0-50 XP, LV2: 51-150 XP, LV3: 151-300 XP, LV4: 301+ XP.",
+      "updated_at": "2026-07-23T00:00:00+07:00",
+      "valid_from": null,
+      "valid_to": null,
+      "attributes": {
+        "activity": "daily",
+        "cohort": "k3",
+        "xp": 5,
+        "command": "/daily",
+        "levels": {
+          "LV1": "0-50",
+          "LV2": "51-150",
+          "LV3": "151-300",
+          "LV4": "301+"
+        }
+      },
+      "official": true
+    },
+    {
+      "source_id": "official_xp_weekly_k3",
+      "title": "Quy định XP — Nộp weekly assignment",
+      "locator": "XP System / /weekly",
+      "category": "xp",
+      "text": "Dùng /weekly submit để nộp weekly assignment, nhận 10 XP.",
+      "updated_at": "2026-07-23T00:00:00+07:00",
+      "valid_from": null,
+      "valid_to": null,
+      "attributes": {
+        "activity": "weekly_submit",
+        "cohort": "k3",
+        "xp": 10,
+        "command": "/weekly submit"
+      },
+      "official": true
+    },
+    {
+      "source_id": "official_xp_gate_k3",
+      "title": "Quy định XP — Vượt gate",
+      "locator": "XP System / Gate",
+      "category": "xp",
+      "text": "Vượt gate thành công nhận 100 XP.",
+      "updated_at": "2026-07-23T00:00:00+07:00",
+      "valid_from": null,
+      "valid_to": null,
+      "attributes": {
+        "activity": "gate_pass",
+        "cohort": "k3",
+        "xp": 100
+      },
+      "official": true
+    },
+    {
+      "source_id": "official_xp_peer_review_k3",
+      "title": "Quy định XP — Peer review",
+      "locator": "XP System / Peer Review",
+      "category": "xp",
+      "text": "Một peer review hợp lệ được cộng 20 XP; tối đa 3 lượt được tính trong tuần.",
+      "updated_at": "2026-07-23T00:00:00+07:00",
+      "valid_from": null,
+      "valid_to": null,
+      "attributes": {
+        "activity": "peer_review",
+        "cohort": "k3",
+        "xp": 20,
+        "weekly_cap": 3
+      },
+      "official": true
+    },
+    {
+      "source_id": "official_command_daily_k3",
+      "title": "Hướng dẫn lệnh Discord — /daily",
+      "locator": "/daily",
+      "category": "slash_command",
+      "text": "Dùng /daily để checkin hàng ngày và nhận 5 XP.",
+      "updated_at": "2026-07-23T00:00:00+07:00",
+      "valid_from": null,
+      "valid_to": null,
+      "attributes": {
+        "command": "/daily",
+        "usage": "/daily",
+        "description": "Checkin hàng ngày, nhận 5 XP"
+      },
+      "official": true
+    },
+    {
+      "source_id": "official_command_weekly_k3",
+      "title": "Hướng dẫn lệnh Discord — /weekly",
+      "locator": "/weekly",
+      "category": "slash_command",
+      "text": "Dùng /weekly submit để nộp weekly assignment, nhận 10 XP.",
+      "updated_at": "2026-07-23T00:00:00+07:00",
+      "valid_from": null,
+      "valid_to": null,
+      "attributes": {
+        "command": "/weekly",
+        "usage": "/weekly submit",
+        "description": "Nộp weekly assignment, nhận 10 XP"
+      },
+      "official": true
+    },
+    {
+      "source_id": "official_command_exam_k3",
+      "title": "Hướng dẫn lệnh Discord — /exam",
+      "locator": "/exam",
+      "category": "slash_command",
+      "text": "Dùng /exam để xem lịch thi và ca thi của team.",
+      "updated_at": "2026-07-23T00:00:00+07:00",
+      "valid_from": null,
+      "valid_to": null,
+      "attributes": {
+        "command": "/exam",
+        "usage": "/exam",
+        "description": "Xem lịch thi và ca thi"
+      },
+      "official": true
+    },
+    {
+      "source_id": "official_command_gate_k3",
+      "title": "Hướng dẫn lệnh Discord — /gate",
+      "locator": "/gate",
+      "category": "slash_command",
+      "text": "Dùng /gate để xem thông tin gate và điều kiện vượt gate.",
+      "updated_at": "2026-07-23T00:00:00+07:00",
+      "valid_from": null,
+      "valid_to": null,
+      "attributes": {
+        "command": "/gate",
+        "usage": "/gate",
+        "description": "Xem thông tin gate"
+      },
+      "official": true
+    },
+    {
+      "source_id": "official_command_myteam_k3",
+      "title": "Hướng dẫn lệnh Discord — /myteam",
+      "locator": "/myteam",
+      "category": "slash_command",
+      "text": "Dùng /myteam để xem thông tin team và mentor của bạn.",
+      "updated_at": "2026-07-23T00:00:00+07:00",
+      "valid_from": null,
+      "valid_to": null,
+      "attributes": {
+        "command": "/myteam",
+        "usage": "/myteam",
+        "description": "Xem thông tin team và mentor"
+      },
+      "official": true
+    },
+    {
+      "source_id": "official_command_rank_k3",
+      "title": "Hướng dẫn lệnh Discord — /rank",
+      "locator": "/rank",
+      "category": "slash_command",
+      "text": "Dùng /rank để xem thứ hạng và XP hiện tại.",
+      "updated_at": "2026-07-23T00:00:00+07:00",
+      "valid_from": null,
+      "valid_to": null,
+      "attributes": {
+        "command": "/rank",
+        "usage": "/rank",
+        "description": "Xem thứ hạng và XP"
+      },
+      "official": true
+    },
+    {
+      "source_id": "official_command_ticket_k3",
+      "title": "Hướng dẫn lệnh Discord — /ticket",
+      "locator": "/ticket",
+      "category": "slash_command",
+      "text": "Dùng /ticket để tạo ticket hỗ trợ khi cần liên hệ Mod hoặc mentor.",
+      "updated_at": "2026-07-23T00:00:00+07:00",
+      "valid_from": null,
+      "valid_to": null,
+      "attributes": {
+        "command": "/ticket",
+        "usage": "/ticket",
+        "description": "Tạo ticket hỗ trợ"
+      },
+      "official": true
+    },
+    {
+      "source_id": "official_command_ask_k3",
+      "title": "Hướng dẫn lệnh Discord — /ask",
+      "locator": "/ask",
+      "category": "slash_command",
+      "text": "Dùng /ask question:<câu hỏi> để hỏi trợ lý AI trong Discord.",
+      "updated_at": "2026-07-23T00:00:00+07:00",
+      "valid_from": null,
+      "valid_to": null,
+      "attributes": {
+        "command": "/ask",
+        "usage": "/ask question:<câu hỏi>",
+        "description": "Hỏi trợ lý AI"
+      },
+      "official": true
+    },
+    {
+      "source_id": "official_gate_cp1_k3",
+      "title": "Checkpoint 1 — AI20K Cohort III",
+      "locator": "CP1",
+      "category": "gate",
+      "text": "CP1 yêu cầu hoàn thành setup môi trường và nộp AI Log đầu tiên.",
+      "updated_at": "2026-07-23T00:00:00+07:00",
+      "valid_from": null,
+      "valid_to": null,
+      "attributes": {
+        "gate_name": "cp1",
+        "cohort": "k3",
+        "requirements": ["setup_environment", "first_ai_log"]
+      },
+      "official": true
+    },
+    {
+      "source_id": "official_gate_cp2_k3",
+      "title": "Checkpoint 2 — AI20K Cohort III",
+      "locator": "CP2",
+      "category": "gate",
+      "text": "CP2 yêu cầu hoàn thành ít nhất 3 workshop và nộp 2 AI Log.",
+      "updated_at": "2026-07-23T00:00:00+07:00",
+      "valid_from": null,
+      "valid_to": null,
+      "attributes": {
+        "gate_name": "cp2",
+        "cohort": "k3",
+        "requirements": ["3_workshops", "2_ai_logs"]
+      },
+      "official": true
+    },
+    {
+      "source_id": "official_gate_cp3_k3",
+      "title": "Checkpoint 3 — AI20K Cohort III",
+      "locator": "CP3",
+      "category": "gate",
+      "text": "CP3 yêu cầu lời gọi AI thật, golden set tối thiểu 20 case và bảng kết quả lượt đầu.",
+      "updated_at": "2026-07-23T00:00:00+07:00",
+      "valid_from": null,
+      "valid_to": null,
+      "attributes": {
+        "gate_name": "cp3",
+        "cohort": "k3",
+        "requirements": ["real_ai_call", "golden_set_20", "first_eval_result"]
+      },
+      "official": true
+    },
+    {
+      "source_id": "official_gate_final_k3",
+      "title": "Gate cuối khóa — AI20K Cohort III",
+      "locator": "Final Gate",
+      "category": "gate",
+      "text": "Gate cuối khóa yêu cầu Demo Day thành công với 10 deliverable bắt buộc.",
+      "updated_at": "2026-07-23T00:00:00+07:00",
+      "valid_from": null,
+      "valid_to": null,
+      "attributes": {
+        "gate_name": "final",
+        "cohort": "k3",
+        "requirements": ["demo_day_success", "10_deliverables"]
+      },
+      "official": true
+    },
+    {
+      "source_id": "official_team_naming_k3",
+      "title": "Quy tắc đặt tên team — AI20K Cohort III",
+      "locator": "Team Naming",
+      "category": "team_mentor",
+      "text": "Team đặt tên theo format: P-XXX (project), #t-XXX (kênh team), c3-app-XXX (app).",
+      "updated_at": "2026-07-23T00:00:00+07:00",
+      "valid_from": null,
+      "valid_to": null,
+      "attributes": {
+        "naming_convention": {
+          "project": "P-XXX",
+          "channel": "#t-XXX",
+          "app": "c3-app-XXX"
+        },
+        "cohort": "k3"
+      },
+      "official": true
+    },
+    {
+      "source_id": "official_support_system_k3",
+      "title": "Hỗ trợ & automation — AI20K Cohort III",
+      "locator": "Support System",
+      "category": "team_mentor",
+      "text": "Server có hệ thống hỗ trợ với KuteBot chatbot và Mod team. Sử dụng /ticket để tạo ticket hỗ trợ.",
+      "updated_at": "2026-07-23T00:00:00+07:00",
+      "valid_from": null,
+      "valid_to": null,
+      "attributes": {
+        "support_type": "server_system",
+        "chatbot": "KuteBot",
+        "ticket_command": "/ticket",
+        "cohort": "k3"
+      },
+      "official": true
+    },
+    {
+      "source_id": "official_ai_log_k3",
+      "title": "Yêu cầu AI Log — AI20K Cohort III",
+      "locator": "AI Log",
+      "category": "deadline",
+      "text": "AI Log là deliverable bắt buộc. Phải nộp AI Log cho mỗi tuần học.",
+      "updated_at": "2026-07-23T00:00:00+07:00",
+      "valid_from": null,
+      "valid_to": null,
+      "attributes": {
+        "assignment": "ai_log",
+        "cohort": "k3",
+        "frequency": "weekly",
+        "mandatory": true
+      },
+      "official": true
+    },
+    {
+      "source_id": "official_deliverables_k3",
+      "title": "10 deliverable bắt buộc — Demo Day",
+      "locator": "Mandatory Deliverables",
+      "category": "deadline",
+      "text": "Có 10 deliverable bắt buộc phải nộp trước Demo Day: source code, demo video, README, AI Log, pitch deck, business model canvas, competitive analysis, user persona, wireframe, và presentation.",
+      "updated_at": "2026-07-23T00:00:00+07:00",
+      "valid_from": null,
+      "valid_to": "2026-09-01T23:59:59+07:00",
+      "attributes": {
+        "assignment": "demo_day_deliverables",
+        "cohort": "k3",
+        "count": 10,
+        "items": [
+          "source_code",
+          "demo_video",
+          "readme",
+          "ai_log",
+          "pitch_deck",
+          "business_model_canvas",
+          "competitive_analysis",
+          "user_persona",
+          "wireframe",
+          "presentation"
+        ]
+      },
+      "official": true
+    }
+  ]
+}
