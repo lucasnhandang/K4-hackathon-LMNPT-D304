@@ -634,12 +634,58 @@ class ChatbotOrchestrator:
 
         # Success - format response
         if data:
-            result = generate_response(
+            template_result = generate_response(
                 intent=intent_result.intent,
                 route="ANSWER",
                 tool_result=tool_result,
                 confidence=intent_result.confidence,
             )
+            response_text = template_result["response"]
+            llm_metadata: dict[str, Any] | None = None
+
+            # Structured tools remain the source of truth, while OpenRouter turns
+            # their machine-readable result into a natural Vietnamese answer.
+            if self.rag:
+                data_items = data if isinstance(data, list) else [data]
+                context_chunks = []
+                for index, item in enumerate(data_items):
+                    if not isinstance(item, dict):
+                        continue
+                    citation = citations[index] if index < len(citations) else {}
+                    context_chunks.append(
+                        {
+                            "source_id": citation.get("source_id", f"structured_tool_{index + 1}"),
+                            "category": intent_result.intent,
+                            "score": 1.0,
+                            "attributes": item,
+                            "quote": citation.get("quote", ""),
+                        }
+                    )
+
+                rag_result = self.rag.generate(
+                    query=message,
+                    context_chunks=context_chunks,
+                    intent=intent_result.intent,
+                    extra_instructions=(
+                        "Diễn đạt tự nhiên kết quả từ công cụ có cấu trúc. "
+                        "Giữ nguyên tuyệt đối mọi số liệu, thời gian, tên và kênh."
+                    ),
+                )
+                llm_status = (
+                    "success"
+                    if rag_result.get("model") not in ("none", "error")
+                    else "error"
+                )
+                llm_metadata = {
+                    "called": True,
+                    "provider": "openrouter",
+                    "status": llm_status,
+                    "model": rag_result.get("model", "unknown"),
+                    "usage": rag_result.get("usage", {}),
+                }
+                if llm_status == "success" and rag_result.get("response"):
+                    response_text = rag_result["response"]
+
             return self._build_response(
                 message_id=message_id,
                 trace_id=trace_id,
@@ -647,8 +693,9 @@ class ChatbotOrchestrator:
                 intent=intent_result.intent,
                 confidence=max(intent_result.confidence, 0.8),
                 grounding_status="grounded",
-                response=result["response"],
+                response=response_text,
                 citations=citations,
+                llm=llm_metadata,
             )
 
         # Fallback
@@ -933,6 +980,11 @@ class ChatbotOrchestrator:
                 context_chunks=context_chunks,
                 intent=intent_result.intent,
             )
+            llm_status = (
+                "success"
+                if rag_result.get("model") not in ("none", "error")
+                else "error"
+            )
 
             return self._build_response(
                 message_id=message_id,
@@ -943,6 +995,13 @@ class ChatbotOrchestrator:
                 grounding_status="grounded" if rag_result.get("grounded") else "partial",
                 response=rag_result["response"],
                 citations=citations,
+                llm={
+                    "called": True,
+                    "provider": "openrouter",
+                    "status": llm_status,
+                    "model": rag_result.get("model", "unknown"),
+                    "usage": rag_result.get("usage", {}),
+                },
             )
 
         # Fallback: template-based response (no LLM or no search results)
@@ -1080,6 +1139,7 @@ class ChatbotOrchestrator:
         citations: list[dict[str, Any]] | None = None,
         clarification: dict[str, Any] | None = None,
         escalation: dict[str, Any] | None = None,
+        llm: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         """Build the final response dict following the I/O contract."""
         return {
@@ -1094,4 +1154,5 @@ class ChatbotOrchestrator:
             "citations": citations or [],
             "escalation": escalation,
             "trace_id": trace_id,
+            "llm": llm,
         }

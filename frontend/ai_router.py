@@ -19,6 +19,7 @@ load_dotenv()
 # Configuration for external Backend API
 BACKEND_URL = os.environ.get("BACKEND_URL", "http://localhost:8000/api/v1/chat")
 USE_LOCAL_MOCK = os.environ.get("USE_LOCAL_MOCK", "false").lower() == "true"
+BACKEND_TIMEOUT_SECONDS = 40.0
 
 # Official Ground Truth Knowledge Base
 KNOWLEDGE_BASE = {
@@ -174,22 +175,63 @@ async def call_backend_api_async(user_message: str, history: List[Dict[str, str]
     }
 
     try:
-        async with httpx.AsyncClient(timeout=8.0) as client:
+        async with httpx.AsyncClient(timeout=BACKEND_TIMEOUT_SECONDS) as client:
             response = await client.post(BACKEND_URL, json=payload)
             if response.status_code == 200:
                 backend_data = response.json()
                 return transform_backend_response_to_ui(backend_data)
             else:
                 return {
-                    "type": "NO_SOURCE_ESCALATE",
-                    "message": "Hệ thống Backend gặp sự cố phản hồi.",
+                    "type": "SYSTEM_ERROR",
+                    "message": (
+                        "Không thể nhận câu trả lời từ chatbot vì Backend trả về lỗi "
+                        f"HTTP {response.status_code}. Vui lòng thử lại sau."
+                    ),
                     "embed_type": "escalate-embed",
-                    "escalate_tag": "@Mod",
-                    "escalate_detail": f"Backend Error Code: {response.status_code}"
+                    "title": "Lỗi kết nối Backend",
+                    "options": [],
+                    "tracepath": {
+                        "latency_ms": 0,
+                        "confidence": 0.0,
+                        "intent": "backend_error",
+                        "llm_called": False,
+                        "model": None,
+                        "usage": {},
+                        "tools_used": [
+                            {"name": "Backend API", "icon": "⚠️", "status": "error"}
+                        ],
+                        "steps": [
+                            f"Backend trả về HTTP {response.status_code}; không dùng Local AI Router."
+                        ],
+                    },
                 }
     except Exception as e:
-        print(f"[Warning] Không thể kết nối Backend API: {e}. Đang chuyển về Local AI Router.")
-        return classify_and_route(user_message)
+        error_name = type(e).__name__
+        print(f"[Error] Không thể kết nối Backend API: {error_name}: {e}")
+        return {
+            "type": "SYSTEM_ERROR",
+            "message": (
+                "Không thể kết nối tới Backend chatbot. "
+                "Hệ thống không chuyển sang dữ liệu mock; vui lòng kiểm tra Backend rồi thử lại."
+            ),
+            "embed_type": "escalate-embed",
+            "title": "Backend không khả dụng",
+            "options": [],
+            "tracepath": {
+                "latency_ms": 0,
+                "confidence": 0.0,
+                "intent": "backend_unavailable",
+                "llm_called": False,
+                "model": None,
+                "usage": {},
+                "tools_used": [
+                    {"name": "Backend API", "icon": "⚠️", "status": "error"}
+                ],
+                "steps": [
+                    f"Kết nối Backend thất bại ({error_name}); không dùng Local AI Router."
+                ],
+            },
+        }
 
 def classify_and_route(user_message: str, context_state: Dict[str, Any] = None) -> Dict[str, Any]:
     """

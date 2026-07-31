@@ -194,6 +194,10 @@ class DiscordChatApp:
         latency = trace_data.get("latency_ms", 120)
         confidence = trace_data.get("confidence", 0.95)
         intent = trace_data.get("intent", "general_query")
+        llm_called = trace_data.get("llm_called", False)
+        model = trace_data.get("model")
+        usage = trace_data.get("usage", {})
+        total_tokens = usage.get("total_tokens", 0)
         tools = trace_data.get("tools_used", [])
         steps = trace_data.get("steps", [])
         
@@ -219,6 +223,8 @@ class DiscordChatApp:
                     <span class="trace-metric-badge">⏱️ {latency}ms</span>
                     <span class="trace-metric-badge">🎯 {int(confidence * 100)}% conf</span>
                     <span class="trace-metric-badge">🔍 intent: {intent}</span>
+                    {f'<span class="trace-metric-badge">🤖 {model}</span>' if llm_called and model else ''}
+                    {f'<span class="trace-metric-badge">🧮 {total_tokens} tokens</span>' if llm_called else ''}
                 </div>
             </div>
             
