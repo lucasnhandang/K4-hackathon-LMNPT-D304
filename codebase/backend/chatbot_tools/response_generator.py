@@ -19,7 +19,7 @@ GREETING_RESPONSES = [
 ]
 
 THANKS_RESPONSES = [
-    "Không có gì! Nếu cần thêm thông tin thì cứ hỏi mình nha 😊",
+    "Không có gì! Mình rất vui được hỗ trợ, nếu cần thêm thông tin thì cứ hỏi nha 😊",
     "Rất vui được giúp bạn! Chúc bạn học tốt nhé 🚀",
     "OK nha! Mình luôn sẵn sàng hỗ trợ khi bạn cần 💪",
 ]

@@ -56,8 +56,14 @@ class BM25Index:
         category: str | None = None,
         at: str | None = None,
         min_score: float = 0.0,
+        required_terms: list[str] | None = None,
     ) -> list[tuple[SourceRecord, float]]:
         query_terms = tokenize(query)
+        anchor_terms = {
+            token
+            for term in (required_terms or [])
+            for token in tokenize(term)
+        }
         if not query_terms or not self.records:
             return []
 
@@ -67,6 +73,8 @@ class BM25Index:
             if not record.official or (category and record.category != category):
                 continue
             if not record.is_valid_at(at):
+                continue
+            if anchor_terms and not anchor_terms.issubset(self.term_frequencies[index]):
                 continue
 
             document_length = len(self.documents[index])

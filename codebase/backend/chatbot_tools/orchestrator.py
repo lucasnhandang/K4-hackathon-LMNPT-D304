@@ -26,6 +26,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+import re
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
@@ -63,21 +64,22 @@ INTENT_TOOL_MAP: dict[str, str] = {
 }
 
 SEARCH_CATEGORY_BY_INTENT: dict[str, str] = {
-    "ask_attendance_policy": "policy",
-    "ask_online_learning_availability": "policy",
-    "ask_laptop_requirements": "policy",
-    "ask_submission_channel": "slash_command",
+    "ask_attendance_policy": "policy_attendance",
+    "ask_online_learning_availability": "policy_online",
+    "ask_laptop_requirements": "policy_laptop",
+    "ask_submission_channel": "submission_channel",
     "ask_learning_material": "learning_material",
-    "ask_team_naming": "team_mentor",
-    "ask_topic_availability": "team_mentor",
-    "ask_holiday_schedule": "policy",
-    "ask_scholarship_info": "policy",
+    "ask_team_naming": "team_naming",
+    "ask_topic_availability": "topic_availability",
+    "ask_holiday_schedule": "holiday_schedule",
+    "ask_scholarship_info": "scholarship_info",
 }
 
 AUTHORITY_INTENTS = {
     "request_deadline_exception",
     "request_leave_of_absence",
     "request_grade_review",
+    "request_team_change",
     "report_harassment",
 }
 
@@ -305,6 +307,21 @@ class ChatbotOrchestrator:
                 message=message,
             )
 
+        # An unclassified statement is too weak a retrieval query. Asking for a
+        # topic prevents common words from producing an unrelated BM25 answer.
+        if intent_result.intent == "unknown":
+            return self._build_clarification_response(
+                intent_result=IntentResult(
+                    intent="unknown",
+                    confidence=intent_result.confidence,
+                    slots=intent_result.slots,
+                    normalized_query=intent_result.normalized_query,
+                ),
+                missing_fields=["query"],
+                message_id=message_id,
+                trace_id=trace_id,
+            )
+
         # Step 7: Fallback - search official sources + RAG
         search_result = self.registry.execute(
             "search_official_sources",
@@ -314,6 +331,9 @@ class ChatbotOrchestrator:
                 "at": at,
                 "limit": 5,
                 "min_score": 2.5,
+                "required_terms": self._retrieval_anchor_terms(
+                    intent_result.normalized_query
+                ),
             },
         )
 
@@ -324,6 +344,19 @@ class ChatbotOrchestrator:
             message_id=message_id,
             trace_id=trace_id,
         )
+
+    @staticmethod
+    def _retrieval_anchor_terms(normalized_query: str) -> list[str]:
+        """Keep named resources from being dropped by broad lexical matching."""
+        anchors: list[str] = []
+        for named_resource in ("jira", "codelab", "codelabs", "hackathon"):
+            if named_resource in normalized_query:
+                anchors.append(named_resource)
+
+        workshop_match = re.search(r"\bworkshop\s*(\d+)\b", normalized_query)
+        if workshop_match:
+            anchors.extend(["workshop", workshop_match.group(1)])
+        return anchors
 
     def _build_clarification_response(
         self,
@@ -370,6 +403,7 @@ class ChatbotOrchestrator:
             "request_deadline_exception": "deadline",
             "request_leave_of_absence": "learning",
             "request_grade_review": "learning",
+            "request_team_change": "learning",
             "report_issue": "technical",
             "report_harassment": "safety",
         }
@@ -506,8 +540,13 @@ class ChatbotOrchestrator:
             }
 
         if intent_result.intent == "ask_xp":
+            activity = slots.get("activity")
+            if activity and "tong diem kinh nghiem" in normalize_vietnamese(activity):
+                activity = "rank"
+            elif activity and "mentor" in normalize_vietnamese(activity):
+                activity = "mentoring_duty"
             return {
-                "activity": slots.get("activity"),
+                "activity": activity,
                 "cohort": cohort,
                 "at": at,
             }
@@ -520,8 +559,11 @@ class ChatbotOrchestrator:
             }
 
         if intent_result.intent == "ask_slash_command":
+            command = slots.get("command")
+            if command and normalize_vietnamese(command) == "bao cao tuan":
+                command = "/weekly"
             return {
-                "command": slots.get("command"),
+                "command": command,
             }
 
         return {}
@@ -905,6 +947,11 @@ class ChatbotOrchestrator:
 
         # Fallback: template-based response (no LLM or no search results)
         if status == "ok" and data:
+            top_score = max(float(item.get("score", 0.0)) for item in data)
+            retrieval_confidence = min(
+                0.95,
+                max(intent_result.confidence, 0.7 + top_score / 30),
+            )
             response_parts = ["Mình tìm thấy thông tin liên quan từ tài liệu khóa học:\n"]
             for i, item in enumerate(data[:3], 1):
                 title = citations[i - 1].get("title") if i - 1 < len(citations) else item.get("source_id", "")
@@ -919,7 +966,7 @@ class ChatbotOrchestrator:
                 trace_id=trace_id,
                 route="ANSWER",
                 intent="search_fallback",
-                confidence=0.5,
+                confidence=retrieval_confidence,
                 grounding_status="grounded",
                 response="\n".join(response_parts),
                 citations=citations,

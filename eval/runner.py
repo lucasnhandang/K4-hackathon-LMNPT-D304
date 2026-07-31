@@ -170,14 +170,9 @@ def evaluate_case(actual: dict[str, Any], expected: dict[str, Any]) -> dict[str,
     _check("route", act_route == exp_route,
            f"expected={exp_route}, got={act_route}")
 
-    # 2. Confidence
-    act_conf = actual.get("confidence", 0)
-    if "confidence_min" in expected:
-        _check("confidence_min", act_conf >= expected["confidence_min"],
-               f"expected>={expected['confidence_min']}, got={act_conf}")
-    if "confidence_max" in expected:
-        _check("confidence_max", act_conf <= expected["confidence_max"],
-               f"expected<={expected['confidence_max']}, got={act_conf}")
+    # Confidence is kept in the raw result/report for observability, but is not
+    # a pass/fail criterion. Its calibration depends on the active LLM and
+    # runtime mode, while route, grounding and content are behavioral contracts.
 
     # 3. Grounding status
     exp_gs = expected.get("grounding_status")

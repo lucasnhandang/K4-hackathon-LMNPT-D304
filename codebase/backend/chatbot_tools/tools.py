@@ -193,6 +193,7 @@ class KnowledgeTools:
         at: str | None = None,
         limit: int = 5,
         min_score: float = 0.0,
+        required_terms: list[str] | None = None,
     ) -> ToolResult:
         if not query.strip():
             return ToolResult(
@@ -211,6 +212,7 @@ class KnowledgeTools:
             at=at,
             limit=limit,
             min_score=min_score,
+            required_terms=required_terms,
         )
         if not hits:
             return ToolResult(

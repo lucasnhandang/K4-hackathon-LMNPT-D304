@@ -85,6 +85,10 @@ TOOL_SCHEMAS: dict[str, dict[str, Any]] = {
             "at": {"type": ["string", "null"]},
             "limit": {"type": "integer", "minimum": 1, "maximum": 10},
             "min_score": {"type": "number", "minimum": 0},
+            "required_terms": {
+                "type": ["array", "null"],
+                "items": {"type": "string"},
+            },
         },
         ["query"],
     ),

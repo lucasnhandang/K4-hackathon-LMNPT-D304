@@ -224,10 +224,13 @@ INTENTS = {
 
     # XP
     "ask_xp": {
-        "keywords": ["xp", "diem", "hang", "level", "lv", "rank", "bao nhieu xp", "tich luy"],
+        "keywords": [
+            "xp", "diem", "hang", "level", "lv", "rank", "daily",
+            "bao nhieu xp", "tich luy",
+        ],
         "patterns": [
             r"\bxp\b", r"\bdiem\b", r"\bhang\b", r"\blevel\b", r"\blv\d\b",
-            r"bao\s*nhieu\s*xp", r"tich\s*luy", r"\brank\b",
+            r"bao\s*nhieu\s*xp", r"tich\s*luy", r"\brank\b", r"\bdaily\b",
         ],
         "slots": {
             "activity": [
@@ -238,6 +241,9 @@ INTENTS = {
                 r"gate",
                 r"workshop",
                 r"checkin",
+                r"rank",
+                r"tong\s*diem\s*kinh\s*nghiem",
+                r"mentor(?:ing)?\s*duty",
             ],
         },
     },
@@ -261,10 +267,11 @@ INTENTS = {
 
     # Slash commands
     "ask_slash_command": {
-        "keywords": ["lenh", "command", "slash", " /", "cach dung"],
+        "keywords": ["lenh", "command", "slash", " /", "cach dung", "bao cao tuan"],
         "patterns": [
             r"\/\w+",
             r"lenh\s*discord",
+            r"lenh.*bao\s*cao\s*tuan",
             r"command",
             r"cach\s*dung",
             r"slash\s*command",
@@ -272,6 +279,7 @@ INTENTS = {
         "slots": {
             "command": [
                 r"(\/\w+)",
+                r"(bao\s*cao\s*tuan)",
             ],
         },
     },
@@ -295,6 +303,14 @@ INTENTS = {
         "keywords": ["cham lai", "phuc khao", "sua diem", "xem lai diem"],
         "patterns": [
             r"cham\s*lai", r"phuc\s*khao", r"sua\s*diem", r"xem\s*lai\s*diem",
+        ],
+    },
+    "request_team_change": {
+        "keywords": ["doi nhom", "join nhom khac", "doi de tai"],
+        "patterns": [
+            r"(doi|chuyen|join).*(nhom|team)",
+            r"(nhom|team).*(doi|chuyen|join)",
+            r"doi\s*de\s*tai",
         ],
     },
 
@@ -371,6 +387,7 @@ INTENT_PRIORITY = {
     "request_deadline_exception": 85,
     "request_leave_of_absence": 85,
     "request_grade_review": 85,
+    "request_team_change": 85,
     "report_issue": 80,
     "ask_team_naming": 60,
     "greeting": 10,

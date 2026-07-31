@@ -128,7 +128,7 @@ class OrchestratorRAGTests(unittest.TestCase):
         }
         orch.registry.execute = MagicMock(return_value=mock_search_result)
 
-        result = orch.process_message("Câu hỏi random")
+        result = orch.process_message("Tìm tài liệu Python")
 
         self.assertEqual(result["route"], "ANSWER")
         self.assertIn("tìm thấy", result["response"].lower())
@@ -208,8 +208,24 @@ class OrchestratorRAGTests(unittest.TestCase):
 
         self.assertEqual(result["route"], "ESCALATE")
         _, arguments = orch.registry.execute.call_args.args
-        self.assertEqual(arguments["category"], "policy")
+        self.assertEqual(arguments["category"], "policy_attendance")
         self.assertEqual(arguments["min_score"], 2.5)
+        self.assertEqual(arguments["required_terms"], [])
+
+    def test_named_learning_resource_does_not_match_generic_material(self):
+        orch = self._make_orchestrator(llm_available=False)
+        real_execute = orch.registry.execute
+        orch.registry.execute = MagicMock(side_effect=real_execute)
+        for message, anchor in (
+            ("Tìm cho mình bài setup Jira", "jira"),
+            ("Codelabs này nộp thế nào?", "codelabs"),
+            ("Cho mình slide Hackathon", "hackathon"),
+        ):
+            with self.subTest(message=message):
+                result = orch.process_message(message)
+                self.assertEqual(result["route"], "ESCALATE")
+                _, arguments = orch.registry.execute.call_args.args
+                self.assertIn(anchor, arguments["required_terms"])
 
 
 if __name__ == "__main__":

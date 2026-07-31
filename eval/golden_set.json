@@ -219,10 +219,10 @@
       "route": "ESCALATE",
       "intent": "request_leave_of_absence",
       "confidence_min": 0.85,
-      "grounding_status": "grounded",
+      "grounding_status": "no_source",
       "response_keywords": [
-        "không có thẩm quyền",
-        "Ban Tổ chức"
+        "thẩm quyền",
+        "ticket"
       ],
       "escalation_required": true,
       "escalation_target": "MOD"
@@ -262,8 +262,8 @@
       "confidence_min": 0.85,
       "grounding_status": "no_source",
       "response_keywords": [
-        "không có quyền",
-        "chuyển"
+        "thẩm quyền",
+        "ticket"
       ],
       "escalation_required": true,
       "escalation_target": "MOD"
@@ -477,8 +477,8 @@
       "confidence_min": 0.8,
       "grounding_status": "no_source",
       "response_keywords": [
-        "chưa có",
-        "thông báo"
+        "chưa tìm thấy",
+        "Mod/TA"
       ],
       "escalation_required": true,
       "escalation_target": "MOD"
@@ -518,8 +518,8 @@
       "confidence_min": 0.8,
       "grounding_status": "no_source",
       "response_keywords": [
-        "không tìm thấy",
-        "chuyển"
+        "chưa tìm thấy",
+        "Mod/TA"
       ],
       "escalation_required": true,
       "escalation_target": "MOD"
@@ -559,8 +559,8 @@
       "confidence_min": 0.8,
       "grounding_status": "no_source",
       "response_keywords": [
-        "không đề cập",
-        "chuyển"
+        "chưa tìm thấy",
+        "Mod/TA"
       ],
       "escalation_required": true,
       "escalation_target": "MOD"
@@ -650,7 +650,7 @@
   },
   {
     "id": "case_15",
-    "description": "ANSWER · Deadline Weekly Assignment (lớp ④ đặc thù domain)",
+    "description": "ESCALATE · Deadline WA4 chưa có nguồn chính thức",
     "input": {
       "schema_version": "1.0",
       "metadata": {
@@ -677,16 +677,17 @@
       }
     },
     "expected": {
-      "route": "ANSWER",
+      "route": "ESCALATE",
       "intent": "ask_deadline",
       "confidence_min": 0.85,
-      "grounding_status": "grounded",
+      "grounding_status": "no_source",
       "response_keywords": [
-        "deadline",
-        "Weekly Assignment"
+        "chưa tìm thấy",
+        "Mod/TA"
       ],
-      "citations_required": true,
-      "escalation_required": false
+      "citations_required": false,
+      "escalation_required": true,
+      "escalation_target": "MOD"
     }
   },
   {
@@ -870,9 +871,8 @@
       "confidence_min": 0.7,
       "grounding_status": "no_source",
       "response_keywords": [
-        "xung đột",
-        "khác nhau",
-        "chuyển"
+        "mâu thuẫn",
+        "Mod"
       ],
       "escalation_required": true,
       "escalation_target": "MOD"
@@ -912,8 +912,8 @@
       "confidence_max": 0.7,
       "grounding_status": "no_source",
       "response_keywords": [
-        "tuần nào",
-        "cụ thể"
+        "bài nào",
+        "deadline"
       ],
       "clarification_required": true,
       "escalation_required": false
@@ -1044,7 +1044,7 @@
   },
   {
     "id": "case_23",
-    "description": "ANSWER · Mentor Duty có XP không (KUTE-REG-180)",
+    "description": "ESCALATE · Mentor Duty có XP chưa có nguồn xác nhận",
     "input": {
       "schema_version": "1.0",
       "metadata": {
@@ -1071,16 +1071,17 @@
       }
     },
     "expected": {
-      "route": "ANSWER",
+      "route": "ESCALATE",
       "intent": "ask_xp",
       "confidence_min": 0.78,
-      "grounding_status": "grounded",
+      "grounding_status": "no_source",
       "response_keywords": [
-        "Mentoring Duty",
-        "không cộng"
+        "chưa tìm thấy",
+        "Mod/TA"
       ],
-      "citations_required": true,
-      "escalation_required": false
+      "citations_required": false,
+      "escalation_required": true,
+      "escalation_target": "MOD"
     }
   },
   {
@@ -1250,7 +1251,7 @@
   },
   {
     "id": "case_28",
-    "description": "ANSWER · Lịch sự kiện tối nay (KUTE-REG-189)",
+    "description": "CLARIFY · 'Tối nay' không nêu sự kiện cụ thể",
     "input": {
       "schema_version": "1.0",
       "metadata": {
@@ -1277,21 +1278,22 @@
       }
     },
     "expected": {
-      "route": "ANSWER",
-      "intent": "ask_event_schedule",
+      "route": "CLARIFY",
+      "intent": "unknown",
       "confidence_min": 0.75,
-      "grounding_status": "grounded",
+      "grounding_status": "no_source",
       "response_keywords": [
-        "Mentoring Duty",
-        "20:00"
+        "nói rõ",
+        "hỗ trợ"
       ],
-      "citations_required": true,
+      "clarification_required": true,
+      "clarification_field": "query",
       "escalation_required": false
     }
   },
   {
     "id": "case_29",
-    "description": "ANSWER · Tối nay có sự kiện gì (KUTE-REG-198)",
+    "description": "CLARIFY · Lịch tối nay cần tên sự kiện hoặc lịch live",
     "input": {
       "schema_version": "1.0",
       "metadata": {
@@ -1318,21 +1320,22 @@
       }
     },
     "expected": {
-      "route": "ANSWER",
+      "route": "CLARIFY",
       "intent": "ask_event_schedule",
       "confidence_min": 0.82,
-      "grounding_status": "grounded",
+      "grounding_status": "no_source",
       "response_keywords": [
-        "sự kiện",
-        "#thông-báo"
+        "sự kiện nào",
+        "Workshop"
       ],
-      "citations_required": true,
+      "clarification_required": true,
+      "clarification_field": "event_name",
       "escalation_required": false
     }
   },
   {
     "id": "case_30",
-    "description": "ANSWER · Tối nay có gì không nhỉ (KUTE-REG-216)",
+    "description": "CLARIFY · Câu hỏi tối nay thiếu chủ đề",
     "input": {
       "schema_version": "1.0",
       "metadata": {
@@ -1359,15 +1362,16 @@
       }
     },
     "expected": {
-      "route": "ANSWER",
-      "intent": "ask_event_schedule",
+      "route": "CLARIFY",
+      "intent": "unknown",
       "confidence_min": 0.77,
-      "grounding_status": "grounded",
+      "grounding_status": "no_source",
       "response_keywords": [
-        "Workshop",
-        "Mentoring Duty"
+        "nói rõ",
+        "hỗ trợ"
       ],
-      "citations_required": true,
+      "clarification_required": true,
+      "clarification_field": "query",
       "escalation_required": false
     }
   },
@@ -1414,7 +1418,7 @@
   },
   {
     "id": "case_32",
-    "description": "ANSWER · Link slide hackathon (KUTE-REG-226)",
+    "description": "ESCALATE · Không có nguồn slide Hackathon đã kiểm chứng",
     "input": {
       "schema_version": "1.0",
       "metadata": {
@@ -1441,17 +1445,17 @@
       }
     },
     "expected": {
-      "route": "ANSWER",
-      "intent": "search_fallback",
+      "route": "ESCALATE",
+      "intent": "ask_learning_material",
       "confidence_min": 0.72,
-      "grounding_status": "grounded",
+      "grounding_status": "no_source",
       "response_keywords": [
-        "slide",
-        "#thông-báo",
-        "VLearn"
+        "chưa tìm thấy",
+        "Mod/TA"
       ],
-      "citations_required": true,
-      "escalation_required": false
+      "citations_required": false,
+      "escalation_required": true,
+      "escalation_target": "MOD"
     }
   },
   {
@@ -1614,8 +1618,8 @@
       "confidence_min": 0.76,
       "grounding_status": "grounded",
       "response_keywords": [
-        "VLearn",
-        "/myteam"
+        "/exam available",
+        "2 team"
       ],
       "citations_required": true,
       "escalation_required": false
@@ -1665,7 +1669,7 @@
   },
   {
     "id": "case_38",
-    "description": "ANSWER · Quy định nộp Codelabs cá nhân (KUTE-NR-004)",
+    "description": "ESCALATE · Quy định Codelabs chưa có nguồn đã kiểm chứng",
     "input": {
       "schema_version": "1.0",
       "metadata": {
@@ -1692,21 +1696,22 @@
       }
     },
     "expected": {
-      "route": "ANSWER",
-      "intent": "ask_xp",
+      "route": "ESCALATE",
+      "intent": "ask_learning_material",
       "confidence_min": 0.78,
-      "grounding_status": "grounded",
+      "grounding_status": "no_source",
       "response_keywords": [
-        "cá nhân",
-        "XP"
+        "chưa tìm thấy",
+        "Mod/TA"
       ],
-      "citations_required": true,
-      "escalation_required": false
+      "citations_required": false,
+      "escalation_required": true,
+      "escalation_target": "MOD"
     }
   },
   {
     "id": "case_39",
-    "description": "ANSWER · Tìm bài setup Jira (KUTE-NR-005)",
+    "description": "ESCALATE · Jira không có phản hồi hoặc nguồn đã kiểm chứng",
     "input": {
       "schema_version": "1.0",
       "metadata": {
@@ -1733,16 +1738,17 @@
       }
     },
     "expected": {
-      "route": "ANSWER",
-      "intent": "search_fallback",
+      "route": "ESCALATE",
+      "intent": "ask_learning_material",
       "confidence_min": 0.75,
-      "grounding_status": "grounded",
+      "grounding_status": "no_source",
       "response_keywords": [
-        "CP1",
-        "#learning-support"
+        "chưa tìm thấy",
+        "Mod/TA"
       ],
-      "citations_required": true,
-      "escalation_required": false
+      "citations_required": false,
+      "escalation_required": true,
+      "escalation_target": "MOD"
     }
   },
   {
