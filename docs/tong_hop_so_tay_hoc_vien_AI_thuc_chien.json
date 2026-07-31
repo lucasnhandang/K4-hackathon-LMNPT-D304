@@ -1,0 +1,319 @@
+{
+  "metadata": {
+    "title": "Sổ tay Học viên - Chương trình Đào tạo Nhân tài AI Thực chiến Tập đoàn Vingroup",
+    "version": "1.0",
+    "publisher": "VinUniversity",
+    "sponsor": "Tập đoàn Vingroup",
+    "language": "vi",
+    "pages": 17
+  },
+  "overview": {
+    "duration_weeks": 12,
+    "study_mode": "Toàn thời gian",
+    "location": "Trường Đại học VinUni, KĐT Vinhomes Ocean Park, Gia Lâm, Hà Nội",
+    "objective": "Đào tạo nguồn nhân lực AI chất lượng cao, có khả năng học tập, thực hành và triển khai bài toán thực tế."
+  },
+  "highlights": [
+    "Thiết kế theo khung năng lực SFIA.",
+    "03 tuần học nền tảng về tư duy AI, đạo đức AI, kỹ năng AI và giải quyết vấn đề.",
+    "09 tuần thực chiến với dự án AI.",
+    "Tài trợ 100% học phí.",
+    "Trợ cấp 8 triệu đồng/tháng nếu đáp ứng điều kiện.",
+    "Chứng chỉ do VinUni và Vingroup đồng cấp."
+  ],
+  "program_structure": [
+    {
+      "stage": 1,
+      "name": "Xây dựng nền tảng toàn diện",
+      "duration_weeks": 3,
+      "tracks": [
+        "AI Business & Product",
+        "AI Infrastructure & Data",
+        "AI Application"
+      ]
+    },
+    {
+      "stage": 2,
+      "name": "Đào sâu theo định hướng chuyên môn",
+      "duration_weeks": 3,
+      "tracks": [
+        "AI Business & Product",
+        "AI Infrastructure & Data",
+        "AI Application"
+      ]
+    },
+    {
+      "stage": 3,
+      "name": "Thực chiến tại doanh nghiệp đối tác",
+      "duration_weeks": 6
+    }
+  ],
+  "internship": {
+    "companies": [
+      "VinSmartFuture",
+      "VinSOC",
+      "VinRobotics",
+      "VinMotion",
+      "VinDynamics"
+    ],
+    "allocation_basis": [
+      "Năng lực",
+      "Định hướng chuyên môn",
+      "Nhu cầu doanh nghiệp"
+    ],
+    "cohort_1_priority": "VinSmartFuture",
+    "locations": [
+      "Hà Nội",
+      "TP. Hồ Chí Minh"
+    ]
+  },
+  "schedule": {
+    "stage_1": {
+      "morning": "09:00-13:00: Học lý thuyết kết hợp thực hành",
+      "afternoon": "14:00-18:00: Thực hành lab/coding",
+      "evening_weekend": "Phát triển dự án nhóm"
+    },
+    "stage_2": {
+      "morning": "09:00-13:00: Học chuyên sâu theo track",
+      "afternoon_evening_weekend": "Phát triển dự án nhóm"
+    },
+    "stage_3": "Làm việc theo lịch của doanh nghiệp tiếp nhận"
+  },
+  "evaluation": [
+    "Điểm labs hằng ngày trong tuần 1-6",
+    "Điểm quá trình và kết quả dự án #build",
+    "Điểm thi giữa kỳ ở tuần 6",
+    "Điểm quá trình thực chiến tại doanh nghiệp",
+    "Điểm chuyên cần và thái độ"
+  ],
+  "learning_platform": {
+    "name": "LearnWorlds",
+    "uses": [
+      "Truy cập tài liệu và bài giảng",
+      "Theo dõi tiến độ và kết quả",
+      "Nộp bài và nhận phản hồi",
+      "Thảo luận và học trực tuyến"
+    ]
+  },
+  "facilities": {
+    "classrooms": [
+      {
+        "name": "C401",
+        "capacity": 236,
+        "equipment": [
+          "33 bàn tròn",
+          "202 ghế",
+          "06 máy chiếu"
+        ]
+      },
+      {
+        "name": "E402 và E403",
+        "capacity": "96-233",
+        "equipment": [
+          "Bàn đào tạo",
+          "Ghế đào tạo",
+          "02 máy chiếu",
+          "01 TV"
+        ]
+      }
+    ],
+    "services": [
+      "Wi-Fi riêng cho học viên AI",
+      "Thư viện và cơ sở dữ liệu trực tuyến",
+      "Thẻ học viên",
+      "Canteen, Highlands Coffee, Fresh Garden",
+      "Khu đỗ xe",
+      "Trạm sạc xe điện miễn phí"
+    ]
+  },
+  "attendance_policy": {
+    "maximum_absence_sessions": 4,
+    "restrictions": [
+      "Không nghỉ 02 buổi liên tiếp trong cùng một tuần.",
+      "Nghỉ vượt giới hạn phải được Giám đốc Chương trình phê duyệt.",
+      "Trong giai đoạn doanh nghiệp, vắng mặt phải được Project Lead chấp thuận."
+    ],
+    "procedure": [
+      "Báo trước cho giảng viên hoặc mentor.",
+      "Nêu rõ lý do và thời gian vắng mặt.",
+      "Phải được xác nhận trước khi nghỉ."
+    ],
+    "online_policy": "Không hỗ trợ hình thức học online thông thường."
+  },
+  "reservation_policy": {
+    "general_rule": "Không áp dụng bảo lưu.",
+    "exceptions": [
+      "Trường hợp khẩn cấp",
+      "Sự kiện bất khả kháng"
+    ],
+    "requirements": [
+      "Đề xuất bằng văn bản",
+      "Được phê duyệt trước khi tạm dừng"
+    ]
+  },
+  "completion_requirements": {
+    "pass_conditions": [
+      "Đạt điểm tổng kết từ Pass trở lên",
+      "Hoàn thành đầy đủ thành phần đánh giá bắt buộc",
+      "Đáp ứng thời lượng tham gia tối thiểu",
+      "Không vi phạm nghiêm trọng"
+    ],
+    "fail_conditions": [
+      "Không đạt điểm tối thiểu",
+      "Thiếu thành phần đánh giá",
+      "Không đạt chuyên cần",
+      "Vi phạm nghiêm trọng"
+    ]
+  },
+  "tuition_and_allowance": {
+    "tuition_support_percent": 100,
+    "monthly_allowance_vnd": 8000000,
+    "conditions": [
+      "Tuân thủ thỏa thuận và cam kết",
+      "Duy trì chuyên cần",
+      "Hoàn thành yêu cầu học tập",
+      "Tuân thủ kỷ luật, đạo đức và bảo mật",
+      "Không tự ý nghỉ hoặc rút khỏi chương trình"
+    ],
+    "repayment_cases": [
+      "Tự ý nghỉ hoặc rút khỏi chương trình",
+      "Vi phạm nghiêm trọng kỷ luật hoặc bảo mật",
+      "Cung cấp thông tin sai lệch"
+    ]
+  },
+  "faq": [
+    {
+      "id": 1,
+      "question": "Chương trình tập trung vào lĩnh vực nào?",
+      "answer": [
+        "AI Business and Product",
+        "AI and Data Infrastructure",
+        "AI Applications"
+      ]
+    },
+    {
+      "id": 2,
+      "question": "Có được học lại kiến thức nền không?",
+      "answer": "Không tập trung dạy lại kiến thức cơ bản; học viên cần tự ôn tập."
+    },
+    {
+      "id": 3,
+      "question": "Học trực tiếp hay online?",
+      "answer": "Học trực tiếp theo kế hoạch của Ban Tổ chức."
+    },
+    {
+      "id": 4,
+      "question": "Có được nghỉ cuối tuần không?",
+      "answer": "Cuối tuần vẫn tiếp tục phát triển dự án nhóm."
+    },
+    {
+      "id": 5,
+      "question": "Quy trình xin nghỉ?",
+      "answer": [
+        "Báo trước",
+        "Nêu lý do và thời gian",
+        "Được xác nhận trước khi nghỉ"
+      ]
+    },
+    {
+      "id": 6,
+      "question": "Sinh viên năm 3, 4 có tham gia được không?",
+      "answer": "Có nếu sắp xếp được thời gian và cam kết gần như toàn thời gian."
+    },
+    {
+      "id": 7,
+      "question": "Có thể vừa đi làm vừa tham gia không?",
+      "answer": "Không khuyến khích."
+    },
+    {
+      "id": 8,
+      "question": "Laptop cần cấu hình gì?",
+      "answer": {
+        "cpu": "Intel Core i7, Apple M2 hoặc tương đương",
+        "ram": "Tối thiểu 16GB",
+        "storage": "Ít nhất 256GB SSD",
+        "os": [
+          "Windows 10/11",
+          "macOS",
+          "Linux"
+        ],
+        "network": "Ổn định"
+      }
+    },
+    {
+      "id": 9,
+      "question": "Có chia lớp theo trình độ không?",
+      "answer": "Không chia lớp theo trình độ trong 3 tuần đầu."
+    },
+    {
+      "id": 10,
+      "question": "Có được tự chọn nơi thực tập không?",
+      "answer": "Có thể tự chọn hoặc được phân công, tùy hướng dẫn."
+    },
+    {
+      "id": 11,
+      "question": "Có được xác nhận hoặc đóng dấu thực tập không?",
+      "answer": "Có thể hỗ trợ tùy yêu cầu cụ thể."
+    },
+    {
+      "id": 12,
+      "question": "Có thể thực tập tại TP. Hồ Chí Minh hoặc gần nơi ở không?",
+      "answer": "Có thể được cân nhắc nhưng không bảo đảm."
+    },
+    {
+      "id": 13,
+      "question": "Có hỗ trợ chi phí đi lại, ăn ở không?",
+      "answer": "Không hỗ trợ."
+    },
+    {
+      "id": 14,
+      "question": "Có được học nâng cao sau khóa học không?",
+      "answer": "Dự kiến có cho học viên xuất sắc."
+    },
+    {
+      "id": 15,
+      "question": "Cơ hội sau chương trình?",
+      "answer": [
+        "Ứng tuyển MSc hoặc PhD tại VinUni",
+        "Ứng tuyển Research Assistant",
+        "Tham gia dự án doanh nghiệp",
+        "Cơ hội tuyển dụng tùy năng lực và nhu cầu"
+      ]
+    }
+  ],
+  "contact": {
+    "email": "AIThucchien@vinuni.edu.vn",
+    "address": "KĐT Vinhomes Ocean Park, Gia Lâm, Hà Nội",
+    "phone": "024 7108 9779",
+    "technical_support_extension": "9903",
+    "website": "vinuni.edu.vn",
+    "leaders": [
+      {
+        "name": "GS. Dương Nguyên Vũ",
+        "role": "Phó Hiệu trưởng, Trưởng Ban chỉ đạo",
+        "email": "vu.dn@vinuni.edu.vn"
+      },
+      {
+        "name": "TS. Đinh Ngọc Thạnh",
+        "role": "Giám đốc chương trình",
+        "email": "thanh.dn@vinuni.edu.vn"
+      },
+      {
+        "name": "TS. Lê Duy Dũng",
+        "role": "Giám đốc chương trình",
+        "email": "dung.ld@vinuni.edu.vn"
+      }
+    ],
+    "student_support": {
+      "name": "Phạm Quốc Khánh",
+      "role": "Chuyên viên Quản lý Đào tạo",
+      "office": "Phòng I-114, Tầng 1, Nhà I, Trường Đại học VinUni"
+    }
+  },
+  "notes": [
+    "Tài liệu là phiên bản 1.0.",
+    "Nội dung có thể được cập nhật theo từng thời điểm.",
+    "Phiên bản mới nhất do Nhà trường thông báo sẽ được áp dụng chính thức.",
+    "Tài liệu thuộc bản quyền của Trường Đại học VinUni."
+  ]
+}

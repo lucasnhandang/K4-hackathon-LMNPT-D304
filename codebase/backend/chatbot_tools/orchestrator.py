@@ -215,9 +215,12 @@ class ChatbotOrchestrator:
             )
             ticket_data = ticket_tool_result.get("data", {}) if ticket_tool_result.get("status") == "ok" else {}
             target_channel = ticket_data.get("target_channel", target_channel)
+            priority = ticket_data.get("priority", "NORMAL")
+            priority_tag = "🔴 URGENT (Ưu tiên cao - Xử lý ngay)" if priority == "URGENT" else "🔵 NORMAL (Bình thường)"
 
             response_text = (
                 f"Gợi ý gửi ticket hỗ trợ tới Mod/TA:\n\n"
+                f"🚨 **Độ ưu tiên**: {priority_tag}\n"
                 f"📢 **Kênh gửi ticket**: `#{target_channel}` (dùng lệnh `/ticket`)\n"
                 f"📝 **Nội dung câu hỏi đề xuất**: {message.strip()} 🎫"
             )
@@ -628,7 +631,11 @@ class ChatbotOrchestrator:
             "report_harassment": "Báo cáo vi phạm",
         }
         category = cat_map.get(intent, "other")
-        topic_name = topic_map.get(intent, f"thắc mắc về {intent}")
+        if category == "other" and ("assignment" in missing or "assignment" in known_context or "deadline" in intent):
+            category = "deadline"
+            topic_name = "Hạn nộp bài / Deadline"
+        else:
+            topic_name = topic_map.get(intent, f"thắc mắc về {intent}")
 
         # Execute offer_ticket tool in registry
         from .tools import TicketTools
@@ -656,9 +663,12 @@ class ChatbotOrchestrator:
 
         ticket_data = ticket_tool_result.get("data", {}) if ticket_tool_result.get("status") == "ok" else {}
         target_channel = ticket_data.get("target_channel", "student-support")
+        priority = ticket_data.get("priority", "NORMAL")
+        priority_tag = "🔴 URGENT (Ưu tiên cao - Xử lý ngay)" if priority == "URGENT" else "🔵 NORMAL (Bình thường)"
 
         response_text = (
             f"Gợi ý gửi ticket hỗ trợ tới Mod/TA:\n\n"
+            f"🚨 **Độ ưu tiên**: {priority_tag}\n"
             f"📢 **Kênh gửi ticket**: `#{target_channel}` (dùng lệnh `/ticket`)\n"
             f"📝 **Nội dung câu hỏi đề xuất**: {question_content} 🎫"
         )

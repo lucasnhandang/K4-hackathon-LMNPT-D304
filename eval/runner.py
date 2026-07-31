@@ -102,6 +102,10 @@ def evaluate_case(actual: dict[str, Any], expected: dict[str, Any]) -> dict[str,
 # ═══════════════════════════════════════════════════════════════════════
 
 def run_eval(cases_filter: list[str] | None = None, verbose: bool = False):
+    if sys.platform == "win32":
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+        sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+
     # Load golden set
     with open(GOLDEN_SET, "r", encoding="utf-8") as f:
         golden = json.load(f)

@@ -106,6 +106,23 @@ class KnowledgeToolTests(unittest.TestCase):
         self.assertEqual(create_res["status"], "ok")
         self.assertTrue(create_res["data"]["sent"])
 
+    def test_feature_5_sentiment_and_priority_ticket(self) -> None:
+        # Test URGENT priority detection
+        offer_res = self.registry.execute(
+            "offer_ticket",
+            {
+                "category": "safety",
+                "question": "Có bạn trong nhóm nhắn tin quấy rối em gấp lắm",
+                "known_context": {},
+                "missing_information": [],
+                "clarification_attempts": 2,
+                "source_ids": [],
+            },
+        )
+        self.assertEqual(offer_res["status"], "ok")
+        self.assertEqual(offer_res["data"]["priority"], "URGENT")
+        self.assertEqual(offer_res["data"]["sentiment"], "stressed_or_urgent")
+
 
 if __name__ == "__main__":
     unittest.main()
