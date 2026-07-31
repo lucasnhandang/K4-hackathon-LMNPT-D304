@@ -1,0 +1,7 @@
+{
+  "query": "Deadline bài RAG tuần này là khi nào?",
+  "current_message_id": null,
+  "limit": 3,
+  "min_score": 0.68,
+  "max_age_days": 90
+}
