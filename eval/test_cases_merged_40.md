@@ -2303,45 +2303,45 @@ Tất cả các test case đều được định dạng 100% theo contract `tem
 
 # BẢNG TỔNG HỢP 40 TEST CASE
 
-| Case | Loại dữ liệu | Route | Intent | Trạng thái Grounding |
+| Case | Nguồn dữ liệu | Route | Intent | Trạng thái Grounding |
 |---|---|---|---|---|
-| 01 | Handbook | ANSWER | ask_attendance_policy | grounded |
-| 02 | Handbook | ANSWER | ask_online_learning_availability | grounded |
-| 03 | Handbook | CLARIFY | ask_deadline | no_source |
-| 04 | Handbook | ESCALATE | request_leave_of_absence | grounded |
-| 05 | Handbook | ESCALATE | request_grade_review | no_source |
-| 06 | Handbook | ANSWER | ask_laptop_requirements | grounded |
-| 07 | Handbook | CLARIFY | ask_technical_help | no_source |
-| 08 | Handbook | ANSWER | thanks | not_required |
-| 09 | Handbook | ANSWER | reject_prompt_injection | not_required |
-| 10 | Handbook | ESCALATE | ask_holiday_schedule | no_source |
-| 11 | Handbook | ESCALATE | ask_event_schedule | no_source |
-| 12 | Handbook | ESCALATE | ask_scholarship_info | no_source |
-| 13 | Handbook | ANSWER | reject_answer_key_request | not_required |
-| 14 | Handbook | ANSWER | reject_do_assignment_for_user | not_required |
-| 15 | Handbook | ANSWER | ask_deadline | grounded |
-| 16 | Handbook | ANSWER | ask_submission_channel | grounded |
-| 17 | Handbook | ANSWER | update_track_selection | grounded |
-| 18 | Handbook | ESCALATE | ask_deadline | no_source |
-| 19 | Handbook | CLARIFY | ask_deadline_flexibility | no_source |
-| 20 | Handbook | ESCALATE | report_harassment | no_source |
-| 21 | KuteBot | ANSWER | ask_slash_command | grounded |
-| 22 | KuteBot | ANSWER | ask_deadline | grounded |
-| 23 | KuteBot | ANSWER | ask_xp | grounded |
-| 24 | KuteBot | ANSWER | ask_xp | grounded |
-| 25 | KuteBot | ANSWER | ask_xp | grounded |
-| 26 | KuteBot | ANSWER | ask_gate | grounded |
-| 27 | KuteBot | ESCALATE | ask_team_mentor | no_source |
-| 28 | KuteBot | ANSWER | ask_event_schedule | grounded |
-| 29 | KuteBot | ANSWER | ask_event_schedule | grounded |
-| 30 | KuteBot | ANSWER | ask_event_schedule | grounded |
-| 31 | KuteBot | ANSWER | ask_event_schedule | grounded |
-| 32 | KuteBot | ANSWER | search_fallback | grounded |
-| 33 | KuteBot | ANSWER | search_fallback | grounded |
-| 34 | KuteBot | CLARIFY | search_fallback | no_source |
-| 35 | KuteBot | ANSWER | ask_team_mentor | grounded |
-| 36 | KuteBot | ANSWER | ask_team_mentor | grounded |
-| 37 | KuteBot | ANSWER | ask_gate | grounded |
-| 38 | KuteBot | ANSWER | ask_xp | grounded |
-| 39 | KuteBot | ANSWER | search_fallback | grounded |
-| 40 | KuteBot | ANSWER | ask_event_schedule | grounded |
+| 01 | Handbook v1 | ANSWER | ask_attendance_policy | grounded |
+| 02 | Handbook v1 | ANSWER | ask_online_learning_availability | grounded |
+| 03 | Handbook v1 | CLARIFY | ask_deadline | no_source |
+| 04 | Handbook v1 | ESCALATE | request_leave_of_absence | grounded |
+| 05 | Handbook v1 | ESCALATE | request_grade_review | no_source |
+| 06 | Handbook v1 | ANSWER | ask_laptop_requirements | grounded |
+| 07 | Handbook v1 | CLARIFY | ask_technical_help | no_source |
+| 08 | Handbook v1 | ANSWER | thanks | not_required |
+| 09 | Handbook v1 | ANSWER | reject_prompt_injection | not_required |
+| 10 | Handbook v1 | ESCALATE | ask_holiday_schedule | no_source |
+| 11 | Handbook v1 | ESCALATE | ask_event_schedule | no_source |
+| 12 | Handbook v1 | ESCALATE | ask_scholarship_info | no_source |
+| 13 | Handbook v1 | ANSWER | reject_answer_key_request | not_required |
+| 14 | Handbook v1 | ANSWER | reject_do_assignment_for_user | not_required |
+| 15 | Handbook v1 | ANSWER | ask_deadline | grounded |
+| 16 | Handbook v1 | ANSWER | ask_submission_channel | grounded |
+| 17 | Handbook v1 | ANSWER | update_track_selection | grounded |
+| 18 | Handbook v1 | ESCALATE | ask_deadline | no_source |
+| 19 | Handbook v1 | CLARIFY | ask_deadline_flexibility | no_source |
+| 20 | Handbook v1 | ESCALATE | report_harassment | no_source |
+| 21 | KuteBot Discord | ANSWER | ask_slash_command | grounded |
+| 22 | KuteBot Discord | ANSWER | ask_deadline | grounded |
+| 23 | KuteBot Discord | ANSWER | ask_xp | grounded |
+| 24 | KuteBot Discord | ANSWER | ask_xp | grounded |
+| 25 | KuteBot Discord | ANSWER | ask_xp | grounded |
+| 26 | KuteBot Discord | ANSWER | ask_gate | grounded |
+| 27 | KuteBot Discord | ESCALATE | ask_team_mentor | no_source |
+| 28 | KuteBot Discord | ANSWER | ask_event_schedule | grounded |
+| 29 | KuteBot Discord | ANSWER | ask_event_schedule | grounded |
+| 30 | KuteBot Discord | ANSWER | ask_event_schedule | grounded |
+| 31 | KuteBot Discord | ANSWER | ask_event_schedule | grounded |
+| 32 | KuteBot Discord | ANSWER | search_fallback | grounded |
+| 33 | KuteBot Discord | ANSWER | search_fallback | grounded |
+| 34 | KuteBot Discord | CLARIFY | search_fallback | no_source |
+| 35 | KuteBot Discord | ANSWER | ask_team_mentor | grounded |
+| 36 | KuteBot Discord | ANSWER | ask_team_mentor | grounded |
+| 37 | KuteBot Discord | ANSWER | ask_gate | grounded |
+| 38 | KuteBot Discord | ANSWER | ask_xp | grounded |
+| 39 | KuteBot Discord | ANSWER | search_fallback | grounded |
+| 40 | KuteBot Discord | ANSWER | ask_event_schedule | grounded |

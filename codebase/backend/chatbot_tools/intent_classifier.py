@@ -44,8 +44,33 @@ INTENTS = {
         "patterns": [r"cam\s*on", r"thank"],
     },
     "help": {
-        "keywords": ["giup minh", "help", "huong dan", "cach su dung", "ban co the lam gi", "ban lam gi duoc"],
-        "patterns": [r"giup\s*(toi|minh|em)", r"^help\b", r"cach\s*su\s*dung"],
+        "keywords": ["giup minh", "help", "huong dan", "cach su dung", "ban co the lam gi", "ban lam gi duoc", "giup gi", "co the giup gi"],
+        "patterns": [r"giup\s*(toi|minh|em|gi)", r"^help\b", r"cach\s*su\s*dung", r"lam\s*(duoc\s*)?gi", r"giup\s*gi"],
+    },
+    "ask_datetime": {
+        "keywords": [
+            "may gio", "thu may", "ngay may", "bay gio",
+            "gio hien tai", "ngay bao nhieu", "hom nay ngay bao nhieu", "hom nay thu may", "ngay gio"
+        ],
+        "patterns": [
+            r"hom\s*nay\s*(la\s*)?(ngay|thu)\s*may",
+            r"bay\s*gio\s*(la\s*)?may\s*gio",
+            r"gio\s*hien\s*tai",
+            r"hom\s*nay\s*ngay\s*bao\s*nhieu",
+            r"hom\s*nay\s*thu\s*may",
+            r"ngay\s*gio\s*hom\s*nay",
+            r"ngay\s*may\s*hom\s*nay",
+        ],
+    },
+    "out_of_domain": {
+        "keywords": [
+            "thoi tiet", "gia vang", "chung khoan", "crypto", "bitcoin",
+            "nhiet do", "bong da", "tin tuc", "nau an", "am thuc", "du lich", "mua ban"
+        ],
+        "patterns": [
+            r"thoi\s*tiet", r"gia\s*vang", r"chung\s*khoan", r"nhiet\s*do",
+            r"bong\s*da", r"tin\s*tuc", r"nau\s*an", r"du\s*lich"
+        ],
     },
 
     # Deadline

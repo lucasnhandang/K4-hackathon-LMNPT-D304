@@ -14,7 +14,7 @@ from typing import Any
 
 GREETING_RESPONSES = [
     "Xin chào! Mình là trợ lý AI của AI20K Build Phase. Bạn cần hỗ trợ gì nha? 😊",
-    "Chào bạn! Mình sẵn sàng giúp đỡ về deadline, lịch sự kiện, XP, team/mentor. Hỏi mình nha! 🚀",
+    "Chào bạn! Mình là trợ lý AI, sẵn sàng giúp đỡ về deadline, lịch sự kiện, XP, team/mentor. Hỏi mình nha! 🚀",
     "Hi bạn! Mình là trợ lý AI, có thể giúp bạn tìm thông tin về khóa học. Bạn cần gì? ✨",
 ]
 
