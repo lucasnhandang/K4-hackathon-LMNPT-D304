@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from typing import Any, Protocol
@@ -25,9 +26,101 @@ def _missing(**fields: Any) -> list[str]:
 
 
 class KnowledgeTools:
-    def __init__(self, store: OfficialSourceStore):
+    def __init__(
+        self,
+        store: OfficialSourceStore,
+        cohort_aliases: dict[str, str] | None = None,
+        cohort_alias_categories: set[str] | None = None,
+    ):
         self.store = store
         self.index = BM25Index(store.records)
+        self.cohort_aliases = (
+            cohort_aliases
+            if cohort_aliases is not None
+            else self._cohort_aliases_from_env()
+        )
+        self.cohort_alias_categories = (
+            cohort_alias_categories
+            if cohort_alias_categories is not None
+            else {
+                item.strip()
+                for item in os.environ.get(
+                    "KNOWLEDGE_COHORT_ALIAS_CATEGORIES",
+                    "deadline,gate,event",
+                ).split(",")
+                if item.strip()
+            }
+        )
+
+    @staticmethod
+    def _cohort_aliases_from_env() -> dict[str, str]:
+        """Parse aliases such as ``k4:k3,k5:k4`` from configuration."""
+        raw = os.environ.get("KNOWLEDGE_COHORT_ALIASES", "k4:k3")
+        aliases: dict[str, str] = {}
+        for item in raw.split(","):
+            requested, separator, source = item.strip().partition(":")
+            if separator and requested.strip() and source.strip():
+                aliases[requested.strip().lower()] = source.strip().lower()
+        return aliases
+
+    def _resolve_cohort_filters(
+        self,
+        filters: dict[str, Any],
+        category: str,
+    ) -> tuple[dict[str, Any], str | None, str | None]:
+        requested = filters.get("cohort")
+        if not isinstance(requested, str):
+            return filters, None, None
+        normalized = requested.lower()
+        if category not in self.cohort_alias_categories:
+            return filters, normalized, normalized
+        source = self.cohort_aliases.get(normalized, normalized)
+        if source == normalized:
+            return filters, normalized, normalized
+        return {**filters, "cohort": source}, normalized, source
+
+    @staticmethod
+    def _with_cohort_resolution(
+        attributes: dict[str, Any],
+        requested_cohort: str | None,
+        source_cohort: str | None,
+    ) -> dict[str, Any]:
+        if (
+            not requested_cohort
+            or not source_cohort
+            or requested_cohort == source_cohort
+        ):
+            return attributes
+        return {
+            **attributes,
+            "cohort": requested_cohort,
+            "source_cohort": source_cohort,
+            "cohort_alias_applied": True,
+        }
+
+    @staticmethod
+    def _citation_with_cohort_resolution(
+        record: SourceRecord,
+        requested_cohort: str | None,
+        source_cohort: str | None,
+    ) -> Citation:
+        citation = _citation(record)
+        if (
+            not requested_cohort
+            or not source_cohort
+            or requested_cohort == source_cohort
+        ):
+            return citation
+        return Citation(
+            source_id=citation.source_id,
+            title=(
+                f"Nguồn dùng chung {source_cohort.upper()}→"
+                f"{requested_cohort.upper()}: {citation.title}"
+            ),
+            locator=citation.locator,
+            quote=citation.quote,
+            updated_at=citation.updated_at,
+        )
 
     def _structured_lookup(
         self,
@@ -36,6 +129,7 @@ class KnowledgeTools:
         at: str | None = None,
         required: dict[str, Any],
         optional: dict[str, Any] | None = None,
+        conflict_fields: set[str] | None = None,
     ) -> ToolResult:
         missing_fields = _missing(**required)
         if missing_fields:
@@ -46,6 +140,10 @@ class KnowledgeTools:
             )
 
         filters = {**required, **(optional or {})}
+        filters, requested_cohort, source_cohort = self._resolve_cohort_filters(
+            filters,
+            category,
+        )
         records = self.store.filter(category=category, at=at, **filters)
         if not records:
             return ToolResult(
@@ -53,37 +151,79 @@ class KnowledgeTools:
                 message="Không tìm thấy dữ liệu trong nguồn chính thức.",
             )
 
-        conflicts = self._find_conflicts(records)
+        conflicts = self._find_conflicts(records, conflict_fields)
         if conflicts:
             return ToolResult(
                 status="conflict",
                 conflicts=conflicts,
-                citations=[_citation(record) for record in records],
+                citations=[
+                    self._citation_with_cohort_resolution(
+                        record,
+                        requested_cohort,
+                        source_cohort,
+                    )
+                    for record in records
+                ],
                 message="Các nguồn chính thức đang có thông tin mâu thuẫn.",
             )
 
         if len(records) > 1:
             return ToolResult(
                 status="ambiguous",
-                data=[record.attributes for record in records],
-                citations=[_citation(record) for record in records],
+                data=[
+                    self._with_cohort_resolution(
+                        record.attributes,
+                        requested_cohort,
+                        source_cohort,
+                    )
+                    for record in records
+                ],
+                citations=[
+                    self._citation_with_cohort_resolution(
+                        record,
+                        requested_cohort,
+                        source_cohort,
+                    )
+                    for record in records
+                ],
                 message="Có nhiều kết quả phù hợp; cần thêm ngữ cảnh.",
             )
 
         record = records[0]
         return ToolResult(
             status="ok",
-            data=record.attributes,
-            citations=[_citation(record)],
-            message="Đã tìm thấy dữ liệu từ nguồn chính thức.",
+            data=self._with_cohort_resolution(
+                record.attributes,
+                requested_cohort,
+                source_cohort,
+            ),
+            citations=[
+                self._citation_with_cohort_resolution(
+                    record,
+                    requested_cohort,
+                    source_cohort,
+                )
+            ],
+            message=(
+                f"Đã dùng nguồn chung {source_cohort} cho {requested_cohort}."
+                if requested_cohort
+                and source_cohort
+                and requested_cohort != source_cohort
+                else "Đã tìm thấy dữ liệu từ nguồn chính thức."
+            ),
         )
 
     @staticmethod
-    def _find_conflicts(records: list[SourceRecord]) -> list[dict[str, Any]]:
+    def _find_conflicts(
+        records: list[SourceRecord],
+        relevant_fields: set[str] | None = None,
+    ) -> list[dict[str, Any]]:
         if len(records) < 2:
             return []
         ignored = {"source_kind"}
         keys = set.intersection(*(set(record.attributes) for record in records)) - ignored
+        if relevant_fields is not None:
+            keys &= relevant_fields
         conflicts = []
         for key in sorted(keys):
             values = {str(record.attributes[key]) for record in records}
@@ -105,12 +245,100 @@ class KnowledgeTools:
         cohort: str | None,
         at: str | None = None,
     ) -> ToolResult:
+        if assignment == "demo_day":
+            missing_fields = _missing(assignment=assignment, cohort=cohort)
+            if missing_fields:
+                return ToolResult(
+                    status="ambiguous",
+                    missing_fields=missing_fields,
+                    message="Thiếu thông tin bắt buộc để tra cứu chính xác.",
+                )
+
+            filters, requested_cohort, source_cohort = self._resolve_cohort_filters(
+                {"cohort": cohort},
+                "deadline",
+            )
+            records = self.store.filter(
+                category="event",
+                at=at,
+                event_name="demo_day",
+                cohort=filters["cohort"],
+            )
+            if not records:
+                return ToolResult(
+                    status="not_found",
+                    message="Không tìm thấy ngày Demo Day trong nguồn chính thức.",
+                )
+
+            dates = {
+                str(record.attributes.get("date"))
+                for record in records
+                if record.attributes.get("date")
+            }
+            if len(dates) > 1:
+                return ToolResult(
+                    status="conflict",
+                    conflicts=[
+                        {
+                            "field": "deadline",
+                            "values": sorted(dates),
+                            "source_ids": [record.source_id for record in records],
+                        }
+                    ],
+                    citations=[
+                        self._citation_with_cohort_resolution(
+                            record,
+                            requested_cohort,
+                            source_cohort,
+                        )
+                        for record in records
+                    ],
+                    message="Các nguồn chính thức ghi ngày Demo Day khác nhau.",
+                )
+            if not dates:
+                return ToolResult(
+                    status="unsupported",
+                    citations=[
+                        self._citation_with_cohort_resolution(
+                            record,
+                            requested_cohort,
+                            source_cohort,
+                        )
+                        for record in records
+                    ],
+                    message="Nguồn Demo Day chưa có ngày diễn ra.",
+                )
+
+            record = max(records, key=lambda item: item.updated_at)
+            data = self._with_cohort_resolution(
+                {
+                    "assignment": "demo_day",
+                    "cohort": source_cohort,
+                    "deadline": next(iter(dates)),
+                },
+                requested_cohort,
+                source_cohort,
+            )
+            return ToolResult(
+                status="ok",
+                data=data,
+                citations=[
+                    self._citation_with_cohort_resolution(
+                        record,
+                        requested_cohort,
+                        source_cohort,
+                    )
+                ],
+                message="Đã tìm thấy ngày Demo Day từ nguồn sự kiện chính thức.",
+            )
+
         # module is optional - only assignment and cohort are required
         return self._structured_lookup(
             category="deadline",
             at=at,
             required={"assignment": assignment, "cohort": cohort},
             optional={"module": module} if module else None,
+            conflict_fields={"deadline", "date", "due_at", "cutoff_time"},
         )
 
     def lookup_event(
@@ -131,13 +359,45 @@ class KnowledgeTools:
         *,
         gate_name: str | None,
         cohort: str | None,
+        requested_fact: str | None = "requirements",
         at: str | None = None,
     ) -> ToolResult:
-        return self._structured_lookup(
+        supported_facts = {
+            "requirements",
+            "deadline",
+            "submission_method",
+            "grading",
+            "general",
+        }
+        fact = requested_fact or "requirements"
+        if fact not in supported_facts:
+            return ToolResult(
+                status="rejected",
+                message="Thuộc tính gate được yêu cầu không được hỗ trợ.",
+            )
+
+        result = self._structured_lookup(
             category="gate",
             at=at,
             required={"gate_name": gate_name, "cohort": cohort},
+            conflict_fields=None if fact == "general" else {fact},
         )
+        if result.status != "ok" or not isinstance(result.data, dict):
+            return result
+
+        # A matching CP record is not automatically evidence for every fact
+        # about that CP. In particular, requirements must not be presented as
+        # evidence for a deadline that is absent from the official source.
+        if fact != "general" and result.data.get(fact) in (None, "", []):
+            return ToolResult(
+                status="unsupported",
+                citations=result.citations,
+                message=(
+                    f"Nguồn chính thức có thông tin về {gate_name} nhưng chưa có "
+                    f"thuộc tính {fact}."
+                ),
+            )
+        return result
 
     def lookup_exam_slot(
         self,

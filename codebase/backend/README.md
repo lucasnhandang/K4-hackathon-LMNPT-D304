@@ -1,7 +1,9 @@
 # Backend tools — Trợ lý Học viên Discord
 
-Lớp này cung cấp các tool độc lập cho chatbot. Không cần API key hoặc package ngoài
-Python standard library.
+Lớp này cung cấp các tool độc lập và hybrid agent router cho chatbot. Các tool
+tra cứu chạy local; khi cấu hình `OPENROUTER_API_KEY`, OpenRouter phân loại
+semantic bằng forced tool call và diễn đạt câu trả lời grounded. Nếu không có
+key hoặc API lỗi, router keyword/regex tiếp tục làm fallback.
 
 > `chatbot_tools/data/official_sources.json` là **dữ liệu giả cho prototype**, không
 > phải lịch thật của khóa.
@@ -51,7 +53,7 @@ thu thập cho thành viên. Không commit hoặc gửi file SQLite ra ngoài.
 |---|---|
 | `lookup_deadline` | Tra deadline theo bài, module và khóa |
 | `lookup_event` | Tra lịch sự kiện |
-| `lookup_gate` | Tra yêu cầu gate/checkpoint |
+| `lookup_gate` | Tra đúng thuộc tính (`requirements`, `deadline`, cách nộp/chấm) của gate/checkpoint |
 | `lookup_exam_slot` | Tra ca thi |
 | `lookup_xp` | Tra quy tắc XP |
 | `lookup_team_mentor` | Tra mentor và kênh hỗ trợ của team |
@@ -76,29 +78,76 @@ Mọi tool trả cùng envelope:
 ```
 
 `status` thuộc một trong:
-`ok`, `not_found`, `ambiguous`, `conflict`, `rejected`, `error`.
+`ok`, `not_found`, `unsupported`, `ambiguous`, `conflict`, `rejected`, `error`.
 
 Router phải tuân theo:
 
+- slot do semantic agent đề xuất chỉ được chấp nhận khi có bằng chứng trực tiếp
+  trong tin nhắn hiện tại; câu hỏi deadline thiếu tên bài phải `CLARIFY`;
+- intent cấu trúc có lexical anchor rõ (`deadline`, `gate`, `XP`...) không được
+  semantic agent hạ xuống search intent; thiếu slot phải hỏi lại trước retrieval;
+- tiếng chat deadline phổ biến (`bao h`, `nộp lúc nào`, `chừng nào`,
+  `còn mấy ngày`) được chuẩn hóa trước khi route;
+- các alias `weekly submit`, `/weekly submit`, `weekly report` và `báo cáo tuần`
+  cùng resolve về entity deadline `weekly_report`; `weekly assignment` không kèm
+  số cũng là alias này, còn `weekly assignment 3` vẫn là bài đánh số riêng;
 - trước khi trả lời, gọi `search_similar_questions`;
 - nếu `redirect_suggested=true`, hiển thị tối đa 3 link chat tương tự;
 - link community chỉ để tham khảo, không thay citation chính thức;
 - `ok` và có citation phù hợp → có thể `ANSWER`;
+- `unsupported` → đúng entity nhưng nguồn thiếu thuộc tính được hỏi; không dùng
+  citation đó để trả lời và chuyển Mod/TA;
 - `ambiguous` → hỏi đúng một `missing_field` quan trọng nhất;
 - `not_found` hoặc `conflict` → không tự tạo fact;
 - sau hai lần làm rõ chưa giải quyết được → gọi `offer_ticket`;
 - chỉ sau nút **Có, gửi ticket** → gọi `create_ticket(user_consent=true)`.
+
+Tracepath giữ riêng nguyên nhân retrieval `no_source`, `unsupported` và
+`conflict`. UI chỉ hiển thị đề xuất nhờ Mod/TA xác nhận; không được tuyên bố đã
+gửi ticket khi chưa có consent.
 
 ## Chạy nhanh
 
 Từ thư mục `codebase/backend`:
 
 ```powershell
+python -m pip install -r requirements.txt
 python -m chatbot_tools
 python -m chatbot_tools search_official_sources --arguments-file examples/search_args.json
 python -m chatbot_tools lookup_deadline --arguments-file examples/deadline_args.json
 python -m chatbot_tools search_similar_questions --arguments-file examples/similar_question_args.json
 ```
+
+Chạy API prototype:
+
+```powershell
+python server.py
+```
+
+`server.py`, `cli.py` và `discord_bot.py` nạp explicit `.env` trong thư mục này,
+không override biến đã export. `GET /health` cho biết `routing_mode` mà không
+hiển thị API key.
+
+Prototype mặc định `DEFAULT_COHORT=k4`, và frontend gửi explicit cohort K4.
+Fixture `chatbot_tools/data/official_sources.json` hiện chỉ chứa record K3 để
+test. Cấu hình tạm `KNOWLEDGE_COHORT_ALIASES=k4:k3` cho phép K4 dùng nguồn K3
+chung trong các category `deadline,gate,event`; tool result giữ `cohort=k4` đồng
+thời ghi `source_cohort=k3`. Xóa alias sau khi nguồn K4 chính thức được ingest.
+
+Với câu hỏi gate, router giữ semantic frame gồm `gate_name` và `requested_fact`.
+Ví dụ `gate deadline bao giờ` lưu `requested_fact=deadline` trong clarification;
+lượt trả lời `gate 3` chỉ bổ sung `gate_name=cp3`. Có record CP3 nhưng không có
+trường `deadline` vẫn là `unsupported` và route `ESCALATE`, không phải
+`grounded | ANSWER`.
+
+Semantic frame cũng phân biệt `requirements`, `submission_method` và `grading`.
+Ví dụ `gate nộp bao h` hỏi lại Gate số mấy nhưng giữ fact `deadline`;
+`gate 3 nộp ở đâu` tra `submission_method`, không bị route thành kênh nộp chung.
+
+`demo_day` và `demo_day_deliverables` là hai entity khác nhau. Follow-up
+`demo day` sau câu hỏi deadline tra ngày từ nguồn sự kiện chính thức; khác biệt
+giữa hai danh sách deliverable không được coi là conflict của field deadline.
+Conflict detection của structured lookup chỉ so sánh đúng fact đang được hỏi.
 
 `--arguments-file` được khuyên dùng trên Windows vì shell có thể làm mất dấu nháy
 của JSON truyền trực tiếp.

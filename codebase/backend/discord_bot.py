@@ -13,8 +13,11 @@ from typing import Any
 import discord
 from discord import app_commands
 
+from chatbot_tools.llm_client import load_backend_env
 from chatbot_tools.orchestrator import ChatbotOrchestrator
 from chatbot_tools.registry import build_default_registry
+
+load_backend_env()
 
 # ---------------------------------------------------------------------------
 # Logging

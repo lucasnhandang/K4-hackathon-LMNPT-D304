@@ -5,6 +5,7 @@ Generates Vietnamese responses from tool results with citations.
 
 from __future__ import annotations
 
+import re
 from typing import Any
 
 
@@ -57,9 +58,19 @@ def _format_deadline_response(data: dict[str, Any], citations: list[dict]) -> st
         try:
             from datetime import datetime
             dt = datetime.fromisoformat(deadline)
-            parts.append(f"⏰ Deadline: **{dt.strftime('%H:%M ngày %d/%m/%Y')}** (GMT+7)")
+            if len(str(deadline)) == 10:
+                parts.append(f"📅 Ngày diễn ra/hạn chót: **{dt.strftime('%d/%m/%Y')}**")
+            else:
+                parts.append(f"⏰ Deadline: **{dt.strftime('%H:%M ngày %d/%m/%Y')}** (GMT+7)")
         except (ValueError, TypeError):
             parts.append(f"⏰ Deadline: **{deadline}**")
+
+    cutoff_time = data.get("cutoff_time")
+    if cutoff_time:
+        cutoff_display = str(cutoff_time)
+        if re.fullmatch(r"\d{2}:\d{2}", cutoff_display):
+            cutoff_display = cutoff_display.replace(":", "h")
+        parts.append(f"⏰ Hạn nộp: **{cutoff_display}**")
 
     if data.get("frequency"):
         parts.append(f"📌 Tần suất nộp: **{data['frequency']}**")
@@ -125,6 +136,19 @@ def _format_event_response(data: dict[str, Any], citations: list[dict]) -> str:
         deliverables = data.get("mandatory_deliverables", 10)
         parts.append(f"🎯 **Demo Day**: {date}")
         parts.append(f"📋 **{deliverables} deliverable bắt buộc**")
+
+    elif event_name == "mentoring":
+        usual_time = data.get("usual_time", "")
+        frequency = data.get("frequency", "")
+        start_time = data.get("start_time", "")
+        end_time = data.get("end_time", "")
+        parts.append("📅 **Lịch Mentoring Duty**")
+        if usual_time:
+            parts.append(f"• Thời gian thường lệ: **{usual_time}**")
+        if start_time and end_time:
+            parts.append(f"• Khung giờ: **{start_time}–{end_time}**")
+        if frequency:
+            parts.append(f"• Tần suất: **{frequency}**")
 
     else:
         parts.append(f"📅 **Sự kiện**: {event_name}")
@@ -284,7 +308,10 @@ def generate_response(
     if route == "ESCALATE" and escalation:
         return {
             "route": "ESCALATE",
-            "response": escalation.get("summary", "Mình sẽ chuyển yêu cầu này cho Mod."),
+            "response": escalation.get(
+                "summary",
+                "Bạn có thể nhờ Mod/TA xác nhận yêu cầu này.",
+            ),
             "escalation": escalation,
         }
 
@@ -323,7 +350,7 @@ def generate_response(
     if intent in ("request_deadline_exception", "report_issue", "report_harassment"):
         return {
             "route": "ESCALATE",
-            "response": "Mình sẽ chuyển yêu cầu này cho Mod để xử lý.",
+            "response": "Yêu cầu này cần Mod/TA xử lý; hệ thống chưa tự động gửi.",
             "escalation": {
                 "reason_code": "requires_human_authority",
                 "target": "MOD",
@@ -358,7 +385,10 @@ def generate_response(
         if status == "conflict":
             return {
                 "route": "ESCALATE",
-                "response": "Có thông tin mâu thuẫn giữa các nguồn. Mình sẽ chuyển cho Mod để xác nhận.",
+                "response": (
+                    "Có thông tin mâu thuẫn giữa các nguồn. "
+                    "Bạn có thể nhờ Mod/TA xác nhận."
+                ),
                 "escalation": {
                     "reason_code": "conflicting_sources",
                     "target": "MOD",
@@ -405,7 +435,7 @@ def generate_response(
 def _generate_clarification_question(intent: str, missing_fields: list[str]) -> str:
     """Generate a clarification question based on missing fields."""
     field_questions = {
-        "assignment": "Bạn đang hỏi deadline của bài nào? (VD: Weekly Assignment, AI Log, Demo Day...)",
+        "assignment": "Bạn đang hỏi deadline của nội dung nào? (VD: Weekly Report qua /weekly submit, AI Log, Demo Day...)",
         "module": "Bạn đang học module nào?",
         "event_name": "Bạn muốn biết về sự kiện nào? (Workshop, Office Hours, Mentoring...)",
         "gate_name": "Bạn muốn biết về gate nào? (CP1, CP2, CP3...)",
@@ -427,7 +457,7 @@ def _generate_suggested_replies(intent: str, missing_fields: list[str]) -> list[
     """Generate suggested replies based on intent and missing fields."""
     suggestions = {
         "ask_deadline": {
-            "assignment": ["Weekly Assignment", "AI Log", "Demo Day deliverables"],
+            "assignment": ["Weekly Report", "AI Log", "Demo Day"],
         },
         "ask_event_schedule": {
             "event_name": ["Workshop", "Office Hours", "Mentoring Duty", "Demo Day"],

@@ -4,7 +4,15 @@ from dataclasses import asdict, dataclass, field
 from typing import Any, Literal
 
 
-ToolStatus = Literal["ok", "not_found", "ambiguous", "conflict", "rejected", "error"]
+ToolStatus = Literal[
+    "ok",
+    "not_found",
+    "unsupported",
+    "ambiguous",
+    "conflict",
+    "rejected",
+    "error",
+]
 
 
 @dataclass(frozen=True)

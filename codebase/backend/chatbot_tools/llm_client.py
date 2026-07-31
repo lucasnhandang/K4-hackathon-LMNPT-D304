@@ -12,6 +12,7 @@ import os
 import urllib.error
 import urllib.request
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Any
 
 logger = logging.getLogger(__name__)
@@ -26,6 +27,30 @@ DEFAULT_TIMEOUT = 30  # seconds
 DEFAULT_MAX_RETRIES = 1
 DEFAULT_TEMPERATURE = 0.3
 DEFAULT_MAX_TOKENS = 1024
+
+
+def load_backend_env(env_path: str | Path | None = None) -> bool:
+    """Load the prototype backend .env without overriding exported variables.
+
+    Entry points call this before constructing :class:`LLMClient`. Keeping the
+    path explicit avoids accidentally loading frontend or repository-root
+    configuration when the current working directory changes.
+    """
+    path = Path(env_path) if env_path else Path(__file__).resolve().parents[1] / ".env"
+    if not path.is_file():
+        logger.info("Backend .env not found at %s; using process environment", path)
+        return False
+
+    try:
+        from dotenv import load_dotenv
+    except ImportError:
+        logger.warning(
+            "python-dotenv is not installed; backend .env was not loaded"
+        )
+        return False
+
+    load_dotenv(path, override=False)
+    return True
 
 
 @dataclass
@@ -62,6 +87,7 @@ class LLMResponse:
     model: str
     usage: dict[str, int] = field(default_factory=dict)
     finish_reason: str = ""
+    tool_calls: list[dict[str, Any]] = field(default_factory=list)
     raw: dict[str, Any] = field(default_factory=dict, repr=False)
 
 
@@ -90,6 +116,9 @@ class LLMClient:
         model: str | None = None,
         temperature: float | None = None,
         max_tokens: int | None = None,
+        tools: list[dict[str, Any]] | None = None,
+        tool_choice: str | dict[str, Any] | None = None,
+        parallel_tool_calls: bool | None = None,
     ) -> LLMResponse:
         """Send a chat completion request to OpenRouter.
 
@@ -98,6 +127,9 @@ class LLMClient:
             model: Override model (default: config.model)
             temperature: Override temperature (default: config.temperature)
             max_tokens: Override max_tokens (default: config.max_tokens)
+            tools: OpenAI-compatible function tools exposed to the model.
+            tool_choice: Optional tool selection policy or forced function.
+            parallel_tool_calls: Whether the model may request tools in parallel.
 
         Returns:
             LLMResponse with the assistant's reply.
@@ -112,6 +144,12 @@ class LLMClient:
             "temperature": temperature if temperature is not None else self.config.temperature,
             "max_tokens": max_tokens or self.config.max_tokens,
         }
+        if tools:
+            payload["tools"] = tools
+        if tool_choice is not None:
+            payload["tool_choice"] = tool_choice
+        if parallel_tool_calls is not None:
+            payload["parallel_tool_calls"] = parallel_tool_calls
 
         headers = {
             "Authorization": f"Bearer {self.config.api_key}",
@@ -165,7 +203,8 @@ class LLMClient:
         try:
             choice = data["choices"][0]
             message = choice["message"]
-            content = message.get("content", "")
+            content = message.get("content") or ""
+            tool_calls = message.get("tool_calls") or []
             finish_reason = choice.get("finish_reason", "")
         except (KeyError, IndexError) as error:
             raise LLMError(f"Unexpected response structure: {error}") from error
@@ -182,6 +221,7 @@ class LLMClient:
                 "total_tokens": usage.get("total_tokens", 0),
             },
             finish_reason=finish_reason,
+            tool_calls=tool_calls,
             raw=data,
         )
 

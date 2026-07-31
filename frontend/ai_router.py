@@ -12,6 +12,7 @@ import os
 import httpx
 from datetime import datetime, timezone
 from typing import Dict, Any, List
+from uuid import uuid4
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -95,9 +96,11 @@ def transform_backend_response_to_ui(backend_data: Dict[str, Any]) -> Dict[str, 
             "type": "NO_SOURCE_ESCALATE",
             "message": response_msg,
             "embed_type": "escalate-embed",
-            "title": "Đã tự động chuyển câu hỏi cho Mentor/Mod",
+            "title": "Cần Mentor/Mod xác nhận",
             "escalate_tag": "@Mod / @Mentor",
-            "escalate_detail": "Học viên cần xác nhận quy định cụ thể từ đội ngũ ban quản trị.",
+            "escalate_detail": (
+                "Đây là đề xuất chuyển tiếp; hệ thống chưa tự động gửi câu hỏi."
+            ),
             "options": [],
             "tracepath": tracepath
         }
@@ -139,7 +142,11 @@ def transform_backend_response_to_ui(backend_data: Dict[str, Any]) -> Dict[str, 
             "tracepath": tracepath
         }
 
-async def call_backend_api_async(user_message: str, history: List[Dict[str, str]] = None) -> Dict[str, Any]:
+async def call_backend_api_async(
+    user_message: str,
+    history: List[Dict[str, str]] = None,
+    session_id: str | None = None,
+) -> Dict[str, Any]:
     """
     Sends request to Backend API using standard Input Payload Template and transforms response.
     """
@@ -151,7 +158,9 @@ async def call_backend_api_async(user_message: str, history: List[Dict[str, str]
             "message_id": f"msg_{int(datetime.now().timestamp())}",
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "user_id": "student_123",
-            "session_id": "discord_session_001",
+            # The UI supplies a stable ID per chat. Other callers receive an
+            # isolated one-shot session instead of sharing clarification state.
+            "session_id": session_id or f"discord_session_{uuid4().hex}",
             "channel_id": "gỡ-vướng-học-tập"
         },
         "message": {
@@ -164,6 +173,7 @@ async def call_backend_api_async(user_message: str, history: List[Dict[str, str]
         },
         "learning_context": {
             "course": "AI Thực Chiến K4",
+            "cohort": "k4",
             "module": "Project",
             "lesson": None,
             "assignment": None

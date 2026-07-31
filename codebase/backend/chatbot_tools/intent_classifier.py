@@ -16,8 +16,40 @@ from typing import Any
 # Vietnamese normalization
 # ---------------------------------------------------------------------------
 
+_CHAT_PHRASE_ALIASES = (
+    (r"\bbao\s+h\b", "bao gio"),
+    (r"\bchung\s+nao\b", "khi nao"),
+    (r"\bkhi\s+mo\b", "khi nao"),
+    (r"\bmentor\s+duty\b", "mentoring duty"),
+)
+
+REQUESTED_FACT_PATTERNS = {
+    "deadline": (
+        r"\bdeadline\b|\bdealine\b|\bdead\s*line\b|\bdl\b|"
+        r"\bhan\s*(?:nop|chot|gate)\b|\bbao\s*gio\b|\bkhi\s*nao\b|"
+        r"\bluc\s*nao\b|"
+        r"\bhet\s*han\b|\bcon\s*(?:bao|may)\s*nhieu?\s*ngay\b|"
+        r"\bcon\s*may\s*ngay\b|"
+        r"\b(?:nop.*\bbh\b|\bbh\b.*nop)\b"
+    ),
+    "requirements": (
+        r"\b(?:yeu\s*cau|dieu\s*kien|can\s+nhung?\s*gi|can\s*gi|"
+        r"can\s+nop\s+gi|nop\s+nhung?\s*gi|nop\s+gi)\b"
+    ),
+    "submission_method": (
+        r"\b(?:nop\s*o\s*dau|cach\s*nop|nop\s*the\s*nao|"
+        r"kenh\s*nop|nop\s*bang\s*gi|submit\s*o\s*dau)\b"
+    ),
+    "grading": (
+        r"\b(?:cham\s*diem|tinh\s*diem|bao\s*nhieu\s*diem|"
+        r"grading|rubric)\b"
+    ),
+    "general": r"\b(?:thong\s*tin|noi\s*dung|tong\s*quan)\b",
+}
+
+
 def normalize_vietnamese(text: str) -> str:
-    """Normalize Vietnamese text: lowercase, remove diacritics, normalize whitespace."""
+    """Normalize Vietnamese text, including a small safe chat-language layer."""
     text = text.lower().strip()
     # Replace đ -> d
     text = text.replace("đ", "d").replace("Đ", "d")
@@ -26,6 +58,8 @@ def normalize_vietnamese(text: str) -> str:
     no_marks = "".join(c for c in normalized if unicodedata.category(c) != "Mn")
     # Normalize whitespace and special chars
     no_marks = re.sub(r"\s+", " ", no_marks).strip()
+    for pattern, replacement in _CHAT_PHRASE_ALIASES:
+        no_marks = re.sub(pattern, replacement, no_marks)
     return no_marks
 
 
@@ -143,17 +177,23 @@ INTENTS = {
     "ask_deadline": {
         "keywords": [
             "deadline", "dealine", "dead line", "dl", "han nop", "han chot",
-            "nop bai", "nop khi nao", "bao gio nop", "het han", "khi nao nop"
+            "nop bai", "nop khi nao", "bao gio nop", "het han", "khi nao nop",
+            "nop luc nao", "con may ngay",
         ],
         "patterns": [
             r"deadline", r"dealine", r"dead\s*line", r"\bdl\b", r"han\s*nop",
-            r"han\s*chot", r"nop\s*bai", r"bao\s*gio\s*nop", r"het\s*han"
+            r"han\s*chot", r"nop\s*bai", r"bao\s*gio\s*nop", r"het\s*han",
+            r"nop\s*(?:bao\s*gio|khi\s*nao|luc\s*nao)",
+            r"(?:bao\s*gio|khi\s*nao|luc\s*nao)\s*nop",
+            r"con\s*may\s*ngay",
         ],
         "slots": {
             "assignment": [
                 r"weekly\s*assignment\s*\d*",  # Capture "weekly assignment" or "weekly assignment 3"
                 r"wa\s*\d*",
                 r"bai\s*weekly\s*\d*",
+                r"\/?weekly\s*(?:submit|report)",
+                r"bao\s*cao\s*tuan",
                 r"ai\s*log",
                 r"demo\s*day",
                 r"deliverable",
@@ -478,6 +518,36 @@ def classify_intent(message: str) -> IntentResult:
     # Greeting/thanks get high confidence if matched
     if best_intent in ("greeting", "thanks") and best_score > 0:
         best_score = max(best_score, 0.9)
+
+    # A gate/checkpoint is the subject, while deadline/requirements describe
+    # the fact the student wants. Keep both dimensions instead of allowing the
+    # deadline keyword to erase the gate entity (or vice versa).
+    gate_anchor = re.search(
+        r"\b(?:gate|checkpoint|cp\s*[1-4])\b",
+        normalized,
+    )
+    if gate_anchor and best_intent in {
+        "ask_gate",
+        "ask_deadline",
+        "ask_submission_channel",
+        "unknown",
+        "unknown_question",
+    }:
+        best_intent = "ask_gate"
+        gate_match = re.search(
+            r"\bcp\s*([1-4])\b|"
+            r"\b(?:gate|checkpoint)\s*(?:so\s*)?([1-4])\b",
+            normalized,
+        )
+        if gate_match:
+            best_slots["gate_name"] = f"cp{gate_match.group(1) or gate_match.group(2)}"
+        elif re.search(r"\bfinal(?:\s*gate)?\b|\bgate\s*cuoi\b", normalized):
+            best_slots["gate_name"] = "final"
+
+        for requested_fact, pattern in REQUESTED_FACT_PATTERNS.items():
+            if re.search(pattern, normalized):
+                best_slots["requested_fact"] = requested_fact
+                break
 
     return IntentResult(
         intent=best_intent,

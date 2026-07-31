@@ -16,15 +16,35 @@ or:
 
 from __future__ import annotations
 
+import logging
 import time
+from contextlib import asynccontextmanager
 from typing import Any
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 
+from chatbot_tools.llm_client import load_backend_env
 from chatbot_tools.orchestrator import ChatbotOrchestrator
 
-app = FastAPI(title="AI20K Student Assistant API")
+logger = logging.getLogger(__name__)
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Load backend configuration before freezing the orchestrator clients."""
+    load_backend_env()
+    active_orchestrator = ChatbotOrchestrator()
+    app.state.orchestrator = active_orchestrator
+    logger.info(
+        "OpenRouter configured=%s model=%s",
+        active_orchestrator.llm_client.is_available(),
+        active_orchestrator.llm_client.config.model,
+    )
+    yield
+
+
+app = FastAPI(title="AI20K Student Assistant API", lifespan=lifespan)
 
 # Prototype runs on localhost only; open CORS so the NiceGUI frontend (any
 # local port) can call it during the hackathon demo.
@@ -35,8 +55,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-orchestrator = ChatbotOrchestrator()
-
 # Clarification is a multi-turn negotiation (see orchestrator._handle_clarification_response).
 # The frontend doesn't round-trip the clarification state itself, so we keep it
 # here keyed by session_id between requests.
@@ -45,7 +63,15 @@ _session_clarifications: dict[str, dict[str, Any] | None] = {}
 _GROUNDING_TOOL = {
     "grounded": {"name": "RAG Knowledge Retrieval", "icon": "📚", "status": "found"},
     "no_source": {"name": "RAG Knowledge Retrieval", "icon": "📚", "status": "no_match"},
+    "unsupported": {"name": "RAG Knowledge Retrieval", "icon": "📚", "status": "unsupported"},
+    "conflict": {"name": "RAG Knowledge Retrieval", "icon": "📚", "status": "conflict"},
     "not_required": {"name": "Small Talk Handler", "icon": "💬", "status": "success"},
+}
+
+_ESCALATION_RETRIEVAL_STATUS = {
+    "conflicting_sources": "conflict",
+    "related_knowledge_gap": "unsupported",
+    "official_source_not_found": "no_source",
 }
 
 
@@ -66,9 +92,14 @@ def _build_tracepath(
     grounding_status: str,
     latency_ms: int,
     llm: dict[str, Any] | None = None,
+    escalation: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
+    retrieval_status = _ESCALATION_RETRIEVAL_STATUS.get(
+        (escalation or {}).get("reason_code"),
+        grounding_status,
+    )
     tools = [{"name": "Intent Classifier", "icon": "🔍", "status": "success"}]
-    tool = _GROUNDING_TOOL.get(grounding_status)
+    tool = _GROUNDING_TOOL.get(retrieval_status)
     if tool:
         tools.append(tool)
     if route == "CLARIFY":
@@ -78,7 +109,7 @@ def _build_tracepath(
 
     steps = [
         f"Phân loại Intent: {intent} ({int(confidence * 100)}% confidence)",
-        f"Grounding: {grounding_status} | Route: {route}",
+        f"Grounding: {retrieval_status} | Route: {route}",
     ]
     llm_called = bool(llm and llm.get("called"))
     llm_model = llm.get("model") if llm else None
@@ -102,9 +133,13 @@ def _build_tracepath(
         "latency_ms": latency_ms,
         "confidence": confidence,
         "intent": intent,
+        "grounding_status": retrieval_status,
         "llm_called": llm_called,
         "model": llm_model,
         "usage": llm_usage,
+        "llm_stage": llm.get("stage") if llm else None,
+        "llm_stages": llm.get("stages", []) if llm else [],
+        "agent_decision": llm.get("decision") if llm else None,
         "tools_used": tools,
         "steps": steps,
     }
@@ -123,6 +158,7 @@ def _adapt_response(orch_result: dict[str, Any], latency_ms: int) -> dict[str, A
         grounding,
         latency_ms,
         orch_result.get("llm"),
+        orch_result.get("escalation"),
     )
 
     if route == "CLARIFY":
@@ -152,9 +188,9 @@ def _adapt_response(orch_result: dict[str, Any], latency_ms: int) -> dict[str, A
             "tracepath": tracepath,
         }
 
-    # route == "ANSWER": the orchestrator has no separate "out of scope" route,
-    # it answers prompt-injection attempts directly with a polite refusal.
-    if intent == "reject_prompt_injection":
+    # Policy refusals are ANSWER routes internally so they never enter the
+    # handoff path, but the frontend should render them as out-of-scope/reject.
+    if intent in {"out_of_domain", "reject_prompt_injection"}:
         return {
             "status": "out_of_scope",
             "intent": intent,
@@ -181,12 +217,29 @@ def _adapt_response(orch_result: dict[str, Any], latency_ms: int) -> dict[str, A
 
 
 @app.get("/health")
-def health() -> dict[str, str]:
-    return {"status": "ok"}
+def health(request: Request) -> dict[str, Any]:
+    active_orchestrator = request.app.state.orchestrator
+    return {
+        "status": "ok",
+        "openrouter_configured": active_orchestrator.llm_client.is_available(),
+        "openrouter_model": active_orchestrator.llm_client.config.model,
+        "default_cohort": active_orchestrator.default_cohort,
+        "knowledge_cohort_aliases": (
+            active_orchestrator.registry.knowledge.cohort_aliases
+        ),
+        "knowledge_cohort_alias_categories": sorted(
+            active_orchestrator.registry.knowledge.cohort_alias_categories
+        ),
+        "routing_mode": (
+            "hybrid_agent"
+            if active_orchestrator.llm_client.is_available()
+            else "deterministic_fallback"
+        ),
+    }
 
 
 @app.post("/api/v1/chat")
-async def chat(payload: dict[str, Any]) -> dict[str, Any]:
+async def chat(payload: dict[str, Any], request: Request) -> dict[str, Any]:
     metadata = payload.get("metadata") or {}
     message = payload.get("message") or {}
     conversation = payload.get("conversation") or {}
@@ -201,7 +254,7 @@ async def chat(payload: dict[str, Any]) -> dict[str, Any]:
     pending = _session_clarifications.get(session_id)
 
     start = time.perf_counter()
-    result = orchestrator.process_message(
+    result = request.app.state.orchestrator.process_message(
         message=user_text,
         user_id=user_id,
         session_id=session_id,

@@ -278,3 +278,10 @@ Chi tiết định nghĩa: [`eval_golden_set.md`](eval_golden_set.md).
 | 31/07/2026 | Chốt nhóm LMNPT, Zone D304, quality bar 80%; cập nhật survey lên 20 người và willing users | Survey: 13/20 ưu tiên hỏi làm rõ; 19/20 từng gặp ít nhất một vấn đề |
 | 31/07/2026 | Tạo template validation và phân công Ngọc Mai ghi log | Chuẩn bị artifact CP5 cho 5 willing users ngoài nhóm |
 | 31/07/2026 | Ghi nhận phản hồi đánh giá của Mai, Khang, Hải, My và Dương; liên kết với backlog eval | Phản hồi cho thấy cần ưu tiên Knowledge Base, retrieval/citation, multi-intent, Time Resolver và response template |
+| 31/07/2026 | Chặn agent tự điền slot không có trong câu hỏi; tách session chat; phân biệt conflict/unsupported/no_source trong trace và sửa copy handoff | Regression từ câu “deadline hôm nào z”: phải CLARIFY, không lookup hoặc tuyên bố đã gửi Mod khi chưa có consent |
+| 31/07/2026 | Bổ sung chuẩn hóa tiếng chat và semantic frame Gate dùng chung giữa classifier/agent validator | “gate nộp bao h” phải giữ `requested_fact=deadline`, hỏi Gate số mấy; mở rộng regression cho cách nộp và cách chấm |
+| 31/07/2026 | Tách entity ngày Demo Day khỏi danh sách deliverables; đổi tên UI thành Trợ lý Kute++ | Follow-up “demo day” sau clarification deadline phải trả ngày từ nguồn event; khác biệt `items` không còn bị báo là conflict deadline |
+| 31/07/2026 | Khóa precedence của intent cấu trúc trước semantic search | Regression “deadline bao h”: phải `CLARIFY` tên bài/sự kiện, không được đổi thành search intent rồi trả nhầm Weekly Report |
+| 31/07/2026 | Bổ sung alias resolver cho Weekly Report | “deadline weekly submit là gì” phải lookup `weekly_report` và trả hạn 12h00 từ `docs_weekly_report_k3`, không báo thiếu nguồn |
+| 31/07/2026 | Đồng bộ vocabulary clarification với schema knowledge | Bot gợi ý `Weekly Report`; follow-up generic “weekly assignment” resolve về `weekly_report`, còn “Weekly Assignment 3” không bị nhập nhằng |
+| 31/07/2026 | Tách Mentoring Duty khỏi intent mentor của team và mở alias lịch K4→K3 | “buổi mentor duty diễn ra vào hôm nào” phải trả tối Thứ 4, Thứ 7, 20:00–22:00 từ `docs_mentoring_duty_rhythm_k3`, không hỏi team |

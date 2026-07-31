@@ -32,7 +32,12 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from .intent_classifier import IntentResult, classify_intent, normalize_vietnamese
+from .intent_classifier import (
+    REQUESTED_FACT_PATTERNS,
+    IntentResult,
+    classify_intent,
+    normalize_vietnamese,
+)
 from .llm_client import LLMClient, LLMConfig
 from .models import ToolResult
 from .rag_generator import RAGGenerator
@@ -94,6 +99,169 @@ REFUSAL_INTENTS = {
     ),
 }
 
+AGENT_ROUTABLE_INTENTS = {
+    "greeting",
+    "thanks",
+    "help",
+    "ask_datetime",
+    "out_of_domain",
+    "ask_attendance_policy",
+    "ask_online_learning_availability",
+    "ask_laptop_requirements",
+    "ask_submission_channel",
+    "ask_learning_material",
+    "ask_team_naming",
+    "ask_topic_availability",
+    "ask_holiday_schedule",
+    "ask_scholarship_info",
+    "ask_deadline",
+    "ask_event_schedule",
+    "ask_gate",
+    "ask_exam_slot",
+    "ask_xp",
+    "ask_team_mentor",
+    "ask_slash_command",
+    "request_deadline_exception",
+    "request_leave_of_absence",
+    "request_grade_review",
+    "request_team_change",
+    "report_issue",
+    "report_harassment",
+    "reject_answer_key_request",
+    "reject_do_assignment_for_user",
+    "in_scope_unknown",
+}
+
+AGENT_SLOT_ALLOWLIST = {
+    "assignment",
+    "module",
+    "event_name",
+    "gate_name",
+    "requested_fact",
+    "exam_name",
+    "team",
+    "activity",
+    "command",
+    "operation",
+}
+
+COURSE_RELEVANCE_TERMS = {
+    "ai20k",
+    "khoa hoc",
+    "lop hoc",
+    "hoc vien",
+    "mentor",
+    "mod",
+    "deadline",
+    "bai tap",
+    "bai nop",
+    "nop bai",
+    "workshop",
+    "office hour",
+    "mentoring",
+    "gate",
+    "checkpoint",
+    "xp",
+    "team",
+    "nhom",
+    "ca thi",
+    "lich thi",
+    "chuyen can",
+    "nghi hoc",
+    "hoc bong",
+    "tai lieu hoc",
+    "slide",
+    "codelab",
+    "jira",
+    "discord",
+    "kenh ho tro",
+    "weekly",
+    "demo day",
+    "project",
+    "do an",
+    "giang vien",
+    "truong",
+    "phong lab",
+    "campus",
+    "lich hoc",
+}
+
+AGENT_ROUTER_TOOL = {
+    "type": "function",
+    "function": {
+        "name": "route_student_request",
+        "description": (
+            "Classify a student message by course relevance and choose exactly "
+            "one supported intent. This tool only proposes a route; application "
+            "code enforces policy and executes knowledge tools."
+        ),
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "scope": {
+                    "type": "string",
+                    "enum": ["in_scope", "out_of_scope"],
+                },
+                "intent": {
+                    "type": "string",
+                    "enum": sorted(AGENT_ROUTABLE_INTENTS),
+                },
+                "confidence": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1,
+                },
+                "slots": {
+                    "type": "object",
+                    "properties": {
+                        name: {"type": ["string", "null"]}
+                        for name in sorted(AGENT_SLOT_ALLOWLIST)
+                    },
+                    "additionalProperties": False,
+                },
+            },
+            "required": ["scope", "intent", "confidence", "slots"],
+            "additionalProperties": False,
+        },
+    },
+}
+
+AGENT_ROUTER_PROMPT = """\
+Bạn là semantic router cho trợ lý học viên AI20K.
+
+Phạm vi in_scope gồm: lịch/deadline/gate/XP/team/mentor/thi; nội quy và vận hành
+khóa học; tài liệu học; nộp bài; công cụ học tập; lỗi kỹ thuật khi học; yêu cầu
+ngoại lệ cần Mod/TA; câu hỏi có liên quan rõ ràng tới khóa học nhưng kho tri thức
+có thể chưa có.
+
+Phạm vi out_of_scope gồm: thời tiết, tin tức, giải trí, chính trị, mua sắm, kiến
+thức đời sống hoặc câu hỏi kỹ thuật/lập trình chung không gắn với khóa học.
+
+Quy tắc:
+- out_of_scope phải dùng intent=out_of_domain.
+- Câu hỏi liên quan khóa học nhưng chưa khớp intent cụ thể dùng
+  intent=in_scope_unknown; không đánh dấu out_of_scope chỉ vì có thể thiếu dữ liệu.
+- Chọn intent cụ thể khi có thể. Trích slot chỉ từ nội dung người dùng.
+- Với gate/checkpoint, luôn dùng intent=ask_gate và tách thuộc tính cần hỏi vào
+  requested_fact: requirements, deadline, submission_method, grading hoặc general.
+  Ví dụ "deadline gate 3" => gate_name=cp3, requested_fact=deadline.
+- Hiểu tiếng chat theo ngữ cảnh: "gate nộp bao h" nghĩa là hỏi deadline nhưng
+  còn thiếu gate_name; "gate 3 nộp ở đâu" hỏi submission_method.
+- Tin nhắn sửa ý như "tôi hỏi deadline cơ mà" phải cập nhật requested_fact và giữ
+  gate_name từ lịch sử nếu lịch sử đã xác định gate.
+- Không trả lời câu hỏi và không tự gọi Mod; chỉ gọi route_student_request.
+
+Nhóm intent chính:
+- ask_deadline/event_schedule/gate/exam_slot/xp/team_mentor/slash_command:
+  tra thông tin vận hành có cấu trúc.
+- ask_attendance_policy/online_learning_availability/laptop_requirements/
+  submission_channel/learning_material/team_naming/topic_availability/
+  holiday_schedule/scholarship_info: tra tài liệu chính thức.
+- request_deadline_exception/leave_of_absence/grade_review/team_change và
+  report_issue/report_harassment: cần quy trình hoặc thẩm quyền hỗ trợ.
+- greeting/thanks/help/ask_datetime: hội thoại đơn giản.
+"""
+
 
 # ---------------------------------------------------------------------------
 # Chatbot orchestrator
@@ -111,16 +279,27 @@ class ChatbotOrchestrator:
         registry: ToolRegistry | None = None,
         llm_config: LLMConfig | None = None,
         default_cohort: str | None = None,
+        llm_client: LLMClient | None = None,
     ):
         self.registry = registry or build_default_registry()
         self._clarification_state: dict[str, dict[str, Any]] = {}
-        self.default_cohort = default_cohort or os.environ.get("DEFAULT_COHORT", "k3")
+        self.default_cohort = default_cohort or os.environ.get("DEFAULT_COHORT", "k4")
 
         # LLM / RAG integration
-        llm_client = LLMClient(llm_config) if llm_config else LLMClient()
-        self.rag = RAGGenerator(llm_client) if llm_client.is_available() else None
+        self.llm_client = (
+            llm_client
+            or (LLMClient(llm_config) if llm_config else LLMClient())
+        )
+        self.rag = (
+            RAGGenerator(self.llm_client)
+            if self.llm_client.is_available()
+            else None
+        )
         if self.rag:
-            logger.info("RAG generator initialized with OpenRouter LLM")
+            logger.info(
+                "Hybrid agent router initialized with OpenRouter model=%s",
+                self.llm_client.config.model,
+            )
 
     def process_message(
         self,
@@ -132,6 +311,52 @@ class ChatbotOrchestrator:
         conversation_history: list[dict[str, str]] | None = None,
         cohort: str | None = None,
         at: str | None = None,
+    ) -> dict[str, Any]:
+        """Route with OpenRouter when available, then enforce local policy/tools."""
+        deterministic = classify_intent(message)
+        routed_intent, agent_metadata = self._route_with_agent(
+            message=message,
+            deterministic=deterministic,
+            conversation_history=conversation_history,
+        )
+        routed_intent = self._normalize_gate_frame(routed_intent, deterministic)
+        if agent_metadata and isinstance(agent_metadata.get("decision"), dict):
+            agent_metadata["decision"].update(
+                {
+                    "intent": routed_intent.intent,
+                    "confidence": routed_intent.confidence,
+                    "slots": routed_intent.slots,
+                }
+            )
+        result = self._process_message_core(
+            message=message,
+            user_id=user_id,
+            session_id=session_id,
+            channel_id=channel_id,
+            pending_clarification=pending_clarification,
+            conversation_history=conversation_history,
+            cohort=cohort,
+            at=at,
+            intent_result_override=routed_intent,
+        )
+        if agent_metadata:
+            result["llm"] = self._merge_llm_metadata(
+                agent_metadata,
+                result.get("llm"),
+            )
+        return result
+
+    def _process_message_core(
+        self,
+        message: str,
+        user_id: str = "anonymous",
+        session_id: str | None = None,
+        channel_id: str = "support_general",
+        pending_clarification: dict[str, Any] | None = None,
+        conversation_history: list[dict[str, str]] | None = None,
+        cohort: str | None = None,
+        at: str | None = None,
+        intent_result_override: IntentResult | None = None,
     ) -> dict[str, Any]:
         """Process a user message through the full chatbot pipeline.
 
@@ -151,7 +376,7 @@ class ChatbotOrchestrator:
         resolved_cohort = cohort or self.default_cohort
 
         # Step 1: Normalize and classify intent
-        intent_result = classify_intent(message)
+        intent_result = intent_result_override or classify_intent(message)
 
         # Inherit context slots from conversation history if present
         if conversation_history:
@@ -159,6 +384,28 @@ class ChatbotOrchestrator:
             for k, v in history_slots.items():
                 if k not in intent_result.slots and v:
                     intent_result.slots[k] = v
+
+        # A correction can mention only the fact ("tôi hỏi deadline cơ mà")
+        # while relying on the gate identified in the previous turn.
+        normalized_current = intent_result.normalized_query
+        is_correction = bool(
+            re.search(
+                r"\b(?:toi|minh|em)\s*hoi\b.*\bco\s*ma\b|"
+                r"\b(?:y\s*(?:toi|minh|em)\s*la|sua\s*lai|khong\s*phai)\b",
+                normalized_current,
+            )
+        )
+        if (
+            is_correction
+            and intent_result.intent == "ask_deadline"
+            and intent_result.slots.get("gate_name")
+        ):
+            intent_result = IntentResult(
+                intent="ask_gate",
+                confidence=max(intent_result.confidence, 0.7),
+                slots={**intent_result.slots, "requested_fact": "deadline"},
+                normalized_query=normalized_current,
+            )
 
         logger.info(
             "Intent classified: intent=%s, confidence=%.2f, slots=%s",
@@ -290,6 +537,19 @@ class ChatbotOrchestrator:
 
         # Step 6: Execute tool for structured lookup
         if intent_result.intent in INTENT_TOOL_MAP:
+            missing_fields = [
+                field
+                for field in self._get_required_slots(intent_result.intent)
+                if not intent_result.slots.get(field)
+            ]
+            if missing_fields:
+                return self._build_clarification_response(
+                    intent_result=intent_result,
+                    missing_fields=missing_fields,
+                    message_id=message_id,
+                    trace_id=trace_id,
+                )
+
             tool_name = INTENT_TOOL_MAP[intent_result.intent]
             tool_args = self._build_tool_args(
                 intent_result,
@@ -345,6 +605,347 @@ class ChatbotOrchestrator:
             trace_id=trace_id,
         )
 
+    def _route_with_agent(
+        self,
+        *,
+        message: str,
+        deterministic: IntentResult,
+        conversation_history: list[dict[str, str]] | None,
+    ) -> tuple[IntentResult, dict[str, Any] | None]:
+        """Use a forced OpenRouter tool call for semantic routing.
+
+        Prompt-injection and academic-integrity refusals stay entirely local.
+        All model output is treated as an untrusted proposal and validated
+        against explicit intent/slot allowlists before it can affect routing.
+        """
+        protected_intents = {
+            "reject_prompt_injection",
+            "report_harassment",
+            "report_issue",
+            *AUTHORITY_INTENTS,
+            *REFUSAL_INTENTS,
+        }
+        if (
+            not self.llm_client.is_available()
+            or deterministic.intent in protected_intents
+        ):
+            return deterministic, None
+
+        history_lines: list[str] = []
+        for item in (conversation_history or [])[-4:]:
+            if not isinstance(item, dict):
+                continue
+            role = item.get("role")
+            content = item.get("content")
+            if role in {"user", "assistant"} and isinstance(content, str):
+                history_lines.append(f"{role}: {content[:500]}")
+
+        user_content = f"Tin nhắn hiện tại:\n{message[:2000]}"
+        if history_lines:
+            user_content = (
+                "Lịch sử gần nhất:\n"
+                + "\n".join(history_lines)
+                + "\n\n"
+                + user_content
+            )
+
+        try:
+            response = self.llm_client.chat(
+                [
+                    {"role": "system", "content": AGENT_ROUTER_PROMPT},
+                    {"role": "user", "content": user_content},
+                ],
+                temperature=0.0,
+                max_tokens=300,
+                tools=[AGENT_ROUTER_TOOL],
+                tool_choice={
+                    "type": "function",
+                    "function": {"name": "route_student_request"},
+                },
+                parallel_tool_calls=False,
+            )
+            arguments = self._extract_agent_route_arguments(response)
+            routed = self._validated_agent_intent(arguments, deterministic)
+            metadata = {
+                "called": True,
+                "provider": "openrouter",
+                "status": "success",
+                "model": response.model,
+                "usage": response.usage,
+                "stage": "agent_router",
+                "decision": {
+                    "scope": arguments["scope"],
+                    "intent": routed.intent,
+                    "confidence": routed.confidence,
+                    "slots": routed.slots,
+                },
+            }
+            return routed, metadata
+        except Exception as error:
+            logger.warning(
+                "OpenRouter agent routing failed; using deterministic fallback: %s",
+                error,
+            )
+            return deterministic, {
+                "called": True,
+                "provider": "openrouter",
+                "status": "error",
+                "model": self.llm_client.config.model,
+                "usage": {},
+                "stage": "agent_router",
+            }
+
+    @staticmethod
+    def _normalize_gate_frame(
+        routed: IntentResult,
+        deterministic: IntentResult,
+    ) -> IntentResult:
+        """Preserve the gate subject and requested fact across hybrid routing."""
+        if deterministic.intent != "ask_gate":
+            return routed
+        if routed.intent not in {
+            "ask_gate",
+            "ask_deadline",
+            "ask_submission_channel",
+        }:
+            return routed
+
+        # When the subject is a gate, discard slots from the competing deadline
+        # frame (for example assignment="gate"). Only the two gate dimensions
+        # may survive semantic reconciliation.
+        slots = {
+            key: value
+            for key, value in routed.slots.items()
+            if key in {"gate_name", "requested_fact"}
+        }
+        slots.update(
+            {
+                key: value
+                for key, value in deterministic.slots.items()
+                if value and key in {"gate_name", "requested_fact"}
+            }
+        )
+        return IntentResult(
+            intent="ask_gate",
+            confidence=max(routed.confidence, deterministic.confidence),
+            slots=slots,
+            normalized_query=deterministic.normalized_query,
+        )
+
+    @staticmethod
+    def _extract_agent_route_arguments(response: Any) -> dict[str, Any]:
+        """Extract the forced routing tool arguments from an LLM response."""
+        for call in response.tool_calls:
+            function = call.get("function") if isinstance(call, dict) else None
+            if not isinstance(function, dict):
+                continue
+            if function.get("name") != "route_student_request":
+                continue
+            arguments = function.get("arguments", {})
+            if isinstance(arguments, str):
+                arguments = json.loads(arguments)
+            if isinstance(arguments, dict):
+                return arguments
+
+        # A few providers return valid JSON content even with a forced tool.
+        content = (response.content or "").strip()
+        if content.startswith("```"):
+            content = re.sub(r"^```(?:json)?\s*|\s*```$", "", content)
+        parsed = json.loads(content)
+        if not isinstance(parsed, dict):
+            raise ValueError("Agent router response is not an object")
+        return parsed
+
+    @staticmethod
+    def _validated_agent_intent(
+        arguments: dict[str, Any],
+        deterministic: IntentResult,
+    ) -> IntentResult:
+        """Validate and reconcile an untrusted semantic route proposal."""
+        scope = arguments.get("scope")
+        intent = arguments.get("intent")
+        confidence_raw = arguments.get("confidence", 0.0)
+        slots_raw = arguments.get("slots", {})
+
+        if scope not in {"in_scope", "out_of_scope"}:
+            raise ValueError("Agent returned an invalid scope")
+        if intent not in AGENT_ROUTABLE_INTENTS:
+            raise ValueError("Agent returned an unsupported intent")
+        try:
+            confidence = min(1.0, max(0.0, float(confidence_raw)))
+        except (TypeError, ValueError) as error:
+            raise ValueError("Agent returned invalid confidence") from error
+
+        if scope == "out_of_scope":
+            return IntentResult(
+                intent="out_of_domain",
+                confidence=max(confidence, 0.8),
+                slots={},
+                normalized_query=deterministic.normalized_query,
+            )
+
+        if intent == "out_of_domain":
+            intent = "in_scope_unknown"
+
+        if (
+            intent == "in_scope_unknown"
+            and not any(
+                term in deterministic.normalized_query
+                for term in COURSE_RELEVANCE_TERMS
+            )
+        ):
+            # A bare semantic claim without any course anchor is insufficient
+            # evidence for handing a question to Mod. Ask the user to clarify
+            # instead; a follow-up can establish the missing course context.
+            return IntentResult(
+                intent="unknown",
+                confidence=min(confidence, 0.4),
+                slots={},
+                normalized_query=deterministic.normalized_query,
+            )
+
+        # Human-authority and technical-support patterns are safety-sensitive;
+        # keep a strong deterministic result even when the model disagrees.
+        if (
+            deterministic.intent in AUTHORITY_INTENTS | {"report_issue"}
+            and deterministic.confidence >= 0.5
+        ):
+            return deterministic
+
+        # Explicit structured anchors such as "deadline", "gate" or "XP" are
+        # stronger routing evidence than a semantic proposal. In particular,
+        # never let the agent turn an incomplete structured question into a
+        # broad search intent: the structured branch must validate its required
+        # slots and clarify instead of letting BM25 guess an unrelated record.
+        if (
+            deterministic.intent in INTENT_TOOL_MAP
+            and deterministic.confidence >= CONFIDENCE_MEDIUM
+        ):
+            intent = deterministic.intent
+            confidence = max(confidence, deterministic.confidence)
+
+        slots = dict(deterministic.slots)
+        if isinstance(slots_raw, dict):
+            for key, value in slots_raw.items():
+                # Direct extraction from the current message is stronger
+                # evidence than an agent proposal. Never overwrite it.
+                if slots.get(key):
+                    continue
+                if (
+                    key in AGENT_SLOT_ALLOWLIST
+                    and (isinstance(value, str) or value is None)
+                    and value
+                ):
+                    sanitized = ChatbotOrchestrator._sanitize_agent_slot(
+                        intent=intent,
+                        key=key,
+                        value=value,
+                        normalized_query=deterministic.normalized_query,
+                    )
+                    if sanitized:
+                        slots[key] = sanitized
+
+        return IntentResult(
+            intent=intent,
+            confidence=round(confidence, 2),
+            slots=slots,
+            normalized_query=deterministic.normalized_query,
+        )
+
+    @staticmethod
+    def _sanitize_agent_slot(
+        *,
+        intent: str,
+        key: str,
+        value: str,
+        normalized_query: str,
+    ) -> str | None:
+        """Canonicalize agent slots and reject generic or invented values."""
+        cleaned = normalize_vietnamese(value)[:200]
+        if key == "requested_fact":
+            fact = cleaned.replace(" ", "_")
+            pattern = REQUESTED_FACT_PATTERNS.get(fact)
+            return fact if pattern and re.search(pattern, normalized_query) else None
+
+        if intent == "ask_gate" and key == "gate_name":
+            gate_match = re.fullmatch(
+                r"(?:gate|checkpoint)\s*(?:so\s*)?([1-4])",
+                cleaned,
+            )
+            cp_match = re.fullmatch(r"cp\s*([1-4])", cleaned)
+            if gate_match or cp_match:
+                number = (gate_match or cp_match).group(1)
+                evidence_patterns = (
+                    rf"\bcp\s*{number}\b",
+                    rf"\bgate\s*{number}\b",
+                    rf"\bgate\s*so\s*{number}\b",
+                    rf"\bcheckpoint\s*{number}\b",
+                    rf"\bcheckpoint\s*so\s*{number}\b",
+                )
+                if any(re.search(pattern, normalized_query) for pattern in evidence_patterns):
+                    return f"cp{number}"
+                return None
+
+            if cleaned in {"final", "final gate", "gate cuoi", "checkpoint cuoi"}:
+                if re.search(
+                    r"\bfinal(?:\s*gate)?\b|\bgate\s*cuoi\b|\bcheckpoint\s*cuoi\b",
+                    normalized_query,
+                ):
+                    return "final"
+                return None
+
+            # Values such as "gate", "checkpoint", "yêu cầu" are topics, not IDs.
+            return None
+
+        # All other model-proposed slots are untrusted as well. Only accept a
+        # value explicitly evidenced by the current message. Canonical aliases
+        # such as WA3 remain handled by the deterministic slot extractor.
+        normalized_value = normalize_vietnamese(value.replace("_", " "))[:200]
+        if normalized_value and normalized_value in normalized_query:
+            return value.strip()[:200]
+        return None
+
+    @staticmethod
+    def _merge_llm_metadata(
+        router: dict[str, Any],
+        generator: dict[str, Any] | None,
+    ) -> dict[str, Any]:
+        """Combine routing and answer-generation calls for one trace."""
+        if not generator:
+            return router
+
+        stages = []
+        for item in (router, generator):
+            stages.append(
+                {
+                    "stage": item.get("stage", "answer_generator"),
+                    "status": item.get("status", "unknown"),
+                    "model": item.get("model"),
+                    "usage": item.get("usage", {}),
+                }
+            )
+
+        usage_keys = ("prompt_tokens", "completion_tokens", "total_tokens")
+        usage = {
+            key: sum(
+                int((item.get("usage") or {}).get(key, 0) or 0)
+                for item in (router, generator)
+            )
+            for key in usage_keys
+        }
+        statuses = {item.get("status") for item in (router, generator)}
+        status = "success" if statuses == {"success"} else "partial"
+        return {
+            "called": True,
+            "provider": "openrouter",
+            "status": status,
+            "model": generator.get("model") or router.get("model"),
+            "usage": usage,
+            "stage": "hybrid_pipeline",
+            "stages": stages,
+            "decision": router.get("decision"),
+        }
+
     @staticmethod
     def _retrieval_anchor_terms(normalized_query: str) -> list[str]:
         """Keep named resources from being dropped by broad lexical matching."""
@@ -370,7 +971,11 @@ class ChatbotOrchestrator:
     ) -> dict[str, Any]:
         clarification = {
             "missing_field": missing_fields[0],
-            "question": self._generate_clarification(intent_result.intent, missing_fields),
+            "question": self._generate_clarification(
+                intent_result.intent,
+                missing_fields,
+                intent_result.slots,
+            ),
             "suggested_replies": self._generate_suggestions(
                 intent_result.intent,
                 missing_fields,
@@ -503,8 +1108,18 @@ class ChatbotOrchestrator:
                 norm_a = assignment.replace(" ", "_").lower()
                 if "ai_log" in norm_a or "ai" in norm_a and "log" in norm_a:
                     assignment = "ai_log"
-                elif "demo" in norm_a or "deliverable" in norm_a:
+                elif norm_a in {
+                    "weekly_submit",
+                    "/weekly_submit",
+                    "weekly_report",
+                    "weekly_assignment",
+                    "bao_cao_tuan",
+                }:
+                    assignment = "weekly_report"
+                elif "deliverable" in norm_a:
                     assignment = "demo_day_deliverables"
+                elif norm_a in {"demo", "demo_day"}:
+                    assignment = "demo_day"
                 else:
                     assignment = norm_a
             return {
@@ -527,6 +1142,7 @@ class ChatbotOrchestrator:
                 gate_name = f"cp{gate_name}"
             return {
                 "gate_name": gate_name,
+                "requested_fact": slots.get("requested_fact") or "requirements",
                 "cohort": cohort,
                 "at": at,
             }
@@ -614,6 +1230,42 @@ class ChatbotOrchestrator:
                 },
             )
 
+        # A record about the right gate can still lack the exact fact asked
+        # for. This is a related knowledge gap, not a grounded answer.
+        if status == "unsupported":
+            requested_fact = intent_result.slots.get("requested_fact", "information")
+            gate_name = intent_result.slots.get("gate_name", "gate này")
+            fact_labels = {
+                "deadline": "deadline",
+                "requirements": "yêu cầu",
+                "submission_method": "cách nộp",
+                "grading": "cách chấm điểm",
+                "general": "thông tin",
+            }
+            fact_label = fact_labels.get(requested_fact, "thông tin")
+            return self._build_response(
+                message_id=message_id,
+                trace_id=trace_id,
+                route="ESCALATE",
+                intent=intent_result.intent,
+                confidence=max(intent_result.confidence, 0.7),
+                grounding_status="no_source",
+                response=(
+                    f"Mình hiểu bạn đang hỏi {fact_label} của {str(gate_name).upper()}. "
+                    "Nguồn hiện tại có thông tin về gate này nhưng chưa có dữ liệu "
+                    f"{fact_label} chính thức. Bạn có thể nhờ Mod/TA xác nhận."
+                ),
+                # The checked record does not support the requested claim, so
+                # it must not be presented as an answer citation.
+                citations=[],
+                escalation={
+                    "reason_code": "related_knowledge_gap",
+                    "target": "MOD",
+                    "summary": message,
+                    "required_information": [requested_fact],
+                },
+            )
+
         # Conflict - escalate
         if status == "conflict":
             return self._build_response(
@@ -623,7 +1275,10 @@ class ChatbotOrchestrator:
                 intent=intent_result.intent,
                 confidence=max(intent_result.confidence, 0.7),
                 grounding_status="no_source",
-                response="Có thông tin mâu thuẫn giữa các nguồn. Mình sẽ chuyển cho Mod để xác nhận.",
+                response=(
+                    "Có thông tin mâu thuẫn giữa các nguồn chính thức. "
+                    "Bạn có thể nhờ Mod/TA xác nhận trước khi sử dụng thông tin này."
+                ),
                 escalation={
                     "reason_code": "conflicting_sources",
                     "target": "MOD",
@@ -682,6 +1337,7 @@ class ChatbotOrchestrator:
                     "status": llm_status,
                     "model": rag_result.get("model", "unknown"),
                     "usage": rag_result.get("usage", {}),
+                    "stage": "answer_generator",
                 }
                 if llm_status == "success" and rag_result.get("response"):
                     response_text = rag_result["response"]
@@ -878,7 +1534,11 @@ class ChatbotOrchestrator:
             else:
                 clarification = {
                     "missing_field": still_missing[0],
-                    "question": self._generate_clarification(original_intent, still_missing),
+                    "question": self._generate_clarification(
+                        original_intent,
+                        still_missing,
+                        merged_slots,
+                    ),
                     "suggested_replies": self._generate_suggestions(original_intent, still_missing),
                     "original_intent": original_intent,
                     "attempt_count": current_attempt + 1,
@@ -1001,6 +1661,7 @@ class ChatbotOrchestrator:
                     "status": llm_status,
                     "model": rag_result.get("model", "unknown"),
                     "usage": rag_result.get("usage", {}),
+                    "stage": "answer_generator",
                 },
             )
 
@@ -1053,6 +1714,30 @@ class ChatbotOrchestrator:
                 },
             )
 
+        # The semantic agent confirmed course relevance, but retrieval found no
+        # official source. This is a genuine knowledge gap for Mod/TA, not an
+        # out-of-domain request.
+        if intent_result.intent == "in_scope_unknown":
+            return self._build_response(
+                message_id=message_id,
+                trace_id=trace_id,
+                route="ESCALATE",
+                intent=intent_result.intent,
+                confidence=max(intent_result.confidence, 0.7),
+                grounding_status="no_source",
+                response=(
+                    "Câu hỏi này có liên quan tới khóa học nhưng mình chưa tìm "
+                    "thấy căn cứ trong kho tri thức. Bạn có thể nhờ Mod/TA "
+                    "xác nhận; hệ thống chưa tự động gửi câu hỏi."
+                ),
+                escalation={
+                    "reason_code": "related_knowledge_gap",
+                    "target": "MOD",
+                    "summary": message,
+                    "required_information": [],
+                },
+            )
+
         # Unknown topic with no results: ask the user to narrow the query.
         clarification = {
             "missing_field": "query",
@@ -1073,10 +1758,22 @@ class ChatbotOrchestrator:
             clarification=clarification,
         )
 
-    def _generate_clarification(self, intent: str, missing_fields: list[str]) -> str:
+    def _generate_clarification(
+        self,
+        intent: str,
+        missing_fields: list[str],
+        known_slots: dict[str, Any] | None = None,
+    ) -> str:
         """Generate clarification question based on missing fields."""
+        if (
+            intent == "ask_gate"
+            and "gate_name" in missing_fields
+            and (known_slots or {}).get("requested_fact") == "deadline"
+        ):
+            return "Bạn muốn hỏi deadline của gate nào? (CP1, CP2, CP3 hay Final Gate?)"
+
         field_questions = {
-            "assignment": "Bạn đang hỏi deadline của bài nào? (VD: Weekly Assignment, AI Log, Demo Day...)",
+            "assignment": "Bạn đang hỏi deadline của nội dung nào? (VD: Weekly Report qua /weekly submit, AI Log, Demo Day...)",
             "module": "Bạn đang học module nào?",
             "event_name": "Bạn muốn biết về sự kiện nào? (Workshop, Office Hours, Mentoring...)",
             "gate_name": "Bạn muốn biết về gate nào? (CP1, CP2, CP3...)",
@@ -1101,7 +1798,7 @@ class ChatbotOrchestrator:
         """Generate suggested replies."""
         suggestions = {
             "ask_deadline": {
-                "assignment": ["Weekly Assignment", "AI Log", "Demo Day deliverables"],
+                "assignment": ["Weekly Report", "AI Log", "Demo Day"],
             },
             "ask_event_schedule": {
                 "event_name": ["Workshop", "Office Hours", "Menting Duty", "Demo Day"],

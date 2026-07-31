@@ -11,19 +11,12 @@ from __future__ import annotations
 import argparse
 import json
 import sys
-from pathlib import Path
 
-# Load .env file if present (for API keys, Discord tokens, etc.)
-try:
-    from dotenv import load_dotenv
-    _env_path = Path(__file__).parent / ".env"
-    if _env_path.exists():
-        load_dotenv(_env_path)
-except ImportError:
-    pass
-
+from chatbot_tools.llm_client import load_backend_env
 from chatbot_tools.orchestrator import ChatbotOrchestrator
 from chatbot_tools.registry import build_default_registry
+
+load_backend_env()
 
 
 def interactive_mode(orchestrator: ChatbotOrchestrator) -> None:

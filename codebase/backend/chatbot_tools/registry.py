@@ -44,6 +44,10 @@ TOOL_SCHEMAS: dict[str, dict[str, Any]] = {
     "lookup_gate": _object_schema(
         {
             "gate_name": {"type": ["string", "null"]},
+            "requested_fact": {
+                "type": ["string", "null"],
+                "enum": ["requirements", "deadline", "submission_method", "grading", "general", None],
+            },
             "cohort": {"type": ["string", "null"]},
             "at": {"type": ["string", "null"]},
         },
@@ -118,7 +122,7 @@ TOOL_SCHEMAS: dict[str, dict[str, Any]] = {
 DESCRIPTIONS = {
     "lookup_deadline": "Tra deadline chính thức; không đoán khi thiếu assignment/module/cohort.",
     "lookup_event": "Tra lịch sự kiện chính thức.",
-    "lookup_gate": "Tra điều kiện hoặc thời hạn gate.",
+    "lookup_gate": "Tra đúng thuộc tính được hỏi của gate; báo thiếu nguồn nếu record không chứa thuộc tính đó.",
     "lookup_exam_slot": "Tra ca thi theo kỳ thi, khóa và team.",
     "lookup_xp": "Tra quy tắc XP của một hoạt động.",
     "lookup_team_mentor": "Tra mentor và kênh hỗ trợ của team.",

@@ -165,6 +165,91 @@ class KnowledgeToolTests(unittest.TestCase):
         )
         self.assertEqual(result["status"], "ok")
 
+    def test_gate_deadline_is_unsupported_when_source_only_has_requirements(self) -> None:
+        result = self.registry.execute(
+            "lookup_gate",
+            {
+                "gate_name": "cp3",
+                "requested_fact": "deadline",
+                "cohort": "k3",
+                "at": None,
+            },
+        )
+
+        self.assertEqual(result["status"], "unsupported")
+        self.assertIsNone(result["data"])
+        self.assertGreater(len(result["citations"]), 0)
+
+    def test_k4_gate_uses_shared_k3_cohort_source(self) -> None:
+        result = self.registry.execute(
+            "lookup_gate",
+            {"gate_name": "cp2", "cohort": "k4", "at": None},
+        )
+
+        self.assertEqual(result["status"], "ok")
+        self.assertEqual(result["data"]["gate_name"], "cp2")
+        self.assertEqual(result["data"]["cohort"], "k4")
+        self.assertEqual(result["data"]["source_cohort"], "k3")
+        self.assertTrue(result["data"]["cohort_alias_applied"])
+        self.assertIn("Nguồn dùng chung K3→K4", result["citations"][0]["title"])
+
+    def test_k4_deadline_uses_shared_k3_cohort_source(self) -> None:
+        result = self.registry.execute(
+            "lookup_deadline",
+            {
+                "assignment": "ai_log",
+                "module": None,
+                "cohort": "k4",
+                "at": None,
+            },
+        )
+
+        self.assertEqual(result["status"], "ok")
+        self.assertEqual(result["data"]["cohort"], "k4")
+        self.assertEqual(result["data"]["source_cohort"], "k3")
+
+    def test_demo_day_deadline_uses_event_date_not_deliverable_lists(self) -> None:
+        result = self.registry.execute(
+            "lookup_deadline",
+            {
+                "assignment": "demo_day",
+                "module": None,
+                "cohort": "k4",
+                "at": "2026-07-31T15:54:00+07:00",
+            },
+        )
+
+        self.assertEqual(result["status"], "ok")
+        self.assertEqual(result["data"]["deadline"], "2026-09-01")
+        self.assertEqual(result["data"]["assignment"], "demo_day")
+        self.assertEqual(result["data"]["cohort"], "k4")
+        self.assertEqual(result["data"]["source_cohort"], "k3")
+        self.assertEqual(
+            result["citations"][0]["source_id"],
+            "official_demo_day_k3",
+        )
+
+    def test_deliverable_list_difference_is_not_a_deadline_conflict(self) -> None:
+        result = self.registry.execute(
+            "lookup_deadline",
+            {
+                "assignment": "demo_day_deliverables",
+                "module": None,
+                "cohort": "k3",
+                "at": "2026-07-31T15:54:00+07:00",
+            },
+        )
+
+        self.assertEqual(result["status"], "ambiguous")
+        self.assertEqual(result["conflicts"], [])
+
+    def test_k4_alias_is_limited_to_configured_categories(self) -> None:
+        result = self.registry.execute(
+            "lookup_event",
+            {"event_name": "demo_day", "cohort": "k4", "at": None},
+        )
+        self.assertEqual(result["status"], "not_found")
+
     def test_offer_and_create_ticket_tools(self) -> None:
         offer_res = self.registry.execute(
             "offer_ticket",

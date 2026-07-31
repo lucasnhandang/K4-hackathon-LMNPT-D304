@@ -11,6 +11,7 @@ from unittest.mock import MagicMock, patch
 
 from chatbot_tools.llm_client import LLMClient, LLMConfig, LLMResponse
 from chatbot_tools.orchestrator import ChatbotOrchestrator
+from chatbot_tools.registry import ToolRegistry, build_default_registry
 
 
 class OrchestratorRAGTests(unittest.TestCase):
@@ -18,7 +19,7 @@ class OrchestratorRAGTests(unittest.TestCase):
 
     def _make_orchestrator(self, llm_available: bool = True) -> ChatbotOrchestrator:
         """Create an orchestrator with optional mocked LLM."""
-        orch = ChatbotOrchestrator()
+        orch = ChatbotOrchestrator(default_cohort="k3")
 
         if llm_available:
             mock_client = MagicMock(spec=LLMClient)
@@ -35,6 +36,361 @@ class OrchestratorRAGTests(unittest.TestCase):
             orch.rag = None
 
         return orch
+
+    @staticmethod
+    def _agent_response(
+        *,
+        scope: str,
+        intent: str,
+        confidence: float = 0.95,
+        slots: dict | None = None,
+    ) -> LLMResponse:
+        arguments = {
+            "scope": scope,
+            "intent": intent,
+            "confidence": confidence,
+            "slots": slots or {},
+        }
+        return LLMResponse(
+            content="",
+            model="test/router-model",
+            usage={"prompt_tokens": 20, "completion_tokens": 5, "total_tokens": 25},
+            finish_reason="tool_calls",
+            tool_calls=[
+                {
+                    "id": "call_route",
+                    "type": "function",
+                    "function": {
+                        "name": "route_student_request",
+                        "arguments": __import__("json").dumps(arguments),
+                    },
+                }
+            ],
+        )
+
+    def _make_agent_orchestrator(
+        self,
+        response: LLMResponse,
+        registry: ToolRegistry | MagicMock | None = None,
+    ) -> tuple[ChatbotOrchestrator, MagicMock]:
+        client = MagicMock(spec=LLMClient)
+        client.config = LLMConfig(api_key="test-key", model="test/router-model")
+        client.is_available.return_value = True
+        client.chat.return_value = response
+        return (
+            ChatbotOrchestrator(
+                registry=registry,
+                llm_client=client,
+                default_cohort="k3",
+            ),
+            client,
+        )
+
+    def test_agent_out_of_scope_never_escalates(self):
+        orch, client = self._make_agent_orchestrator(
+            self._agent_response(
+                scope="out_of_scope",
+                intent="out_of_domain",
+            )
+        )
+
+        result = orch.process_message("Thời tiết Hà Nội hôm nay thế nào?")
+
+        self.assertEqual(result["route"], "ANSWER")
+        self.assertEqual(result["intent"], "out_of_domain")
+        self.assertIsNone(result["escalation"])
+        self.assertEqual(result["llm"]["stage"], "agent_router")
+        client.chat.assert_called_once()
+
+    def test_agent_related_knowledge_gap_escalates_to_mod(self):
+        registry = MagicMock(spec=ToolRegistry)
+        registry.execute.return_value = {
+            "status": "not_found",
+            "data": None,
+            "citations": [],
+            "missing_fields": [],
+        }
+        orch, client = self._make_agent_orchestrator(
+            self._agent_response(
+                scope="in_scope",
+                intent="in_scope_unknown",
+            ),
+            registry=registry,
+        )
+
+        result = orch.process_message(
+            "Khóa học có quy định đặt chỗ phòng lab cho buổi mentoring không?"
+        )
+
+        self.assertEqual(result["route"], "ESCALATE")
+        self.assertEqual(result["intent"], "in_scope_unknown")
+        self.assertEqual(
+            result["escalation"]["reason_code"],
+            "related_knowledge_gap",
+        )
+        registry.execute.assert_called_once()
+        client.chat.assert_called_once()
+
+    def test_generic_gate_slot_is_discarded_and_clarified(self):
+        registry = MagicMock(spec=ToolRegistry)
+        orch, client = self._make_agent_orchestrator(
+            self._agent_response(
+                scope="in_scope",
+                intent="ask_gate",
+                slots={"gate_name": "gate"},
+            ),
+            registry=registry,
+        )
+
+        result = orch.process_message("Gate yêu cầu gì?")
+
+        self.assertEqual(result["route"], "CLARIFY")
+        self.assertEqual(result["intent"], "ask_gate")
+        self.assertEqual(result["clarification"]["missing_field"], "gate_name")
+        self.assertIsNone(result["escalation"])
+        registry.execute.assert_not_called()
+        client.chat.assert_called_once()
+
+    def test_unevidenced_agent_assignment_is_discarded_and_clarified(self):
+        registry = MagicMock(spec=ToolRegistry)
+        orch, client = self._make_agent_orchestrator(
+            self._agent_response(
+                scope="in_scope",
+                intent="ask_deadline",
+                slots={"assignment": "demo_day_deliverables"},
+                confidence=0.9,
+            ),
+            registry=registry,
+        )
+
+        result = orch.process_message("deadline hôm nào z")
+
+        self.assertEqual(result["route"], "CLARIFY")
+        self.assertEqual(result["intent"], "ask_deadline")
+        self.assertEqual(result["clarification"]["missing_field"], "assignment")
+        self.assertNotIn(
+            "assignment",
+            result["llm"]["decision"]["slots"],
+        )
+        registry.execute.assert_not_called()
+        client.chat.assert_called_once()
+
+    def test_agent_cannot_replace_explicit_deadline_with_broad_search(self):
+        registry = MagicMock(spec=ToolRegistry)
+        orch, client = self._make_agent_orchestrator(
+            self._agent_response(
+                scope="in_scope",
+                intent="ask_learning_material",
+                confidence=0.8,
+            ),
+            registry=registry,
+        )
+
+        result = orch.process_message("deadline bao h")
+
+        self.assertEqual(result["route"], "CLARIFY")
+        self.assertEqual(result["intent"], "ask_deadline")
+        self.assertEqual(result["clarification"]["missing_field"], "assignment")
+        self.assertEqual(
+            result["llm"]["decision"]["intent"],
+            "ask_deadline",
+        )
+        registry.execute.assert_not_called()
+        client.chat.assert_called_once()
+
+    def test_agent_routes_weekly_submit_deadline_to_structured_record(self):
+        orch, client = self._make_agent_orchestrator(
+            self._agent_response(
+                scope="in_scope",
+                intent="ask_learning_material",
+                confidence=0.8,
+            ),
+            registry=build_default_registry(),
+        )
+
+        result = orch.process_message(
+            "deadline weekly submit là gì",
+            at="2026-07-31T16:11:00+07:00",
+        )
+
+        self.assertEqual(result["route"], "ANSWER")
+        self.assertEqual(result["intent"], "ask_deadline")
+        self.assertEqual(result["grounding_status"], "grounded")
+        self.assertEqual(
+            result["llm"]["decision"]["slots"]["assignment"],
+            "weekly submit",
+        )
+        self.assertTrue(
+            any(
+                citation["source_id"] == "docs_weekly_report_k3"
+                for citation in result["citations"]
+            )
+        )
+        client.chat.assert_called_once()
+
+    def test_agent_cannot_route_mentor_duty_schedule_to_team_lookup(self):
+        orch, client = self._make_agent_orchestrator(
+            self._agent_response(
+                scope="in_scope",
+                intent="ask_team_mentor",
+                slots={},
+                confidence=0.9,
+            ),
+            registry=build_default_registry(),
+        )
+        orch.default_cohort = "k4"
+
+        result = orch.process_message(
+            "buổi mentor duty diễn ra vào hôm nào",
+            at="2026-07-31T16:18:00+07:00",
+        )
+
+        self.assertEqual(result["route"], "ANSWER")
+        self.assertEqual(result["intent"], "ask_event_schedule")
+        self.assertEqual(
+            result["llm"]["decision"]["intent"],
+            "ask_event_schedule",
+        )
+        self.assertTrue(
+            any(
+                citation["source_id"] == "docs_mentoring_duty_rhythm_k3"
+                for citation in result["citations"]
+            )
+        )
+        self.assertIn("K3→K4", result["citations"][0]["title"])
+        client.chat.assert_called_once()
+
+    def test_agent_deadline_route_is_reconciled_to_gate_slang_frame(self):
+        registry = MagicMock(spec=ToolRegistry)
+        orch, client = self._make_agent_orchestrator(
+            self._agent_response(
+                scope="in_scope",
+                intent="ask_deadline",
+                slots={
+                    "assignment": "gate",
+                    "requested_fact": "deadline",
+                },
+                confidence=0.9,
+            ),
+            registry=registry,
+        )
+
+        result = orch.process_message("gate nộp bao h")
+
+        self.assertEqual(result["route"], "CLARIFY")
+        self.assertEqual(result["intent"], "ask_gate")
+        self.assertEqual(result["clarification"]["missing_field"], "gate_name")
+        self.assertEqual(
+            result["clarification"]["known_slots"]["requested_fact"],
+            "deadline",
+        )
+        self.assertNotIn("assignment", result["llm"]["decision"]["slots"])
+        self.assertIn("deadline", result["response"].lower())
+        registry.execute.assert_not_called()
+        client.chat.assert_called_once()
+
+    def test_specific_agent_gate_slot_is_canonicalized(self):
+        registry = MagicMock(spec=ToolRegistry)
+        registry.execute.return_value = {"status": "not_found", "data": None}
+        orch, _ = self._make_agent_orchestrator(
+            self._agent_response(
+                scope="in_scope",
+                intent="ask_gate",
+                slots={"gate_name": "Gate 3"},
+            ),
+            registry=registry,
+        )
+
+        orch.process_message("Gate 3 yêu cầu gì?")
+
+        _, arguments = registry.execute.call_args.args
+        self.assertEqual(arguments["gate_name"], "cp3")
+
+    def test_agent_gate_deadline_uses_fact_aware_lookup_and_escalates(self):
+        orch, client = self._make_agent_orchestrator(
+            self._agent_response(
+                scope="in_scope",
+                intent="ask_deadline",
+                slots={
+                    "gate_name": "Gate 3",
+                    "requested_fact": "deadline",
+                },
+            ),
+            registry=build_default_registry(),
+        )
+
+        result = orch.process_message("Tôi hỏi deadline gate 3 cơ mà")
+
+        self.assertEqual(result["intent"], "ask_gate")
+        self.assertEqual(result["route"], "ESCALATE")
+        self.assertEqual(result["grounding_status"], "no_source")
+        self.assertEqual(result["citations"], [])
+        self.assertEqual(
+            result["escalation"]["reason_code"],
+            "related_knowledge_gap",
+        )
+        self.assertEqual(
+            result["llm"]["decision"]["slots"]["requested_fact"],
+            "deadline",
+        )
+        client.chat.assert_called_once()
+
+    def test_gate_2_answers_k4_through_shared_k3_source(self):
+        client = MagicMock(spec=LLMClient)
+        client.config = LLMConfig(api_key="test-key", model="test/router-model")
+        client.is_available.return_value = True
+        client.chat.return_value = self._agent_response(
+            scope="in_scope",
+            intent="ask_gate",
+            slots={"gate_name": "Gate 2"},
+        )
+        orch = ChatbotOrchestrator(
+            registry=build_default_registry(),
+            llm_client=client,
+            default_cohort="k4",
+        )
+
+        result = orch.process_message("gate 2")
+
+        self.assertEqual(result["route"], "ANSWER")
+        self.assertEqual(result["intent"], "ask_gate")
+        self.assertIn("CP2", result["response"])
+        self.assertTrue(
+            any(citation["source_id"] == "official_gate_cp2_k3"
+                for citation in result["citations"])
+        )
+
+    def test_unanchored_agent_knowledge_gap_does_not_escalate(self):
+        registry = MagicMock(spec=ToolRegistry)
+        orch, client = self._make_agent_orchestrator(
+            self._agent_response(
+                scope="in_scope",
+                intent="in_scope_unknown",
+            ),
+            registry=registry,
+        )
+
+        result = orch.process_message("Món phở nào ngon nhất?")
+
+        self.assertEqual(result["route"], "CLARIFY")
+        self.assertEqual(result["intent"], "unknown")
+        self.assertIsNone(result["escalation"])
+        registry.execute.assert_not_called()
+        client.chat.assert_called_once()
+
+    def test_agent_failure_uses_deterministic_out_of_scope_fallback(self):
+        client = MagicMock(spec=LLMClient)
+        client.config = LLMConfig(api_key="test-key", model="test/router-model")
+        client.is_available.return_value = True
+        client.chat.side_effect = RuntimeError("router unavailable")
+        orch = ChatbotOrchestrator(llm_client=client)
+
+        result = orch.process_message("Thời tiết Hà Nội hôm nay thế nào?")
+
+        self.assertEqual(result["route"], "ANSWER")
+        self.assertEqual(result["intent"], "out_of_domain")
+        self.assertIsNone(result["escalation"])
+        self.assertEqual(result["llm"]["status"], "error")
 
     def test_greeting_uses_template(self):
         """Greeting should use template, not RAG."""
@@ -183,7 +539,7 @@ class OrchestratorRAGTests(unittest.TestCase):
         self.assertEqual(orch.registry.execute.call_count, 1)
         orch.rag.client.chat.assert_not_called()
 
-    def test_ambiguous_tool_result_always_clarifies_before_rag(self):
+    def test_missing_required_slot_clarifies_before_tool_or_rag(self):
         orch = self._make_orchestrator(llm_available=True)
         orch.registry.execute = MagicMock(
             return_value={
@@ -196,7 +552,7 @@ class OrchestratorRAGTests(unittest.TestCase):
         result = orch.process_message("Deadline bao giờ?")
 
         self.assertEqual(result["route"], "CLARIFY")
-        self.assertEqual(orch.registry.execute.call_count, 1)
+        self.assertEqual(orch.registry.execute.call_count, 0)
         orch.rag.client.chat.assert_not_called()
 
     def test_cohort_and_timestamp_are_forwarded_to_structured_tool(self):
@@ -215,6 +571,11 @@ class OrchestratorRAGTests(unittest.TestCase):
         _, arguments = orch.registry.execute.call_args.args
         self.assertEqual(arguments["cohort"], "k4")
         self.assertEqual(arguments["at"], timestamp)
+
+    def test_default_cohort_is_k4(self):
+        with patch.dict("os.environ", {}, clear=True):
+            orch = ChatbotOrchestrator()
+        self.assertEqual(orch.default_cohort, "k4")
 
     def test_recognized_search_intent_uses_category_and_threshold(self):
         orch = self._make_orchestrator(llm_available=False)

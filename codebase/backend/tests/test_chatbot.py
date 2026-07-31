@@ -50,6 +50,14 @@ class TestVietnameseNormalization(unittest.TestCase):
         result = normalize_vietnamese("dl WA3 khi nào?")
         self.assertEqual(result, "dl wa3 khi nao?")
 
+    def test_chat_deadline_shorthand(self):
+        result = normalize_vietnamese("gate nộp bao h")
+        self.assertEqual(result, "gate nop bao gio")
+
+    def test_regional_deadline_phrase(self):
+        result = normalize_vietnamese("chừng nào nộp AI Log")
+        self.assertEqual(result, "khi nao nop ai log")
+
 
 class TestIntentClassification(unittest.TestCase):
     """Test intent classification and slot extraction."""
@@ -78,6 +86,17 @@ class TestIntentClassification(unittest.TestCase):
         self.assertEqual(result.intent, "ask_deadline")
         self.assertGreater(result.confidence, 0.3)
 
+    def test_deadline_chat_shorthand_requires_assignment(self):
+        result = classify_intent("deadline bao h")
+        self.assertEqual(result.intent, "ask_deadline")
+        self.assertGreaterEqual(result.confidence, 0.4)
+        self.assertNotIn("assignment", result.slots)
+
+    def test_deadline_weekly_submit_extracts_weekly_report(self):
+        result = classify_intent("deadline weekly submit là gì")
+        self.assertEqual(result.intent, "ask_deadline")
+        self.assertEqual(result.slots["assignment"], "weekly submit")
+
     def test_deadline_with_assignment(self):
         result = classify_intent("Deadline Weekly Assignment 3 là khi nào?")
         self.assertEqual(result.intent, "ask_deadline")
@@ -88,10 +107,45 @@ class TestIntentClassification(unittest.TestCase):
         self.assertEqual(result.intent, "ask_event_schedule")
         self.assertGreater(result.confidence, 0.3)
 
+    def test_mentor_duty_schedule_is_event_not_team_lookup(self):
+        result = classify_intent("buổi mentor duty diễn ra vào hôm nào")
+        self.assertEqual(result.intent, "ask_event_schedule")
+        self.assertEqual(result.slots["event_name"], "mentoring")
+
     def test_gate(self):
         result = classify_intent("Gate CP3 yêu cầu gì?")
         self.assertEqual(result.intent, "ask_gate")
         self.assertIn("gate_name", result.slots)
+
+    def test_gate_deadline_keeps_subject_and_requested_fact(self):
+        result = classify_intent("Gate 3 deadline bao giờ?")
+        self.assertEqual(result.intent, "ask_gate")
+        self.assertEqual(result.slots["gate_name"], "cp3")
+        self.assertEqual(result.slots["requested_fact"], "deadline")
+
+    def test_gate_chat_shorthand_keeps_deadline_frame(self):
+        result = classify_intent("gate nộp bao h")
+        self.assertEqual(result.intent, "ask_gate")
+        self.assertNotIn("gate_name", result.slots)
+        self.assertEqual(result.slots["requested_fact"], "deadline")
+
+    def test_gate_number_and_natural_deadline_phrase(self):
+        result = classify_intent("gate số 2 nộp lúc nào")
+        self.assertEqual(result.intent, "ask_gate")
+        self.assertEqual(result.slots["gate_name"], "cp2")
+        self.assertEqual(result.slots["requested_fact"], "deadline")
+
+    def test_gate_submission_method_frame(self):
+        result = classify_intent("gate 3 nộp ở đâu vậy")
+        self.assertEqual(result.intent, "ask_gate")
+        self.assertEqual(result.slots["gate_name"], "cp3")
+        self.assertEqual(result.slots["requested_fact"], "submission_method")
+
+    def test_gate_grading_frame(self):
+        result = classify_intent("gate 3 tính điểm thế nào")
+        self.assertEqual(result.intent, "ask_gate")
+        self.assertEqual(result.slots["gate_name"], "cp3")
+        self.assertEqual(result.slots["requested_fact"], "grading")
 
     def test_xp(self):
         result = classify_intent("Bao nhiêu XP khi checkin?")
@@ -242,7 +296,10 @@ class TestOrchestrator(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.orchestrator = ChatbotOrchestrator(build_default_registry())
+        cls.orchestrator = ChatbotOrchestrator(
+            build_default_registry(),
+            default_cohort="k3",
+        )
 
     def test_greeting(self):
         response = self.orchestrator.process_message("Xin chào!")
@@ -302,6 +359,85 @@ class TestOrchestrator(unittest.TestCase):
             "official_source_not_found",
         )
 
+    def test_weekly_submit_deadline_uses_weekly_report_record(self):
+        response = self.orchestrator.process_message(
+            "deadline weekly submit là gì",
+            at="2026-07-31T16:11:00+07:00",
+        )
+
+        self.assertEqual(response["route"], "ANSWER")
+        self.assertEqual(response["intent"], "ask_deadline")
+        self.assertEqual(response["grounding_status"], "grounded")
+        self.assertIn("12h00", response["response"])
+        self.assertTrue(
+            any(
+                citation["source_id"] == "docs_weekly_report_k3"
+                for citation in response["citations"]
+            )
+        )
+
+    def test_mentor_duty_schedule_uses_event_record(self):
+        response = self.orchestrator.process_message(
+            "buổi mentor duty diễn ra vào hôm nào",
+            at="2026-07-31T16:18:00+07:00",
+        )
+
+        self.assertEqual(response["route"], "ANSWER")
+        self.assertEqual(response["intent"], "ask_event_schedule")
+        self.assertEqual(response["grounding_status"], "grounded")
+        self.assertIn("Thứ 4", response["response"])
+        self.assertIn("Thứ 7", response["response"])
+        self.assertIn("20:00", response["response"])
+        self.assertTrue(
+            any(
+                citation["source_id"] == "docs_mentoring_duty_rhythm_k3"
+                for citation in response["citations"]
+            )
+        )
+
+    def test_deadline_clarification_resolves_weekly_submit_alias(self):
+        first = self.orchestrator.process_message("deadline hôm nào")
+
+        second = self.orchestrator.process_message(
+            "deadline weekly submit là gì",
+            pending_clarification=first["clarification"],
+            at="2026-07-31T16:11:00+07:00",
+        )
+
+        self.assertEqual(first["route"], "CLARIFY")
+        self.assertEqual(second["route"], "ANSWER")
+        self.assertEqual(second["grounding_status"], "grounded")
+        self.assertTrue(
+            any(
+                citation["source_id"] == "docs_weekly_report_k3"
+                for citation in second["citations"]
+            )
+        )
+
+    def test_deadline_clarification_resolves_generic_weekly_assignment(self):
+        first = self.orchestrator.process_message("deadline hôm nào v")
+
+        second = self.orchestrator.process_message(
+            "weekly assignment",
+            pending_clarification=first["clarification"],
+            at="2026-07-31T16:15:00+07:00",
+        )
+
+        self.assertEqual(first["route"], "CLARIFY")
+        self.assertEqual(
+            first["clarification"]["suggested_replies"][0],
+            "Weekly Report",
+        )
+        self.assertEqual(second["route"], "ANSWER")
+        self.assertEqual(second["grounding_status"], "grounded")
+        self.assertIn("12h00", second["response"])
+        self.assertTrue(
+            any(
+                citation["source_id"] == "docs_weekly_report_k3"
+                for citation in second["citations"]
+            )
+        )
+
     def test_xp_lookup(self):
         response = self.orchestrator.process_message("Bao nhiêu XP khi checkin daily?")
         self.assertEqual(response["route"], "ANSWER")
@@ -311,6 +447,115 @@ class TestOrchestrator(unittest.TestCase):
         response = self.orchestrator.process_message("Gate CP3 yêu cầu gì?")
         self.assertEqual(response["route"], "ANSWER")
         self.assertIn("intent", response)
+
+    def test_gate_deadline_clarification_preserves_requested_fact(self):
+        first = self.orchestrator.process_message("Gate deadline bao giờ?")
+
+        self.assertEqual(first["route"], "CLARIFY")
+        self.assertEqual(first["intent"], "ask_gate")
+        self.assertEqual(
+            first["clarification"]["known_slots"]["requested_fact"],
+            "deadline",
+        )
+        self.assertIn("deadline", first["response"].lower())
+
+        second = self.orchestrator.process_message(
+            "gate 3",
+            pending_clarification=first["clarification"],
+        )
+
+        self.assertEqual(second["route"], "ESCALATE")
+        self.assertEqual(second["grounding_status"], "no_source")
+        self.assertEqual(second["citations"], [])
+        self.assertEqual(
+            second["escalation"]["reason_code"],
+            "related_knowledge_gap",
+        )
+        self.assertIn("deadline", second["response"].lower())
+        self.assertIn("CP3", second["response"])
+
+    def test_gate_chat_shorthand_clarifies_then_preserves_deadline(self):
+        first = self.orchestrator.process_message("gate nộp bao h")
+
+        self.assertEqual(first["route"], "CLARIFY")
+        self.assertEqual(first["intent"], "ask_gate")
+        self.assertEqual(first["clarification"]["missing_field"], "gate_name")
+        self.assertEqual(
+            first["clarification"]["known_slots"]["requested_fact"],
+            "deadline",
+        )
+        self.assertIn("deadline", first["response"].lower())
+
+        second = self.orchestrator.process_message(
+            "gate số 3",
+            pending_clarification=first["clarification"],
+        )
+
+        self.assertEqual(second["route"], "ESCALATE")
+        self.assertEqual(second["intent"], "ask_gate")
+        self.assertEqual(
+            second["escalation"]["reason_code"],
+            "related_knowledge_gap",
+        )
+        self.assertIn("deadline", second["response"].lower())
+        self.assertIn("CP3", second["response"])
+
+    def test_deadline_clarification_resolves_demo_day_event_date(self):
+        first = self.orchestrator.process_message("deadline hôm nào v")
+
+        self.assertEqual(first["route"], "CLARIFY")
+        self.assertEqual(first["clarification"]["missing_field"], "assignment")
+
+        second = self.orchestrator.process_message(
+            "demo day",
+            pending_clarification=first["clarification"],
+            at="2026-07-31T15:54:00+07:00",
+        )
+
+        self.assertEqual(second["route"], "ANSWER")
+        self.assertEqual(second["intent"], "ask_deadline")
+        self.assertEqual(second["grounding_status"], "grounded")
+        self.assertIn("01/09/2026", second["response"])
+        self.assertTrue(
+            any(
+                citation["source_id"] == "official_demo_day_k3"
+                for citation in second["citations"]
+            )
+        )
+
+    def test_gate_deadline_correction_does_not_answer_requirements(self):
+        response = self.orchestrator.process_message(
+            "Tôi hỏi deadline gate 3 cơ mà"
+        )
+
+        self.assertEqual(response["route"], "ESCALATE")
+        self.assertEqual(response["intent"], "ask_gate")
+        self.assertEqual(response["grounding_status"], "no_source")
+        self.assertEqual(response["citations"], [])
+        self.assertEqual(
+            response["escalation"]["reason_code"],
+            "related_knowledge_gap",
+        )
+
+    def test_gate_deadline_correction_inherits_gate_from_history(self):
+        response = self.orchestrator.process_message(
+            "Tôi hỏi deadline cơ mà",
+            conversation_history=[
+                {"role": "user", "content": "gate 3"},
+                {
+                    "role": "assistant",
+                    "content": "Gate 3 yêu cầu lời gọi AI thật.",
+                },
+            ],
+        )
+
+        self.assertEqual(response["route"], "ESCALATE")
+        self.assertEqual(response["intent"], "ask_gate")
+        self.assertIn("CP3", response["response"])
+        self.assertEqual(
+            response["escalation"]["reason_code"],
+            "related_knowledge_gap",
+        )
 
     def test_numbered_gate_is_normalized_to_checkpoint_id(self):
         response = self.orchestrator.process_message(
@@ -520,7 +765,10 @@ class TestAdversarialInputs(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.orchestrator = ChatbotOrchestrator(build_default_registry())
+        cls.orchestrator = ChatbotOrchestrator(
+            build_default_registry(),
+            default_cohort="k3",
+        )
 
     def test_empty_message(self):
         response = self.orchestrator.process_message("")

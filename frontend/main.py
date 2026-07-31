@@ -9,6 +9,7 @@ import sys
 import os
 import re
 from typing import List, Dict, Any
+from uuid import uuid4
 
 from nicegui import ui
 
@@ -17,6 +18,7 @@ from ai_router import call_backend_api_async, handle_option_selection, KNOWLEDGE
 
 # Options that are pure UI feedback (not a real question for the backend) stay local.
 LOCAL_ONLY_OPTIONS = {"FEEDBACK_RESOLVED", "FEEDBACK_WRONG"}
+ASSISTANT_NAME = "Trợ lý Kute++"
 
 # Enable static Discord styles & fonts
 ui.add_head_html(DISCORD_CSS)
@@ -25,6 +27,7 @@ ui.add_body_html('<script>function scrollToBottom(){ setTimeout(() => { const el
 class DiscordChatApp:
     def __init__(self):
         self.messages: List[Dict[str, Any]] = []
+        self.session_id = f"discord_session_{uuid4().hex}"
         self.is_typing: bool = False
         self.input_element = None
         self.messages_container = None
@@ -36,9 +39,9 @@ class DiscordChatApp:
         self.messages = [
             {
                 "sender": "bot",
-                "name": "Trợ lý Kute",
+                "name": ASSISTANT_NAME,
                 "time": self.get_time_str(),
-                "text": "Chào bạn! Mình là **Trợ lý Kute** (K4 AI Thực Chiến). Nếu bạn có thắc mắc gì về bài tập, deadline hoặc quy chế môn học, hãy nhập câu hỏi bên dưới nhé! 🚀",
+                "text": f"Chào bạn! Mình là **{ASSISTANT_NAME}** (K4 AI Thực Chiến). Nếu bạn có thắc mắc gì về bài tập, deadline hoặc quy chế môn học, hãy nhập câu hỏi bên dưới nhé! 🚀",
                 "payload": None
             }
         ]
@@ -52,6 +55,16 @@ class DiscordChatApp:
         """Run a coroutine on the current NiceGUI client's event loop."""
         asyncio.create_task(coro)
 
+    def _current_session_id(self) -> str:
+        """Return a stable backend session scoped to the active browser client."""
+        try:
+            client_id = getattr(ui.context.client, "id", None)
+            if client_id:
+                return f"discord_session_{client_id}"
+        except RuntimeError:
+            pass
+        return self.session_id
+
     def _build_history_payload(self) -> List[Dict[str, str]]:
         """Turn the rendered message log into a plain role/content history for the backend."""
         history = []
@@ -59,7 +72,7 @@ class DiscordChatApp:
             role = "assistant" if msg["sender"] == "bot" else "user"
             text = msg["text"]
             if role == "user":
-                text = text.replace("@Trợ lý Kute ", "", 1)
+                text = text.replace(f"@{ASSISTANT_NAME} ", "", 1)
             history.append({"role": role, "content": text})
         return history
 
@@ -70,10 +83,11 @@ class DiscordChatApp:
         
         formatted_text = text
         if not text.startswith("@"):
-            formatted_text = f"@Trợ lý Kute {text}"
+            formatted_text = f"@{ASSISTANT_NAME} {text}"
             
         user_name = "Học viên K4"
         history = self._build_history_payload()
+        session_id = self._current_session_id()
 
         # Append User Message
         self.messages.append({
@@ -93,15 +107,31 @@ class DiscordChatApp:
         self.is_typing = True
         self.update_chat_ui()
 
-        ui.timer(0.6, lambda: self._schedule(self.process_bot_reply(text, user_name, history)), once=True)
+        ui.timer(
+            0.6,
+            lambda: self._schedule(
+                self.process_bot_reply(text, user_name, history, session_id)
+            ),
+            once=True,
+        )
 
-    async def process_bot_reply(self, raw_user_text: str, reply_to_name: str, history: List[Dict[str, str]] = None):
-        route_res = await call_backend_api_async(raw_user_text, history)
+    async def process_bot_reply(
+        self,
+        raw_user_text: str,
+        reply_to_name: str,
+        history: List[Dict[str, str]] = None,
+        session_id: str | None = None,
+    ):
+        route_res = await call_backend_api_async(
+            raw_user_text,
+            history,
+            session_id=session_id or self.session_id,
+        )
         self.is_typing = False
 
         self.messages.append({
             "sender": "bot",
-            "name": "Trợ lý Kute",
+            "name": ASSISTANT_NAME,
             "time": self.get_time_str(),
             "text": route_res.get("message", ""),
             "reply_to": reply_to_name,
@@ -125,12 +155,13 @@ class DiscordChatApp:
         clean_label = opt_label.replace("📄 ", "").replace("✅ ", "").replace("📅 ", "").replace("❓ ", "").replace("↺ ", "").replace("✍ ", "").replace("⚠️ ", "")
         user_name = "Học viên K4"
         history = self._build_history_payload()
+        session_id = self._current_session_id()
 
         self.messages.append({
             "sender": "user",
             "name": user_name,
             "time": self.get_time_str(),
-            "text": f"@Trợ lý Kute {clean_label}",
+            "text": f"@{ASSISTANT_NAME} {clean_label}",
             "payload": None
         })
         self.update_chat_ui()
@@ -146,7 +177,18 @@ class DiscordChatApp:
             # A follow-up / clarification choice: continue the real conversation with
             # the backend, sending the button's label just like typed text so the
             # backend's session-based clarification state picks it up.
-            ui.timer(0.5, lambda: self._schedule(self.process_bot_reply(clean_label, user_name, history)), once=True)
+            ui.timer(
+                0.5,
+                lambda: self._schedule(
+                    self.process_bot_reply(
+                        clean_label,
+                        user_name,
+                        history,
+                        session_id,
+                    )
+                ),
+                once=True,
+            )
 
     def process_option_reply(self, opt_value: str, reply_to_name: str):
         route_res = handle_option_selection(opt_value)
@@ -154,7 +196,7 @@ class DiscordChatApp:
         
         self.messages.append({
             "sender": "bot",
-            "name": "Trợ lý Kute",
+            "name": ASSISTANT_NAME,
             "time": self.get_time_str(),
             "text": route_res.get("message", ""),
             "reply_to": reply_to_name,
@@ -183,7 +225,14 @@ class DiscordChatApp:
         dialog.open()
 
     def render_msg_text(self, text: str) -> str:
-        formatted = re.sub(r'(@Trợ lý Kute|@Trợ lý Học viên|@Mod|@Mentor)', r'<span class="mention-pill">\1</span>', text)
+        mention_pattern = (
+            rf"(@{re.escape(ASSISTANT_NAME)}|@Trợ lý Học viên|@Mod|@Mentor)"
+        )
+        formatted = re.sub(
+            mention_pattern,
+            r'<span class="mention-pill">\1</span>',
+            text,
+        )
         formatted = re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', formatted)
         return formatted
 
@@ -316,9 +365,12 @@ class DiscordChatApp:
                     ui.html('<div class="msg-avatar bot-avatar">BOT</div>')
                     with ui.element("div").classes("msg-content-wrapper"):
                         with ui.element("div").classes("msg-header"):
-                            ui.label("Trợ lý Kute").classes("author-name")
+                            ui.label(ASSISTANT_NAME).classes("author-name")
                             ui.html('<span class="bot-app-badge">APP</span>')
-                        ui.html('<div style="color: var(--text-muted); font-size: 13.5px; font-style: italic;">Trợ lý Kute đang gõ câu trả lời...</div>')
+                        ui.html(
+                            f'<div style="color: var(--text-muted); font-size: 13.5px; '
+                            f'font-style: italic;">{ASSISTANT_NAME} đang gõ câu trả lời...</div>'
+                        )
 
         try:
             if ui.context.client and ui.context.client.has_socket_connection:

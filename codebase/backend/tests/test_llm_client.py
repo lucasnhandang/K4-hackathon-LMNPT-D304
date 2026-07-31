@@ -6,10 +6,18 @@ Uses mocked HTTP responses to avoid real API calls.
 from __future__ import annotations
 
 import json
+import os
+import tempfile
 import unittest
+from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-from chatbot_tools.llm_client import LLMClient, LLMConfig, LLMError
+from chatbot_tools.llm_client import (
+    LLMClient,
+    LLMConfig,
+    LLMError,
+    load_backend_env,
+)
 
 
 class LLMConfigTests(unittest.TestCase):
@@ -38,6 +46,26 @@ class LLMConfigTests(unittest.TestCase):
     def test_from_env_missing(self):
         config = LLMConfig.from_env()
         self.assertFalse(config.api_key)
+
+    def test_load_backend_env_uses_explicit_path_without_override(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            env_path = Path(tmp) / ".env"
+            env_path.write_text(
+                "OPENROUTER_API_KEY=file-key\nOPENROUTER_MODEL=file/model\n",
+                encoding="utf-8",
+            )
+            with patch.dict(
+                os.environ,
+                {"OPENROUTER_API_KEY": "exported-key"},
+                clear=True,
+            ):
+                loaded = load_backend_env(env_path)
+                self.assertTrue(loaded)
+                self.assertEqual(
+                    os.environ["OPENROUTER_API_KEY"],
+                    "exported-key",
+                )
+                self.assertEqual(os.environ["OPENROUTER_MODEL"], "file/model")
 
 
 class LLMClientTests(unittest.TestCase):
@@ -163,6 +191,61 @@ class LLMClientTests(unittest.TestCase):
             self.assertEqual(body["model"], "custom/model")
             self.assertEqual(body["temperature"], 0.9)
             self.assertEqual(body["max_tokens"], 500)
+
+    def test_chat_sends_and_parses_tool_calls(self):
+        tool_calls = [
+            {
+                "id": "call_route",
+                "type": "function",
+                "function": {
+                    "name": "route_student_request",
+                    "arguments": '{"scope":"out_of_scope"}',
+                },
+            }
+        ]
+        mock_response = {
+            "choices": [
+                {
+                    "message": {"content": None, "tool_calls": tool_calls},
+                    "finish_reason": "tool_calls",
+                }
+            ],
+            "model": "test/model",
+            "usage": {"total_tokens": 25},
+        }
+        tools = [
+            {
+                "type": "function",
+                "function": {
+                    "name": "route_student_request",
+                    "parameters": {"type": "object", "properties": {}},
+                },
+            }
+        ]
+
+        with patch("chatbot_tools.llm_client.urllib.request.urlopen") as mock_urlopen:
+            mock_resp = MagicMock()
+            mock_resp.read.return_value = json.dumps(mock_response).encode("utf-8")
+            mock_resp.__enter__ = lambda s: s
+            mock_resp.__exit__ = MagicMock(return_value=False)
+            mock_urlopen.return_value = mock_resp
+
+            result = self.client.chat(
+                [{"role": "user", "content": "Route me"}],
+                tools=tools,
+                tool_choice={
+                    "type": "function",
+                    "function": {"name": "route_student_request"},
+                },
+                parallel_tool_calls=False,
+            )
+
+        request = mock_urlopen.call_args[0][0]
+        body = json.loads(request.data.decode("utf-8"))
+        self.assertEqual(body["tools"], tools)
+        self.assertFalse(body["parallel_tool_calls"])
+        self.assertEqual(result.content, "")
+        self.assertEqual(result.tool_calls, tool_calls)
 
     def test_retry_on_http_error(self):
         import urllib.error
