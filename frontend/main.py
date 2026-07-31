@@ -5,6 +5,7 @@ NiceGUI Application: 100% Authentic Discord UI for Student Assistant Bot
 
 from datetime import datetime
 import asyncio
+import html
 import sys
 import os
 import re
@@ -24,7 +25,7 @@ if sys.stdout.encoding != "utf-8":
 from nicegui import ui
 
 from custom_styles import DISCORD_CSS
-from ai_router import call_backend_api_async, handle_option_selection, KNOWLEDGE_BASE
+from ai_router import call_backend_api_async, handle_option_selection
 
 # Options that are pure UI feedback (not a real question for the backend) stay local.
 LOCAL_ONLY_OPTIONS = {"FEEDBACK_RESOLVED", "FEEDBACK_WRONG"}
@@ -120,12 +121,12 @@ class DiscordChatApp:
         })
         self.update_chat_ui()
 
-    def handle_option_click(self, opt_value: str, opt_label: str):
+    def handle_option_click(self, opt_value: str, opt_label: str, payload: Dict[str, Any] = None):
         if self.is_typing:
             return
-            
+
         if opt_value == "VIEW_SOURCE":
-            self.open_source_modal()
+            self.open_source_modal(payload or {})
             return
             
         if opt_value == "FOCUS_INPUT":
@@ -173,24 +174,35 @@ class DiscordChatApp:
         })
         self.update_chat_ui()
 
-    def open_source_modal(self):
-        kb = KNOWLEDGE_BASE["weekly_report"]
+    def open_source_modal(self, payload: Dict[str, Any]):
+        # Show the citation actually attached to the message the user clicked
+        # "Xem nguồn" on — not a hardcoded weekly_report fixture (see
+        # project_setup/architecture/DECISIONS.md D-013). source_info/quote
+        # come straight from the backend's real citation for this answer
+        # (frontend/ai_router.py's DIRECT_ANSWER payload); escaped since this
+        # text now comes from the backend/BM25 match, not a trusted constant.
+        source_info = html.escape(payload.get("source_info") or "Không có thông tin nguồn cụ thể cho câu trả lời này.")
+        quote = payload.get("quote")
+        answer_text = html.escape((payload.get("message") or "").strip())
+
         with ui.dialog() as dialog, ui.card().classes("discord-dialog q-pa-md"):
             with ui.row().classes("items-center justify-between w-full q-mb-sm"):
                 ui.label("📄 Căn cứ & Nguồn chính thức").classes("text-weight-bold text-subtitle1 text-white")
                 ui.button(icon="close", on_click=dialog.close).props("flat round dense text-color=grey-5")
-            
+
             with ui.column().classes("w-full gap-2 text-body2"):
-                ui.html(f"<div><strong style='color: var(--text-heading);'>Chủ đề:</strong> {kb['title']}</div>")
-                ui.html(f"<div><strong style='color: var(--text-heading);'>Nguồn phát hành:</strong> {kb['source']}</div>")
-                ui.html(f"""
-                <div style="margin-top: 10px;">
-                    <strong style="color: var(--text-heading);">Trích dẫn nguyên văn:</strong>
-                    <blockquote style="font-family: var(--font-quote); font-style: italic; border-left: 3px solid var(--brand); padding-left: 10px; margin-top: 6px; color: var(--text-heading); font-size: 13.5px;">
-                        "{kb['quote']}"
-                    </blockquote>
-                </div>
-                """)
+                if answer_text:
+                    ui.html(f"<div><strong style='color: var(--text-heading);'>Câu trả lời:</strong> {answer_text}</div>")
+                ui.html(f"<div><strong style='color: var(--text-heading);'>Nguồn phát hành:</strong> {source_info}</div>")
+                if quote:
+                    ui.html(f"""
+                    <div style="margin-top: 10px;">
+                        <strong style="color: var(--text-heading);">Trích dẫn nguyên văn:</strong>
+                        <blockquote style="font-family: var(--font-quote); font-style: italic; border-left: 3px solid var(--brand); padding-left: 10px; margin-top: 6px; color: var(--text-heading); font-size: 13.5px;">
+                            "{html.escape(quote)}"
+                        </blockquote>
+                    </div>
+                    """)
         dialog.open()
 
     def render_msg_text(self, text: str) -> str:
@@ -303,7 +315,7 @@ class DiscordChatApp:
                                             btn_cls = f"disc-btn {opt.get('class', '')}"
                                             ui.button(
                                                 opt["label"],
-                                                on_click=lambda o=opt: self.handle_option_click(o["value"], o["label"])
+                                                on_click=lambda o=opt, p=payload: self.handle_option_click(o["value"], o["label"], p)
                                             ).classes(btn_cls).props("no-caps unelevated dense")
 
                                 trace_data = payload.get("tracepath")

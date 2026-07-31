@@ -126,7 +126,23 @@ def polish_response(original_text: str, citations: list[dict] | None = None) -> 
     try:
         with urllib.request.urlopen(request, timeout=_TIMEOUT_SECONDS) as resp:
             payload = json.loads(resp.read().decode("utf-8"))
-        text = payload["choices"][0]["message"]["content"].strip()
+        choice = payload["choices"][0]
+        message = choice.get("message", {})
+        # Some OpenRouter models (especially free-tier ones) return
+        # "content": null instead of "" when they refuse, hit a content
+        # filter, or emit only a "refusal"/reasoning field — .strip() on None
+        # raised AttributeError here and was swallowed by the bare except
+        # below, silently falling back with no clue why. Treat a missing/None
+        # content the same as an empty one instead of crashing on it, and log
+        # finish_reason so a real pattern of refusals is still visible.
+        content = message.get("content")
+        if not content:
+            logger.warning(
+                "OpenRouter returned no content (finish_reason=%r) — falling back to deterministic response",
+                choice.get("finish_reason"),
+            )
+            return None
+        text = content.strip()
         return text or None
     except urllib.error.HTTPError as exc:
         # OpenRouter puts the useful message in the response body (e.g. "model

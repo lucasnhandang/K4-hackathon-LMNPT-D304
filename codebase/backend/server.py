@@ -23,7 +23,16 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 import llm_client
-from chatbot_tools.orchestrator import ChatbotOrchestrator
+from chatbot_tools.orchestrator import REFUSAL_INTENTS, ChatbotOrchestrator
+
+# Intents the orchestrator answers directly (route "ANSWER") but that are
+# refusals, not real answers — must render as OUT_OF_SCOPE (muted embed, no
+# citations, no Mod tag) in the frontend, not as a normal resolved answer.
+# reject_prompt_injection has its own dedicated orchestrator check (not in
+# REFUSAL_INTENTS); the rest come from that dict — see D-009 for why this was
+# previously checking only the one literal name and silently mis-tagging the
+# others (including bomb-making / out-of-scope requests) as "resolved".
+_OUT_OF_SCOPE_INTENTS = {"reject_prompt_injection", *REFUSAL_INTENTS.keys()}
 
 app = FastAPI(title="AI20K Student Assistant API")
 
@@ -138,8 +147,9 @@ def _adapt_response(orch_result: dict[str, Any], latency_ms: int, llm_status: st
         }
 
     # route == "ANSWER": the orchestrator has no separate "out of scope" route,
-    # it answers prompt-injection attempts directly with a polite refusal.
-    if intent == "reject_prompt_injection":
+    # it answers refusal-type intents (prompt injection, out-of-scope/unsafe
+    # content, answer-key requests, ...) directly with a polite refusal text.
+    if intent in _OUT_OF_SCOPE_INTENTS:
         return {
             "status": "out_of_scope",
             "intent": intent,

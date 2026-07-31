@@ -25,6 +25,22 @@ DISCORD_SOURCE = ROOT / "docs" / "discord_messages.json"
 UPDATED_AT = "2026-07-31T00:00:00+07:00"
 KUTEBOT_ID = "1480861618358452417"
 
+# Hand-authored fixture records (no source_file attribute — predate the docs
+# ingestion pipeline) that are now factually superseded by a verified record
+# derived from the real curated docs, and that genuinely conflict with it
+# (not just a differing "event_name"/"assignment" label — an actual
+# disagreement on the fact itself). Kept out of the output so
+# _find_conflicts() doesn't force every "demo day deadline" question into an
+# ESCALATE. See DECISIONS.md D-011 for how this was found and verified.
+RETIRED_FIXTURE_SOURCE_IDS = {
+    # Listed generic/English deliverables (business_model_canvas,
+    # competitive_analysis, user_persona, ...) that don't appear anywhere in
+    # the real source; docs_demo_day_deliverables_k3 (from
+    # quality_control_and_demo_day.mandatory_deliverables in COHORT_SOURCE)
+    # is the verified replacement.
+    "official_deliverables_k3",
+}
+
 
 def _record(
     source_id: str,
@@ -272,6 +288,37 @@ def apply_discord_enrichment(
     return records + discord_records
 
 
+# FAQ ids already covered by their own dedicated record (laptop=8, opportunities=15,
+# leave-request procedure=5 duplicates attendance_policy.procedure). The rest had no
+# record at all before this pass — see D-010.
+_FAQ_IDS_ALREADY_COVERED = {5, 8, 15}
+
+
+def _build_faq_records(handbook: dict[str, Any], provenance: dict[str, Any]) -> list[dict[str, Any]]:
+    records = []
+    for item in handbook["faq"]:
+        if item["id"] in _FAQ_IDS_ALREADY_COVERED:
+            continue
+        answer_text = _as_text(item["answer"])
+        records.append(
+            _record(
+                f"handbook_faq_{item['id']}",
+                title=f"FAQ #{item['id']} — {item['question']}",
+                locator=f"Sổ tay học viên / FAQ {item['id']}",
+                category="faq",
+                text=f"{item['question']} {answer_text}",
+                attributes={
+                    "topic": "faq",
+                    "faq_id": item["id"],
+                    "question": item["question"],
+                    "answer": item["answer"],
+                    **provenance,
+                },
+            )
+        )
+    return records
+
+
 def build_handbook_records(handbook: dict[str, Any]) -> list[dict[str, Any]]:
     attendance = handbook["attendance_policy"]
     laptop = next(item for item in handbook["faq"] if item["id"] == 8)["answer"]
@@ -280,12 +327,17 @@ def build_handbook_records(handbook: dict[str, Any]) -> list[dict[str, Any]]:
     completion = handbook["completion_requirements"]
     allowance = handbook["tuition_and_allowance"]
     opportunities = next(item for item in handbook["faq"] if item["id"] == 15)["answer"]
+    overview = handbook["overview"]
+    internship = handbook["internship"]
+    schedule = handbook["schedule"]
+    facilities = handbook["facilities"]
+    contact = handbook["contact"]
 
     provenance = {
         "source_file": HANDBOOK_SOURCE.name,
         "source_version": handbook["metadata"]["version"],
     }
-    return [
+    records = [
         _record(
             "handbook_attendance_policy",
             title="Quy định chuyên cần và xin nghỉ",
@@ -407,7 +459,111 @@ def build_handbook_records(handbook: dict[str, Any]) -> list[dict[str, Any]]:
             text=f"Cơ hội sau chương trình: {_as_text(opportunities)}.",
             attributes={"topic": "post_program_opportunities", **provenance},
         ),
+        _record(
+            "handbook_program_highlights",
+            title="Điểm nổi bật của chương trình",
+            locator="Sổ tay học viên / highlights",
+            category="program_overview",
+            text=_as_text(handbook["highlights"]),
+            attributes={"topic": "program_highlights", "highlights": handbook["highlights"], **provenance},
+        ),
+        _record(
+            "handbook_program_structure",
+            title="Cấu trúc 3 giai đoạn của chương trình",
+            locator="Sổ tay học viên / program_structure",
+            category="program_overview",
+            text="; ".join(
+                f"Giai đoạn {stage['stage']} — {stage['name']} ({stage['duration_weeks']} tuần)"
+                + (f", track: {_as_text(stage['tracks'])}" if "tracks" in stage else "")
+                for stage in handbook["program_structure"]
+            ),
+            attributes={
+                "topic": "program_structure",
+                "duration_weeks_total": overview["duration_weeks"],
+                "stages": handbook["program_structure"],
+                **provenance,
+            },
+        ),
+        _record(
+            "handbook_internship",
+            title="Thực tập tại doanh nghiệp đối tác",
+            locator="Sổ tay học viên / internship",
+            category="internship",
+            text=(
+                f"Thực tập giai đoạn 3 tại các doanh nghiệp: {_as_text(internship['companies'])}. "
+                f"Phân bổ dựa trên: {_as_text(internship['allocation_basis'])}. "
+                f"Địa điểm: {_as_text(internship['locations'])}. "
+                f"Ưu tiên Cohort 1: {internship['cohort_1_priority']}."
+            ),
+            attributes={"topic": "internship", **internship, **provenance},
+        ),
+        _record(
+            "handbook_daily_schedule",
+            title="Lịch học hàng ngày theo từng giai đoạn",
+            locator="Sổ tay học viên / schedule",
+            category="policy",
+            text=(
+                f"Giai đoạn 1 — sáng: {schedule['stage_1']['morning']}; "
+                f"chiều: {schedule['stage_1']['afternoon']}; "
+                f"tối/cuối tuần: {schedule['stage_1']['evening_weekend']}. "
+                f"Giai đoạn 2 — sáng: {schedule['stage_2']['morning']}; "
+                f"chiều/tối/cuối tuần: {schedule['stage_2']['afternoon_evening_weekend']}. "
+                f"Giai đoạn 3: {schedule['stage_3']}."
+            ),
+            attributes={"topic": "daily_schedule", "schedule": schedule, **provenance},
+        ),
+        _record(
+            "handbook_evaluation_criteria",
+            title="Tiêu chí đánh giá kết quả học tập",
+            locator="Sổ tay học viên / evaluation",
+            category="policy",
+            text="Học viên được đánh giá qua: " + _as_text(handbook["evaluation"]) + ".",
+            attributes={"topic": "evaluation", "criteria": handbook["evaluation"], **provenance},
+        ),
+        _record(
+            "handbook_facilities",
+            title="Cơ sở vật chất và tiện ích tại VinUni",
+            locator="Sổ tay học viên / facilities",
+            category="learning_material",
+            text=(
+                "Phòng học: " + "; ".join(
+                    f"{room['name']} (sức chứa {room['capacity']})" for room in facilities["classrooms"]
+                )
+                + ". Tiện ích: " + _as_text(facilities["services"]) + "."
+            ),
+            attributes={"topic": "facilities", **facilities, **provenance},
+        ),
+        _record(
+            "handbook_contact_support",
+            title="Kênh liên hệ hỗ trợ chương trình",
+            locator="Sổ tay học viên / contact",
+            category="contact",
+            text=(
+                f"Email chương trình: {contact['email']}. Điện thoại: {contact['phone']} "
+                f"(số nội bộ hỗ trợ kỹ thuật: {contact['technical_support_extension']}). "
+                f"Địa chỉ: {contact['address']}. Website: {contact['website']}. "
+                f"Đầu mối hỗ trợ học viên: {contact['student_support']['name']} — "
+                f"{contact['student_support']['role']}, {contact['student_support']['office']}."
+            ),
+            # Deliberately omit contact["leaders"] (named individuals' personal emails):
+            # this bot is public on the internet (see DECISIONS.md D-008) — surfacing
+            # named staff's direct email on request turns a handbook page into an
+            # instant lookup tool for anyone, not just enrolled students. Point people
+            # at the general program contact / student_support channel instead.
+            attributes={
+                "topic": "contact",
+                "email": contact["email"],
+                "phone": contact["phone"],
+                "technical_support_extension": contact["technical_support_extension"],
+                "address": contact["address"],
+                "website": contact["website"],
+                "student_support": contact["student_support"],
+                **provenance,
+            },
+        ),
     ]
+    records.extend(_build_faq_records(handbook, provenance))
+    return records
 
 
 def build_cohort_records(cohort: dict[str, Any]) -> list[dict[str, Any]]:
@@ -642,6 +798,133 @@ def build_cohort_records(cohort: dict[str, Any]) -> list[dict[str, Any]]:
             valid_from=valid_from,
             valid_to=valid_to,
         ),
+        _record(
+            "docs_master_timeline_k3",
+            title="Master Timeline 6 tuần — AI20K Cohort III",
+            locator="Tổng quan Cohort III / master_timeline",
+            category="event",
+            text="; ".join(
+                f"Tuần {item['week']}"
+                + (f" ({item['date']})" if item["date"] else "")
+                + f": {item['milestone']}"
+                + (f" — {item['gate']}" if item["gate"] else "")
+                for item in cohort["master_timeline"]
+            )
+            + f" Lưu ý: {cohort['timeline_guidance']}",
+            attributes={
+                "event_name": "master_timeline",
+                "milestones": cohort["master_timeline"],
+                "guidance": cohort["timeline_guidance"],
+                **provenance,
+            },
+            valid_from=valid_from,
+            valid_to=valid_to,
+        ),
+        _record(
+            "docs_schedule_change_week4_k3",
+            title="Thay đổi lịch vận hành từ tuần 4",
+            locator="Tổng quan Cohort III / weekly_operating_rhythm / from_week_4",
+            category="event",
+            text="Từ tuần 4: " + _as_text(cohort["weekly_operating_rhythm"]["from_week_4"]) + ".",
+            attributes={
+                "event_name": "schedule_change_week4",
+                "changes": cohort["weekly_operating_rhythm"]["from_week_4"],
+                **provenance,
+            },
+            valid_from=valid_from,
+            valid_to=valid_to,
+        ),
+        _record(
+            "docs_xp_levels_k3",
+            title="Mốc XP để lên level (LV1–LV4)",
+            locator="Tổng quan Cohort III / xp_system / levels",
+            category="xp",
+            text="; ".join(
+                f"{lvl['level']} ({lvl['name']}): từ {lvl['required_xp']} XP"
+                for lvl in cohort["xp_system"]["levels"]
+            ),
+            attributes={"topic": "xp_levels", "levels": cohort["xp_system"]["levels"], **provenance},
+            valid_from=valid_from,
+            valid_to=valid_to,
+        ),
+        _record(
+            "docs_xp_extra_activities_k3",
+            title="Quy định XP — hỗ trợ cộng đồng và showcase",
+            locator="Tổng quan Cohort III / xp_system / earning_rules",
+            category="xp",
+            text=(
+                "Hỗ trợ cộng đồng được cộng 5–20 XP mỗi lần (tùy mức đóng góp). "
+                "Showcase và feedback sản phẩm có thể được cộng XP thưởng thêm (không cố định)."
+            ),
+            attributes={
+                "activity": "community_support_and_showcase",
+                "community_support_xp_range": xp_by_activity["Hỗ trợ cộng đồng"]["xp_range"],
+                **provenance,
+            },
+            valid_from=valid_from,
+            valid_to=valid_to,
+        ),
+        _record(
+            "docs_gate_definition_k3",
+            title="Gate là gì & tiêu chí chấm điểm",
+            locator="Tổng quan Cohort III / quality_control_and_demo_day / gates",
+            category="gate",
+            text=(
+                f"{cohort['quality_control_and_demo_day']['gates']['definition']} "
+                f"{cohort['quality_control_and_demo_day']['gates']['support']} "
+                "Tiêu chí chấm điểm: "
+                + _as_text(cohort["quality_control_and_demo_day"]["scoring_rubric"])
+                + "."
+            ),
+            attributes={
+                "topic": "gate_definition",
+                "scoring_rubric": cohort["quality_control_and_demo_day"]["scoring_rubric"],
+                **provenance,
+            },
+            valid_from=valid_from,
+            valid_to=valid_to,
+        ),
+        _record(
+            "docs_exam_bank_k3",
+            title="Ngân hàng đề thi — nguyên tắc chọn đề",
+            locator="Tổng quan Cohort III / exam_bank",
+            category="exam_slot",
+            text=(
+                f"{cohort['exam_bank']['resource_label']}. Nguyên tắc cốt lõi: "
+                f"{cohort['exam_bank']['core_principle']} — {cohort['exam_bank']['principle_explanation']}"
+            ),
+            attributes={"topic": "exam_bank", **cohort["exam_bank"], **provenance},
+            valid_from=valid_from,
+            valid_to=valid_to,
+        ),
+        _record(
+            "docs_support_automation_k3",
+            title="Hệ thống hỗ trợ tự động và Trợ lý Kute",
+            locator="Tổng quan Cohort III / support_and_automation",
+            category="learning_material",
+            text=(
+                "Hệ thống tự động: " + _as_text(cohort["support_and_automation"]["server_system"]["functions"])
+                + ". Trợ lý Kute (" + cohort["support_and_automation"]["kutebot"]["mention"] + "): "
+                + _as_text(cohort["support_and_automation"]["kutebot"]["functions"]) + "."
+            ),
+            attributes={"topic": "support_and_automation", **cohort["support_and_automation"], **provenance},
+            valid_from=valid_from,
+            valid_to=valid_to,
+        ),
+        _record(
+            "docs_supplementary_workshops_k3",
+            title="Workshop bổ sung",
+            locator="Tổng quan Cohort III / supplementary_workshop_topics",
+            category="learning_material",
+            text="Workshop bổ sung (ngoài 14 buổi chính): " + _as_text(cohort["supplementary_workshop_topics"]) + ".",
+            attributes={
+                "topic": "supplementary_workshops",
+                "topics": cohort["supplementary_workshop_topics"],
+                **provenance,
+            },
+            valid_from=valid_from,
+            valid_to=valid_to,
+        ),
     ]
 
     command_groups = ("reports", "exam", "personal_and_team", "gate", "ticket")
@@ -692,6 +975,7 @@ def build(output: Path) -> tuple[int, int]:
         for record in current["records"]
         if record["source_id"] not in generated_by_id
         and record.get("attributes", {}).get("source_file") not in managed_files
+        and record["source_id"] not in RETIRED_FIXTURE_SOURCE_IDS
     ]
     records = kept + generated
     if len({record["source_id"] for record in records}) != len(records):

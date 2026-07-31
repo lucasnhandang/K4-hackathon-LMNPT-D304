@@ -84,6 +84,11 @@ AUTHORITY_INTENTS = {
 }
 
 REFUSAL_INTENTS = {
+    "reject_out_of_scope": (
+        "Mình là trợ lý AI hỗ trợ khóa học AI20K Build Phase. Hiện tại mình không có thông tin "
+        "hoặc không thể hỗ trợ giải đáp về chủ đề này. Bạn có thể hỏi mình về bài tập, deadline "
+        "hoặc quy chế môn học nha! 😊"
+    ),
     "reject_answer_key_request": (
         "Mình không thể cung cấp đáp án bài kiểm tra. "
         "Bạn có thể gửi phần kiến thức hoặc bước làm đang vướng để mình hướng dẫn."
@@ -773,7 +778,34 @@ class ChatbotOrchestrator:
     ) -> dict[str, Any]:
         """Handle user response to a clarification question."""
         current_attempt = pending_clarification.get("attempt_count", 1)
-        original_intent = pending_clarification.get("original_intent", intent_result.intent)
+        stale_original_intent = pending_clarification.get("original_intent", intent_result.intent)
+        # A clarification reply can itself be a complete, self-sufficient new
+        # question (e.g. the bot asks "what's your question about?" and the
+        # user answers "deadline ai log" — which classifies as ask_deadline
+        # with assignment=ai_log on its own). Blindly keeping the stale
+        # original_intent from the turn that triggered the clarification
+        # permanently locks the conversation out of ever reaching a concrete
+        # intent again, even when the user's own words just supplied one.
+        #
+        # Only rescue when stale_original_intent is itself "unknown" — i.e.
+        # the prior turn never established a real intent to continue. When
+        # stale_original_intent is already concrete (e.g. ask_deadline asking
+        # for the missing "assignment" slot), always keep it: a suggested
+        # reply like "Demo Day deliverables" can independently re-classify as
+        # a *different* real intent (ask_event_schedule, via the "Demo Day"
+        # keyword) purely because the vocabulary overlaps, and overriding
+        # there would derail an in-progress, already-correct clarification.
+        # A bare slot-value reply like "AI Log" alone still classifies as
+        # "unknown" either way, so this never fires on that path either. See
+        # DECISIONS.md D-012.
+        if (
+            stale_original_intent in ("unknown", "unknown_question")
+            and intent_result.intent not in ("unknown", "unknown_question")
+            and intent_result.confidence >= 0.5
+        ):
+            original_intent = intent_result.intent
+        else:
+            original_intent = stale_original_intent
 
         # Merge new slots with existing known slots from pending clarification
         merged_slots = dict(pending_clarification.get("known_slots", {}))

@@ -282,34 +282,6 @@
       "official": true
     },
     {
-      "source_id": "official_deliverables_k3",
-      "title": "10 deliverable bắt buộc — Demo Day",
-      "locator": "Mandatory Deliverables",
-      "category": "deadline",
-      "text": "Có 10 deliverable bắt buộc phải nộp trước Demo Day: source code, demo video, README, AI Log, pitch deck, business model canvas, competitive analysis, user persona, wireframe, và presentation.",
-      "updated_at": "2026-07-23T00:00:00+07:00",
-      "valid_from": null,
-      "valid_to": "2026-09-01T23:59:59+07:00",
-      "attributes": {
-        "assignment": "demo_day_deliverables",
-        "cohort": "k3",
-        "count": 10,
-        "items": [
-          "source_code",
-          "demo_video",
-          "readme",
-          "ai_log",
-          "pitch_deck",
-          "business_model_canvas",
-          "competitive_analysis",
-          "user_persona",
-          "wireframe",
-          "presentation"
-        ]
-      },
-      "official": true
-    },
-    {
       "source_id": "handbook_attendance_policy",
       "title": "Quy định chuyên cần và xin nghỉ",
       "locator": "Sổ tay học viên / attendance_policy",
@@ -519,6 +491,461 @@
       "valid_to": null,
       "attributes": {
         "topic": "post_program_opportunities",
+        "source_file": "tong_hop_so_tay_hoc_vien_AI_thuc_chien.json",
+        "source_version": "1.0"
+      },
+      "official": true
+    },
+    {
+      "source_id": "handbook_program_highlights",
+      "title": "Điểm nổi bật của chương trình",
+      "locator": "Sổ tay học viên / highlights",
+      "category": "program_overview",
+      "text": "Thiết kế theo khung năng lực SFIA.; 03 tuần học nền tảng về tư duy AI, đạo đức AI, kỹ năng AI và giải quyết vấn đề.; 09 tuần thực chiến với dự án AI.; Tài trợ 100% học phí.; Trợ cấp 8 triệu đồng/tháng nếu đáp ứng điều kiện.; Chứng chỉ do VinUni và Vingroup đồng cấp.",
+      "updated_at": "2026-07-31T00:00:00+07:00",
+      "valid_from": null,
+      "valid_to": null,
+      "attributes": {
+        "topic": "program_highlights",
+        "highlights": [
+          "Thiết kế theo khung năng lực SFIA.",
+          "03 tuần học nền tảng về tư duy AI, đạo đức AI, kỹ năng AI và giải quyết vấn đề.",
+          "09 tuần thực chiến với dự án AI.",
+          "Tài trợ 100% học phí.",
+          "Trợ cấp 8 triệu đồng/tháng nếu đáp ứng điều kiện.",
+          "Chứng chỉ do VinUni và Vingroup đồng cấp."
+        ],
+        "source_file": "tong_hop_so_tay_hoc_vien_AI_thuc_chien.json",
+        "source_version": "1.0"
+      },
+      "official": true
+    },
+    {
+      "source_id": "handbook_program_structure",
+      "title": "Cấu trúc 3 giai đoạn của chương trình",
+      "locator": "Sổ tay học viên / program_structure",
+      "category": "program_overview",
+      "text": "Giai đoạn 1 — Xây dựng nền tảng toàn diện (3 tuần), track: AI Business & Product; AI Infrastructure & Data; AI Application; Giai đoạn 2 — Đào sâu theo định hướng chuyên môn (3 tuần), track: AI Business & Product; AI Infrastructure & Data; AI Application; Giai đoạn 3 — Thực chiến tại doanh nghiệp đối tác (6 tuần)",
+      "updated_at": "2026-07-31T00:00:00+07:00",
+      "valid_from": null,
+      "valid_to": null,
+      "attributes": {
+        "topic": "program_structure",
+        "duration_weeks_total": 12,
+        "stages": [
+          {
+            "stage": 1,
+            "name": "Xây dựng nền tảng toàn diện",
+            "duration_weeks": 3,
+            "tracks": [
+              "AI Business & Product",
+              "AI Infrastructure & Data",
+              "AI Application"
+            ]
+          },
+          {
+            "stage": 2,
+            "name": "Đào sâu theo định hướng chuyên môn",
+            "duration_weeks": 3,
+            "tracks": [
+              "AI Business & Product",
+              "AI Infrastructure & Data",
+              "AI Application"
+            ]
+          },
+          {
+            "stage": 3,
+            "name": "Thực chiến tại doanh nghiệp đối tác",
+            "duration_weeks": 6
+          }
+        ],
+        "source_file": "tong_hop_so_tay_hoc_vien_AI_thuc_chien.json",
+        "source_version": "1.0"
+      },
+      "official": true
+    },
+    {
+      "source_id": "handbook_internship",
+      "title": "Thực tập tại doanh nghiệp đối tác",
+      "locator": "Sổ tay học viên / internship",
+      "category": "internship",
+      "text": "Thực tập giai đoạn 3 tại các doanh nghiệp: VinSmartFuture; VinSOC; VinRobotics; VinMotion; VinDynamics. Phân bổ dựa trên: Năng lực; Định hướng chuyên môn; Nhu cầu doanh nghiệp. Địa điểm: Hà Nội; TP. Hồ Chí Minh. Ưu tiên Cohort 1: VinSmartFuture.",
+      "updated_at": "2026-07-31T00:00:00+07:00",
+      "valid_from": null,
+      "valid_to": null,
+      "attributes": {
+        "topic": "internship",
+        "companies": [
+          "VinSmartFuture",
+          "VinSOC",
+          "VinRobotics",
+          "VinMotion",
+          "VinDynamics"
+        ],
+        "allocation_basis": [
+          "Năng lực",
+          "Định hướng chuyên môn",
+          "Nhu cầu doanh nghiệp"
+        ],
+        "cohort_1_priority": "VinSmartFuture",
+        "locations": [
+          "Hà Nội",
+          "TP. Hồ Chí Minh"
+        ],
+        "source_file": "tong_hop_so_tay_hoc_vien_AI_thuc_chien.json",
+        "source_version": "1.0"
+      },
+      "official": true
+    },
+    {
+      "source_id": "handbook_daily_schedule",
+      "title": "Lịch học hàng ngày theo từng giai đoạn",
+      "locator": "Sổ tay học viên / schedule",
+      "category": "policy",
+      "text": "Giai đoạn 1 — sáng: 09:00-13:00: Học lý thuyết kết hợp thực hành; chiều: 14:00-18:00: Thực hành lab/coding; tối/cuối tuần: Phát triển dự án nhóm. Giai đoạn 2 — sáng: 09:00-13:00: Học chuyên sâu theo track; chiều/tối/cuối tuần: Phát triển dự án nhóm. Giai đoạn 3: Làm việc theo lịch của doanh nghiệp tiếp nhận.",
+      "updated_at": "2026-07-31T00:00:00+07:00",
+      "valid_from": null,
+      "valid_to": null,
+      "attributes": {
+        "topic": "daily_schedule",
+        "schedule": {
+          "stage_1": {
+            "morning": "09:00-13:00: Học lý thuyết kết hợp thực hành",
+            "afternoon": "14:00-18:00: Thực hành lab/coding",
+            "evening_weekend": "Phát triển dự án nhóm"
+          },
+          "stage_2": {
+            "morning": "09:00-13:00: Học chuyên sâu theo track",
+            "afternoon_evening_weekend": "Phát triển dự án nhóm"
+          },
+          "stage_3": "Làm việc theo lịch của doanh nghiệp tiếp nhận"
+        },
+        "source_file": "tong_hop_so_tay_hoc_vien_AI_thuc_chien.json",
+        "source_version": "1.0"
+      },
+      "official": true
+    },
+    {
+      "source_id": "handbook_evaluation_criteria",
+      "title": "Tiêu chí đánh giá kết quả học tập",
+      "locator": "Sổ tay học viên / evaluation",
+      "category": "policy",
+      "text": "Học viên được đánh giá qua: Điểm labs hằng ngày trong tuần 1-6; Điểm quá trình và kết quả dự án #build; Điểm thi giữa kỳ ở tuần 6; Điểm quá trình thực chiến tại doanh nghiệp; Điểm chuyên cần và thái độ.",
+      "updated_at": "2026-07-31T00:00:00+07:00",
+      "valid_from": null,
+      "valid_to": null,
+      "attributes": {
+        "topic": "evaluation",
+        "criteria": [
+          "Điểm labs hằng ngày trong tuần 1-6",
+          "Điểm quá trình và kết quả dự án #build",
+          "Điểm thi giữa kỳ ở tuần 6",
+          "Điểm quá trình thực chiến tại doanh nghiệp",
+          "Điểm chuyên cần và thái độ"
+        ],
+        "source_file": "tong_hop_so_tay_hoc_vien_AI_thuc_chien.json",
+        "source_version": "1.0"
+      },
+      "official": true
+    },
+    {
+      "source_id": "handbook_facilities",
+      "title": "Cơ sở vật chất và tiện ích tại VinUni",
+      "locator": "Sổ tay học viên / facilities",
+      "category": "learning_material",
+      "text": "Phòng học: C401 (sức chứa 236); E402 và E403 (sức chứa 96-233). Tiện ích: Wi-Fi riêng cho học viên AI; Thư viện và cơ sở dữ liệu trực tuyến; Thẻ học viên; Canteen, Highlands Coffee, Fresh Garden; Khu đỗ xe; Trạm sạc xe điện miễn phí.",
+      "updated_at": "2026-07-31T00:00:00+07:00",
+      "valid_from": null,
+      "valid_to": null,
+      "attributes": {
+        "topic": "facilities",
+        "classrooms": [
+          {
+            "name": "C401",
+            "capacity": 236,
+            "equipment": [
+              "33 bàn tròn",
+              "202 ghế",
+              "06 máy chiếu"
+            ]
+          },
+          {
+            "name": "E402 và E403",
+            "capacity": "96-233",
+            "equipment": [
+              "Bàn đào tạo",
+              "Ghế đào tạo",
+              "02 máy chiếu",
+              "01 TV"
+            ]
+          }
+        ],
+        "services": [
+          "Wi-Fi riêng cho học viên AI",
+          "Thư viện và cơ sở dữ liệu trực tuyến",
+          "Thẻ học viên",
+          "Canteen, Highlands Coffee, Fresh Garden",
+          "Khu đỗ xe",
+          "Trạm sạc xe điện miễn phí"
+        ],
+        "source_file": "tong_hop_so_tay_hoc_vien_AI_thuc_chien.json",
+        "source_version": "1.0"
+      },
+      "official": true
+    },
+    {
+      "source_id": "handbook_contact_support",
+      "title": "Kênh liên hệ hỗ trợ chương trình",
+      "locator": "Sổ tay học viên / contact",
+      "category": "contact",
+      "text": "Email chương trình: AIThucchien@vinuni.edu.vn. Điện thoại: 024 7108 9779 (số nội bộ hỗ trợ kỹ thuật: 9903). Địa chỉ: KĐT Vinhomes Ocean Park, Gia Lâm, Hà Nội. Website: vinuni.edu.vn. Đầu mối hỗ trợ học viên: Phạm Quốc Khánh — Chuyên viên Quản lý Đào tạo, Phòng I-114, Tầng 1, Nhà I, Trường Đại học VinUni.",
+      "updated_at": "2026-07-31T00:00:00+07:00",
+      "valid_from": null,
+      "valid_to": null,
+      "attributes": {
+        "topic": "contact",
+        "email": "AIThucchien@vinuni.edu.vn",
+        "phone": "024 7108 9779",
+        "technical_support_extension": "9903",
+        "address": "KĐT Vinhomes Ocean Park, Gia Lâm, Hà Nội",
+        "website": "vinuni.edu.vn",
+        "student_support": {
+          "name": "Phạm Quốc Khánh",
+          "role": "Chuyên viên Quản lý Đào tạo",
+          "office": "Phòng I-114, Tầng 1, Nhà I, Trường Đại học VinUni"
+        },
+        "source_file": "tong_hop_so_tay_hoc_vien_AI_thuc_chien.json",
+        "source_version": "1.0"
+      },
+      "official": true
+    },
+    {
+      "source_id": "handbook_faq_1",
+      "title": "FAQ #1 — Chương trình tập trung vào lĩnh vực nào?",
+      "locator": "Sổ tay học viên / FAQ 1",
+      "category": "faq",
+      "text": "Chương trình tập trung vào lĩnh vực nào? AI Business and Product; AI and Data Infrastructure; AI Applications",
+      "updated_at": "2026-07-31T00:00:00+07:00",
+      "valid_from": null,
+      "valid_to": null,
+      "attributes": {
+        "topic": "faq",
+        "faq_id": 1,
+        "question": "Chương trình tập trung vào lĩnh vực nào?",
+        "answer": [
+          "AI Business and Product",
+          "AI and Data Infrastructure",
+          "AI Applications"
+        ],
+        "source_file": "tong_hop_so_tay_hoc_vien_AI_thuc_chien.json",
+        "source_version": "1.0"
+      },
+      "official": true
+    },
+    {
+      "source_id": "handbook_faq_2",
+      "title": "FAQ #2 — Có được học lại kiến thức nền không?",
+      "locator": "Sổ tay học viên / FAQ 2",
+      "category": "faq",
+      "text": "Có được học lại kiến thức nền không? Không tập trung dạy lại kiến thức cơ bản; học viên cần tự ôn tập.",
+      "updated_at": "2026-07-31T00:00:00+07:00",
+      "valid_from": null,
+      "valid_to": null,
+      "attributes": {
+        "topic": "faq",
+        "faq_id": 2,
+        "question": "Có được học lại kiến thức nền không?",
+        "answer": "Không tập trung dạy lại kiến thức cơ bản; học viên cần tự ôn tập.",
+        "source_file": "tong_hop_so_tay_hoc_vien_AI_thuc_chien.json",
+        "source_version": "1.0"
+      },
+      "official": true
+    },
+    {
+      "source_id": "handbook_faq_3",
+      "title": "FAQ #3 — Học trực tiếp hay online?",
+      "locator": "Sổ tay học viên / FAQ 3",
+      "category": "faq",
+      "text": "Học trực tiếp hay online? Học trực tiếp theo kế hoạch của Ban Tổ chức.",
+      "updated_at": "2026-07-31T00:00:00+07:00",
+      "valid_from": null,
+      "valid_to": null,
+      "attributes": {
+        "topic": "faq",
+        "faq_id": 3,
+        "question": "Học trực tiếp hay online?",
+        "answer": "Học trực tiếp theo kế hoạch của Ban Tổ chức.",
+        "source_file": "tong_hop_so_tay_hoc_vien_AI_thuc_chien.json",
+        "source_version": "1.0"
+      },
+      "official": true
+    },
+    {
+      "source_id": "handbook_faq_4",
+      "title": "FAQ #4 — Có được nghỉ cuối tuần không?",
+      "locator": "Sổ tay học viên / FAQ 4",
+      "category": "faq",
+      "text": "Có được nghỉ cuối tuần không? Cuối tuần vẫn tiếp tục phát triển dự án nhóm.",
+      "updated_at": "2026-07-31T00:00:00+07:00",
+      "valid_from": null,
+      "valid_to": null,
+      "attributes": {
+        "topic": "faq",
+        "faq_id": 4,
+        "question": "Có được nghỉ cuối tuần không?",
+        "answer": "Cuối tuần vẫn tiếp tục phát triển dự án nhóm.",
+        "source_file": "tong_hop_so_tay_hoc_vien_AI_thuc_chien.json",
+        "source_version": "1.0"
+      },
+      "official": true
+    },
+    {
+      "source_id": "handbook_faq_6",
+      "title": "FAQ #6 — Sinh viên năm 3, 4 có tham gia được không?",
+      "locator": "Sổ tay học viên / FAQ 6",
+      "category": "faq",
+      "text": "Sinh viên năm 3, 4 có tham gia được không? Có nếu sắp xếp được thời gian và cam kết gần như toàn thời gian.",
+      "updated_at": "2026-07-31T00:00:00+07:00",
+      "valid_from": null,
+      "valid_to": null,
+      "attributes": {
+        "topic": "faq",
+        "faq_id": 6,
+        "question": "Sinh viên năm 3, 4 có tham gia được không?",
+        "answer": "Có nếu sắp xếp được thời gian và cam kết gần như toàn thời gian.",
+        "source_file": "tong_hop_so_tay_hoc_vien_AI_thuc_chien.json",
+        "source_version": "1.0"
+      },
+      "official": true
+    },
+    {
+      "source_id": "handbook_faq_7",
+      "title": "FAQ #7 — Có thể vừa đi làm vừa tham gia không?",
+      "locator": "Sổ tay học viên / FAQ 7",
+      "category": "faq",
+      "text": "Có thể vừa đi làm vừa tham gia không? Không khuyến khích.",
+      "updated_at": "2026-07-31T00:00:00+07:00",
+      "valid_from": null,
+      "valid_to": null,
+      "attributes": {
+        "topic": "faq",
+        "faq_id": 7,
+        "question": "Có thể vừa đi làm vừa tham gia không?",
+        "answer": "Không khuyến khích.",
+        "source_file": "tong_hop_so_tay_hoc_vien_AI_thuc_chien.json",
+        "source_version": "1.0"
+      },
+      "official": true
+    },
+    {
+      "source_id": "handbook_faq_9",
+      "title": "FAQ #9 — Có chia lớp theo trình độ không?",
+      "locator": "Sổ tay học viên / FAQ 9",
+      "category": "faq",
+      "text": "Có chia lớp theo trình độ không? Không chia lớp theo trình độ trong 3 tuần đầu.",
+      "updated_at": "2026-07-31T00:00:00+07:00",
+      "valid_from": null,
+      "valid_to": null,
+      "attributes": {
+        "topic": "faq",
+        "faq_id": 9,
+        "question": "Có chia lớp theo trình độ không?",
+        "answer": "Không chia lớp theo trình độ trong 3 tuần đầu.",
+        "source_file": "tong_hop_so_tay_hoc_vien_AI_thuc_chien.json",
+        "source_version": "1.0"
+      },
+      "official": true
+    },
+    {
+      "source_id": "handbook_faq_10",
+      "title": "FAQ #10 — Có được tự chọn nơi thực tập không?",
+      "locator": "Sổ tay học viên / FAQ 10",
+      "category": "faq",
+      "text": "Có được tự chọn nơi thực tập không? Có thể tự chọn hoặc được phân công, tùy hướng dẫn.",
+      "updated_at": "2026-07-31T00:00:00+07:00",
+      "valid_from": null,
+      "valid_to": null,
+      "attributes": {
+        "topic": "faq",
+        "faq_id": 10,
+        "question": "Có được tự chọn nơi thực tập không?",
+        "answer": "Có thể tự chọn hoặc được phân công, tùy hướng dẫn.",
+        "source_file": "tong_hop_so_tay_hoc_vien_AI_thuc_chien.json",
+        "source_version": "1.0"
+      },
+      "official": true
+    },
+    {
+      "source_id": "handbook_faq_11",
+      "title": "FAQ #11 — Có được xác nhận hoặc đóng dấu thực tập không?",
+      "locator": "Sổ tay học viên / FAQ 11",
+      "category": "faq",
+      "text": "Có được xác nhận hoặc đóng dấu thực tập không? Có thể hỗ trợ tùy yêu cầu cụ thể.",
+      "updated_at": "2026-07-31T00:00:00+07:00",
+      "valid_from": null,
+      "valid_to": null,
+      "attributes": {
+        "topic": "faq",
+        "faq_id": 11,
+        "question": "Có được xác nhận hoặc đóng dấu thực tập không?",
+        "answer": "Có thể hỗ trợ tùy yêu cầu cụ thể.",
+        "source_file": "tong_hop_so_tay_hoc_vien_AI_thuc_chien.json",
+        "source_version": "1.0"
+      },
+      "official": true
+    },
+    {
+      "source_id": "handbook_faq_12",
+      "title": "FAQ #12 — Có thể thực tập tại TP. Hồ Chí Minh hoặc gần nơi ở không?",
+      "locator": "Sổ tay học viên / FAQ 12",
+      "category": "faq",
+      "text": "Có thể thực tập tại TP. Hồ Chí Minh hoặc gần nơi ở không? Có thể được cân nhắc nhưng không bảo đảm.",
+      "updated_at": "2026-07-31T00:00:00+07:00",
+      "valid_from": null,
+      "valid_to": null,
+      "attributes": {
+        "topic": "faq",
+        "faq_id": 12,
+        "question": "Có thể thực tập tại TP. Hồ Chí Minh hoặc gần nơi ở không?",
+        "answer": "Có thể được cân nhắc nhưng không bảo đảm.",
+        "source_file": "tong_hop_so_tay_hoc_vien_AI_thuc_chien.json",
+        "source_version": "1.0"
+      },
+      "official": true
+    },
+    {
+      "source_id": "handbook_faq_13",
+      "title": "FAQ #13 — Có hỗ trợ chi phí đi lại, ăn ở không?",
+      "locator": "Sổ tay học viên / FAQ 13",
+      "category": "faq",
+      "text": "Có hỗ trợ chi phí đi lại, ăn ở không? Không hỗ trợ.",
+      "updated_at": "2026-07-31T00:00:00+07:00",
+      "valid_from": null,
+      "valid_to": null,
+      "attributes": {
+        "topic": "faq",
+        "faq_id": 13,
+        "question": "Có hỗ trợ chi phí đi lại, ăn ở không?",
+        "answer": "Không hỗ trợ.",
+        "source_file": "tong_hop_so_tay_hoc_vien_AI_thuc_chien.json",
+        "source_version": "1.0"
+      },
+      "official": true
+    },
+    {
+      "source_id": "handbook_faq_14",
+      "title": "FAQ #14 — Có được học nâng cao sau khóa học không?",
+      "locator": "Sổ tay học viên / FAQ 14",
+      "category": "faq",
+      "text": "Có được học nâng cao sau khóa học không? Dự kiến có cho học viên xuất sắc.",
+      "updated_at": "2026-07-31T00:00:00+07:00",
+      "valid_from": null,
+      "valid_to": null,
+      "attributes": {
+        "topic": "faq",
+        "faq_id": 14,
+        "question": "Có được học nâng cao sau khóa học không?",
+        "answer": "Dự kiến có cho học viên xuất sắc.",
         "source_file": "tong_hop_so_tay_hoc_vien_AI_thuc_chien.json",
         "source_version": "1.0"
       },
@@ -963,6 +1390,235 @@
           "AI Log"
         ],
         "count": 10,
+        "cohort": "k3",
+        "source_file": "tong_hop_du_lieu_AI20K_Cohort_III.json"
+      },
+      "official": true
+    },
+    {
+      "source_id": "docs_master_timeline_k3",
+      "title": "Master Timeline 6 tuần — AI20K Cohort III",
+      "locator": "Tổng quan Cohort III / master_timeline",
+      "category": "event",
+      "text": "Tuần 1 (2026-07-23): Kick-off & lập đội; Tuần 2: Khảo sát, phân tích đề bài và thu thập thông tin — GATE 1 - Chốt đề tài; Tuần 3: Xây dựng MVP đầu tiên; Tuần 4: Tối ưu, cải thiện dựa trên feedback — GATE 2 - MVP; Tuần 5: Nộp hồ sơ doanh nghiệp, hoàn thiện sản phẩm cho Demo Day — Nộp hồ sơ Demo Day; Tuần 6 (2026-09-01): Demo Day Lưu ý: Khuyến khích làm việc với khách hàng tiềm năng từ sớm để hiểu pain points và giải đúng nhu cầu thực tế.",
+      "updated_at": "2026-07-31T00:00:00+07:00",
+      "valid_from": "2026-07-20T00:00:00+07:00",
+      "valid_to": "2026-09-06T23:59:59+07:00",
+      "attributes": {
+        "event_name": "master_timeline",
+        "milestones": [
+          {
+            "week": 1,
+            "date": "2026-07-23",
+            "milestone": "Kick-off & lập đội",
+            "gate": null
+          },
+          {
+            "week": 2,
+            "date": null,
+            "milestone": "Khảo sát, phân tích đề bài và thu thập thông tin",
+            "gate": "GATE 1 - Chốt đề tài"
+          },
+          {
+            "week": 3,
+            "date": null,
+            "milestone": "Xây dựng MVP đầu tiên",
+            "gate": null
+          },
+          {
+            "week": 4,
+            "date": null,
+            "milestone": "Tối ưu, cải thiện dựa trên feedback",
+            "gate": "GATE 2 - MVP"
+          },
+          {
+            "week": 5,
+            "date": null,
+            "milestone": "Nộp hồ sơ doanh nghiệp, hoàn thiện sản phẩm cho Demo Day",
+            "gate": "Nộp hồ sơ Demo Day"
+          },
+          {
+            "week": 6,
+            "date": "2026-09-01",
+            "milestone": "Demo Day",
+            "gate": null
+          }
+        ],
+        "guidance": "Khuyến khích làm việc với khách hàng tiềm năng từ sớm để hiểu pain points và giải đúng nhu cầu thực tế.",
+        "cohort": "k3",
+        "source_file": "tong_hop_du_lieu_AI20K_Cohort_III.json"
+      },
+      "official": true
+    },
+    {
+      "source_id": "docs_schedule_change_week4_k3",
+      "title": "Thay đổi lịch vận hành từ tuần 4",
+      "locator": "Tổng quan Cohort III / weekly_operating_rhythm / from_week_4",
+      "category": "event",
+      "text": "Từ tuần 4: Bổ sung Build Hours vào buổi chiều; Tập trung Optimize, Deploy và chuẩn bị Demo; Tăng tốc hoàn thiện sản phẩm cuối.",
+      "updated_at": "2026-07-31T00:00:00+07:00",
+      "valid_from": "2026-07-20T00:00:00+07:00",
+      "valid_to": "2026-09-06T23:59:59+07:00",
+      "attributes": {
+        "event_name": "schedule_change_week4",
+        "changes": [
+          "Bổ sung Build Hours vào buổi chiều",
+          "Tập trung Optimize, Deploy và chuẩn bị Demo",
+          "Tăng tốc hoàn thiện sản phẩm cuối"
+        ],
+        "cohort": "k3",
+        "source_file": "tong_hop_du_lieu_AI20K_Cohort_III.json"
+      },
+      "official": true
+    },
+    {
+      "source_id": "docs_xp_levels_k3",
+      "title": "Mốc XP để lên level (LV1–LV4)",
+      "locator": "Tổng quan Cohort III / xp_system / levels",
+      "category": "xp",
+      "text": "LV1 (Active Builder): từ 200 XP; LV2 (Solid Builder): từ 500 XP; LV3 (Star Builder): từ 1000 XP; LV4 (Elite Builder): từ 1500 XP",
+      "updated_at": "2026-07-31T00:00:00+07:00",
+      "valid_from": "2026-07-20T00:00:00+07:00",
+      "valid_to": "2026-09-06T23:59:59+07:00",
+      "attributes": {
+        "topic": "xp_levels",
+        "levels": [
+          {
+            "level": "LV1",
+            "name": "Active Builder",
+            "required_xp": 200
+          },
+          {
+            "level": "LV2",
+            "name": "Solid Builder",
+            "required_xp": 500
+          },
+          {
+            "level": "LV3",
+            "name": "Star Builder",
+            "required_xp": 1000
+          },
+          {
+            "level": "LV4",
+            "name": "Elite Builder",
+            "required_xp": 1500
+          }
+        ],
+        "cohort": "k3",
+        "source_file": "tong_hop_du_lieu_AI20K_Cohort_III.json"
+      },
+      "official": true
+    },
+    {
+      "source_id": "docs_xp_extra_activities_k3",
+      "title": "Quy định XP — hỗ trợ cộng đồng và showcase",
+      "locator": "Tổng quan Cohort III / xp_system / earning_rules",
+      "category": "xp",
+      "text": "Hỗ trợ cộng đồng được cộng 5–20 XP mỗi lần (tùy mức đóng góp). Showcase và feedback sản phẩm có thể được cộng XP thưởng thêm (không cố định).",
+      "updated_at": "2026-07-31T00:00:00+07:00",
+      "valid_from": "2026-07-20T00:00:00+07:00",
+      "valid_to": "2026-09-06T23:59:59+07:00",
+      "attributes": {
+        "activity": "community_support_and_showcase",
+        "community_support_xp_range": {
+          "min": 5,
+          "max": 20
+        },
+        "cohort": "k3",
+        "source_file": "tong_hop_du_lieu_AI20K_Cohort_III.json"
+      },
+      "official": true
+    },
+    {
+      "source_id": "docs_gate_definition_k3",
+      "title": "Gate là gì & tiêu chí chấm điểm",
+      "locator": "Tổng quan Cohort III / quality_control_and_demo_day / gates",
+      "category": "gate",
+      "text": "Gate là các checkpoint định kỳ để đánh giá tiến độ. Mentor đề xuất hỗ trợ khẩn cấp khi team chưa đạt chuẩn. Tiêu chí chấm điểm: Xác định và giải quyết vấn đề người dùng; Hoàn thiện sản phẩm; Kỹ năng AI; Triển khai hệ thống; Chất lượng code.",
+      "updated_at": "2026-07-31T00:00:00+07:00",
+      "valid_from": "2026-07-20T00:00:00+07:00",
+      "valid_to": "2026-09-06T23:59:59+07:00",
+      "attributes": {
+        "topic": "gate_definition",
+        "scoring_rubric": [
+          "Xác định và giải quyết vấn đề người dùng",
+          "Hoàn thiện sản phẩm",
+          "Kỹ năng AI",
+          "Triển khai hệ thống",
+          "Chất lượng code"
+        ],
+        "cohort": "k3",
+        "source_file": "tong_hop_du_lieu_AI20K_Cohort_III.json"
+      },
+      "official": true
+    },
+    {
+      "source_id": "docs_exam_bank_k3",
+      "title": "Ngân hàng đề thi — nguyên tắc chọn đề",
+      "locator": "Tổng quan Cohort III / exam_bank",
+      "category": "exam_slot",
+      "text": "Truy cập ngân hàng đề thi. Nguyên tắc cốt lõi: Scope down sớm tốt hơn scope creep — Giới hạn phạm vi sản phẩm sớm thay vì để nó lan man.",
+      "updated_at": "2026-07-31T00:00:00+07:00",
+      "valid_from": "2026-07-20T00:00:00+07:00",
+      "valid_to": "2026-09-06T23:59:59+07:00",
+      "attributes": {
+        "topic": "exam_bank",
+        "title": "Ngân hàng đề thi",
+        "resource_label": "Truy cập ngân hàng đề thi",
+        "core_principle": "Scope down sớm tốt hơn scope creep",
+        "principle_explanation": "Giới hạn phạm vi sản phẩm sớm thay vì để nó lan man.",
+        "cohort": "k3",
+        "source_file": "tong_hop_du_lieu_AI20K_Cohort_III.json"
+      },
+      "official": true
+    },
+    {
+      "source_id": "docs_support_automation_k3",
+      "title": "Hệ thống hỗ trợ tự động và Trợ lý Kute",
+      "locator": "Tổng quan Cohort III / support_and_automation",
+      "category": "learning_material",
+      "text": "Hệ thống tự động: Nhắc stand-up; Nhắc deadline; Theo dõi độ active của học viên; Cảnh báo team gặp rủi ro (at-risk). Trợ lý Kute (@Trợ lý Kute): Hỏi đáp về thông tin chương trình Build Phase; Trợ lý 24/7 hỗ trợ giải đáp thắc mắc.",
+      "updated_at": "2026-07-31T00:00:00+07:00",
+      "valid_from": "2026-07-20T00:00:00+07:00",
+      "valid_to": "2026-09-06T23:59:59+07:00",
+      "attributes": {
+        "topic": "support_and_automation",
+        "server_system": {
+          "functions": [
+            "Nhắc stand-up",
+            "Nhắc deadline",
+            "Theo dõi độ active của học viên",
+            "Cảnh báo team gặp rủi ro (at-risk)"
+          ]
+        },
+        "kutebot": {
+          "role": "Chatbot hỗ trợ hỏi đáp",
+          "functions": [
+            "Hỏi đáp về thông tin chương trình Build Phase",
+            "Trợ lý 24/7 hỗ trợ giải đáp thắc mắc"
+          ],
+          "mention": "@Trợ lý Kute"
+        },
+        "cohort": "k3",
+        "source_file": "tong_hop_du_lieu_AI20K_Cohort_III.json"
+      },
+      "official": true
+    },
+    {
+      "source_id": "docs_supplementary_workshops_k3",
+      "title": "Workshop bổ sung",
+      "locator": "Tổng quan Cohort III / supplementary_workshop_topics",
+      "category": "learning_material",
+      "text": "Workshop bổ sung (ngoài 14 buổi chính): Data pipeline; Recommendation.",
+      "updated_at": "2026-07-31T00:00:00+07:00",
+      "valid_from": "2026-07-20T00:00:00+07:00",
+      "valid_to": "2026-09-06T23:59:59+07:00",
+      "attributes": {
+        "topic": "supplementary_workshops",
+        "topics": [
+          "Data pipeline",
+          "Recommendation"
+        ],
         "cohort": "k3",
         "source_file": "tong_hop_du_lieu_AI20K_Cohort_III.json"
       },

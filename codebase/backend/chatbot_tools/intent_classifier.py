@@ -344,6 +344,26 @@ INTENTS = {
         ],
     },
 
+    # Unsafe / illegal content — taxonomy class ③ (ngoài phạm vi / thẩm quyền),
+    # the dangerous-content half of it. Distinct from BOTH reject_prompt_injection
+    # (jailbreak attempts against the bot itself) AND out_of_domain (mundane
+    # off-topic chat: weather, stocks, football, ...) — this is specifically
+    # weapons/explosives/illegal-activity requests, which neither existing
+    # category caught (see the "hướng dẫn chế tạo bom" repro — it fell through
+    # to "help" on the word "hướng dẫn" alone). Deliberately does NOT repeat
+    # out_of_domain's keywords (thoi tiet, tin tuc, ...) — that category
+    # already owns those and has its own test coverage.
+    "reject_out_of_scope": {
+        "keywords": [
+            "che tao bom", "vu khi", "chat no", "ma tuy",
+            "phi phap", "vi pham phap luat",
+        ],
+        "patterns": [
+            r"\bbom\b", r"che\s*tao\s*bom", r"vu\s*khi", r"chat\s*no",
+            r"ma\s*tuy", r"phi\s*phap", r"vi\s*pham\s*phap\s*luat",
+        ],
+    },
+
     # Prompt injection defense
     "reject_prompt_injection": {
         "keywords": ["ignore", "ignore previous", "system prompt", "developer", "api key"],
@@ -381,6 +401,7 @@ INTENTS = {
 
 INTENT_PRIORITY = {
     "reject_prompt_injection": 100,
+    "reject_out_of_scope": 99,
     "report_harassment": 95,
     "reject_answer_key_request": 90,
     "reject_do_assignment_for_user": 90,
