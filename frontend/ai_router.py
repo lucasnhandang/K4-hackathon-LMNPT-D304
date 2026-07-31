@@ -12,10 +12,13 @@ import os
 import httpx
 from datetime import datetime, timezone
 from typing import Dict, Any, List
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Configuration for external Backend API
 BACKEND_URL = os.environ.get("BACKEND_URL", "http://localhost:8000/api/v1/chat")
-USE_LOCAL_MOCK = os.environ.get("USE_LOCAL_MOCK", "true").lower() == "true"
+USE_LOCAL_MOCK = os.environ.get("USE_LOCAL_MOCK", "false").lower() == "true"
 
 # Official Ground Truth Knowledge Base
 KNOWLEDGE_BASE = {

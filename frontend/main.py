@@ -4,6 +4,7 @@ NiceGUI Application: 100% Authentic Discord UI for Student Assistant Bot
 """
 
 from datetime import datetime
+import asyncio
 import sys
 import os
 import re
@@ -12,7 +13,10 @@ from typing import List, Dict, Any
 from nicegui import ui
 
 from custom_styles import DISCORD_CSS
-from ai_router import classify_and_route, handle_option_selection, KNOWLEDGE_BASE
+from ai_router import call_backend_api_async, handle_option_selection, KNOWLEDGE_BASE
+
+# Options that are pure UI feedback (not a real question for the backend) stay local.
+LOCAL_ONLY_OPTIONS = {"FEEDBACK_RESOLVED", "FEEDBACK_WRONG"}
 
 # Enable static Discord styles & fonts
 ui.add_head_html(DISCORD_CSS)
@@ -43,6 +47,22 @@ class DiscordChatApp:
     def get_time_str() -> str:
         return f"Hôm nay lúc {datetime.now().strftime('%H:%M')}"
 
+    @staticmethod
+    def _schedule(coro):
+        """Run a coroutine on the current NiceGUI client's event loop."""
+        asyncio.create_task(coro)
+
+    def _build_history_payload(self) -> List[Dict[str, str]]:
+        """Turn the rendered message log into a plain role/content history for the backend."""
+        history = []
+        for msg in self.messages[-10:]:
+            role = "assistant" if msg["sender"] == "bot" else "user"
+            text = msg["text"]
+            if role == "user":
+                text = text.replace("@Trợ lý Kute ", "", 1)
+            history.append({"role": role, "content": text})
+        return history
+
     def send_user_text(self, text: str):
         text = text.strip()
         if not text or self.is_typing:
@@ -53,7 +73,8 @@ class DiscordChatApp:
             formatted_text = f"@Trợ lý Kute {text}"
             
         user_name = "Học viên K4"
-        
+        history = self._build_history_payload()
+
         # Append User Message
         self.messages.append({
             "sender": "user",
@@ -62,22 +83,22 @@ class DiscordChatApp:
             "text": formatted_text,
             "payload": None
         })
-        
+
         if self.input_element:
             self.input_element.value = ""
-            
+
         self.update_chat_ui()
-        
+
         # Trigger Bot Response
         self.is_typing = True
         self.update_chat_ui()
-        
-        ui.timer(0.6, lambda: self.process_bot_reply(text, user_name), once=True)
 
-    def process_bot_reply(self, raw_user_text: str, reply_to_name: str):
-        route_res = classify_and_route(raw_user_text)
+        ui.timer(0.6, lambda: self._schedule(self.process_bot_reply(text, user_name, history)), once=True)
+
+    async def process_bot_reply(self, raw_user_text: str, reply_to_name: str, history: List[Dict[str, str]] = None):
+        route_res = await call_backend_api_async(raw_user_text, history)
         self.is_typing = False
-        
+
         self.messages.append({
             "sender": "bot",
             "name": "Trợ lý Kute",
@@ -103,7 +124,8 @@ class DiscordChatApp:
 
         clean_label = opt_label.replace("📄 ", "").replace("✅ ", "").replace("📅 ", "").replace("❓ ", "").replace("↺ ", "").replace("✍ ", "").replace("⚠️ ", "")
         user_name = "Học viên K4"
-        
+        history = self._build_history_payload()
+
         self.messages.append({
             "sender": "user",
             "name": user_name,
@@ -112,11 +134,19 @@ class DiscordChatApp:
             "payload": None
         })
         self.update_chat_ui()
-        
+
         self.is_typing = True
         self.update_chat_ui()
-        
-        ui.timer(0.5, lambda: self.process_option_reply(opt_value, user_name), once=True)
+
+        val_upper = opt_value.upper()
+        if opt_value in LOCAL_ONLY_OPTIONS or "MOD" in val_upper:
+            # Pure UI feedback / forced escalation: handled locally, no backend round-trip.
+            ui.timer(0.5, lambda: self.process_option_reply(opt_value, user_name), once=True)
+        else:
+            # A follow-up / clarification choice: continue the real conversation with
+            # the backend, sending the button's label just like typed text so the
+            # backend's session-based clarification state picks it up.
+            ui.timer(0.5, lambda: self._schedule(self.process_bot_reply(clean_label, user_name, history)), once=True)
 
     def process_option_reply(self, opt_value: str, reply_to_name: str):
         route_res = handle_option_selection(opt_value)
