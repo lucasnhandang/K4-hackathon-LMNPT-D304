@@ -7,6 +7,10 @@ import os
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 
+if sys.platform == "win32":
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+
 def run_backend():
     return subprocess.Popen(
         [sys.executable, "server.py"],

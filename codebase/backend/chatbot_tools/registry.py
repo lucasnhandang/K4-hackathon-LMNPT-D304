@@ -96,6 +96,8 @@ TOOL_SCHEMAS: dict[str, dict[str, Any]] = {
             "missing_information": {"type": "array", "items": {"type": "string"}},
             "clarification_attempts": {"type": "integer"},
             "source_ids": {"type": ["array", "null"], "items": {"type": "string"}},
+            "priority": {"type": ["string", "null"]},
+            "sentiment": {"type": ["string", "null"]},
         },
         ["category", "question", "known_context", "missing_information", "clarification_attempts"],
     ),
