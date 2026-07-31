@@ -11,7 +11,7 @@ Mỗi phần tử `self.messages` là 1 dict:
 ```python
 {
     "sender": "bot" | "user",
-    "name": str,                # "Trợ lý Kute" hoặc "Học viên K4"
+    "name": str,                # "Trợ lý Claude" hoặc "Học viên K4"
     "time": str,                 # "Hôm nay lúc HH:MM"
     "text": str,                 # có thể chứa **bold** và @mention — render qua render_msg_text
     "payload": dict | None,      # None với tin nhắn user; dict với tin nhắn bot có embed

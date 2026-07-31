@@ -20,6 +20,7 @@ Sau đó, tuỳ việc đang làm, đọc thêm:
 | Sửa giao diện Discord (layout, CSS, thêm loại tin nhắn/embed) | [`architecture/frontend.md`](project_setup/architecture/frontend.md) |
 | Sửa logic phân loại câu hỏi, knowledge base, nối backend thật | [`architecture/ai_router.md`](project_setup/architecture/ai_router.md) |
 | Hiểu đề bài / tiêu chí chấm / taxonomy 4 lớp chỗ khó | `01-de-bai.md`, `04-rubric.md` (gốc, không tóm tắt lại ở đây) |
+| Chạy/khởi động backend + frontend (cài đặt, lỗi cổng bị chiếm, ...) | [`HUONG_DAN_CHAY.md`](HUONG_DAN_CHAY.md) |
 
 ### Reading protocol (tiết kiệm token)
 

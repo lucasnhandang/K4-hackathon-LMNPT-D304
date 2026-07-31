@@ -47,9 +47,9 @@ class DiscordChatApp:
         self.messages = [
             {
                 "sender": "bot",
-                "name": "Trợ lý Kute",
+                "name": "Cute ver 2.o",
                 "time": self.get_time_str(),
-                "text": "Chào bạn! Mình là **Trợ lý Kute** (K4 AI Thực Chiến). Nếu bạn có thắc mắc gì về bài tập, deadline hoặc quy chế môn học, hãy nhập câu hỏi bên dưới nhé! 🚀",
+                "text": "Chào bạn! Mình là **Cute ver 2.o** (K4 AI Thực Chiến). Nếu bạn có thắc mắc gì về bài tập, deadline hoặc quy chế môn học, hãy nhập câu hỏi bên dưới nhé! 🚀",
                 "payload": None
             }
         ]
@@ -70,7 +70,7 @@ class DiscordChatApp:
             role = "assistant" if msg["sender"] == "bot" else "user"
             text = msg["text"]
             if role == "user":
-                text = text.replace("@Trợ lý Kute ", "", 1)
+                text = text.replace("@Cute ver 2.o ", "", 1)
             history.append({"role": role, "content": text})
         return history
 
@@ -81,7 +81,7 @@ class DiscordChatApp:
         
         formatted_text = text
         if not text.startswith("@"):
-            formatted_text = f"@Trợ lý Kute {text}"
+            formatted_text = f"@Cute ver 2.o {text}"
             
         user_name = "Học viên K4"
         history = self._build_history_payload()
@@ -112,7 +112,7 @@ class DiscordChatApp:
 
         self.messages.append({
             "sender": "bot",
-            "name": "Trợ lý Kute",
+            "name": "Cute ver 2.o",
             "time": self.get_time_str(),
             "text": route_res.get("message", ""),
             "reply_to": reply_to_name,
@@ -141,7 +141,7 @@ class DiscordChatApp:
             "sender": "user",
             "name": user_name,
             "time": self.get_time_str(),
-            "text": f"@Trợ lý Kute {clean_label}",
+            "text": f"@Cute ver 2.o {clean_label}",
             "payload": None
         })
         self.update_chat_ui()
@@ -165,7 +165,7 @@ class DiscordChatApp:
         
         self.messages.append({
             "sender": "bot",
-            "name": "Trợ lý Kute",
+            "name": "Cute ver 2.o",
             "time": self.get_time_str(),
             "text": route_res.get("message", ""),
             "reply_to": reply_to_name,
@@ -194,7 +194,7 @@ class DiscordChatApp:
         dialog.open()
 
     def render_msg_text(self, text: str) -> str:
-        formatted = re.sub(r'(@Trợ lý Kute|@Trợ lý Học viên|@Mod|@Mentor)', r'<span class="mention-pill">\1</span>', text)
+        formatted = re.sub(r'(@Cute ver 2.o|@Trợ lý Học viên|@Mod|@Mentor)', r'<span class="mention-pill">\1</span>', text)
         formatted = re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', formatted)
         return formatted
 
@@ -321,9 +321,9 @@ class DiscordChatApp:
                     ui.html('<div class="msg-avatar bot-avatar">BOT</div>')
                     with ui.element("div").classes("msg-content-wrapper"):
                         with ui.element("div").classes("msg-header"):
-                            ui.label("Trợ lý Kute").classes("author-name")
+                            ui.label("Cute ver 2.o").classes("author-name")
                             ui.html('<span class="bot-app-badge">APP</span>')
-                        ui.html('<div style="color: var(--text-muted); font-size: 13.5px; font-style: italic;">Trợ lý Kute đang gõ câu trả lời...</div>')
+                        ui.html('<div style="color: var(--text-muted); font-size: 13.5px; font-style: italic;">Cute ver 2.o đang gõ câu trả lời...</div>')
 
         try:
             if ui.context.client and ui.context.client.has_socket_connection:
