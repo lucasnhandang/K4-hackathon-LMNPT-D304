@@ -31,7 +31,9 @@ from pathlib import Path
 from typing import Any
 
 from .intent_classifier import IntentResult, classify_intent, normalize_vietnamese
+from .llm_client import LLMClient, LLMConfig
 from .models import ToolResult
+from .rag_generator import RAGGenerator
 from .registry import ToolRegistry, build_default_registry
 from .response_generator import generate_response
 
@@ -71,9 +73,19 @@ class ChatbotOrchestrator:
     response generation -> confidence checking.
     """
 
-    def __init__(self, registry: ToolRegistry | None = None):
+    def __init__(
+        self,
+        registry: ToolRegistry | None = None,
+        llm_config: LLMConfig | None = None,
+    ):
         self.registry = registry or build_default_registry()
         self._clarification_state: dict[str, dict[str, Any]] = {}
+
+        # LLM / RAG integration
+        llm_client = LLMClient(llm_config) if llm_config else LLMClient()
+        self.rag = RAGGenerator(llm_client) if llm_client.is_available() else None
+        if self.rag:
+            logger.info("RAG generator initialized with OpenRouter LLM")
 
     def process_message(
         self,
@@ -102,6 +114,13 @@ class ChatbotOrchestrator:
 
         # Step 1: Normalize and classify intent
         intent_result = classify_intent(message)
+
+        # Inherit context slots from conversation history if present
+        if conversation_history:
+            history_slots = self._extract_history_slots(conversation_history)
+            for k, v in history_slots.items():
+                if k not in intent_result.slots and v:
+                    intent_result.slots[k] = v
 
         logger.info(
             "Intent classified: intent=%s, confidence=%.2f, slots=%s",
@@ -208,23 +227,35 @@ class ChatbotOrchestrator:
                 message=message,
             )
 
-        # Step 7: Fallback - search official sources
+        # Step 7: Fallback - search official sources + RAG
         search_result = self.registry.execute(
             "search_official_sources",
             {
                 "query": message,
                 "category": None,
                 "at": None,
-                "limit": 3,
+                "limit": 5,
             },
         )
 
         return self._handle_search_fallback(
             search_result=search_result,
             intent_result=intent_result,
+            message=message,
             message_id=message_id,
             trace_id=trace_id,
         )
+
+    def _extract_history_slots(self, history: list[dict[str, str]]) -> dict[str, Any]:
+        """Extract slots from recent conversation history."""
+        extracted: dict[str, Any] = {}
+        for item in reversed(history):
+            if isinstance(item, dict) and item.get("role") == "user":
+                res = classify_intent(item.get("content", ""))
+                for k, v in res.slots.items():
+                    if k not in extracted and v:
+                        extracted[k] = v
+        return extracted
 
     def _get_required_slots(self, intent: str) -> list[str]:
         """Get required slots for each intent that needs clarification.
@@ -348,15 +379,47 @@ class ChatbotOrchestrator:
                     "query": message,
                     "category": None,
                     "at": None,
-                    "limit": 3,
+                    "limit": 5,
                 },
             )
             search_status = search_result.get("status", "")
             search_data = search_result.get("data")
 
             if search_status == "ok" and search_data:
-                # Found something via search
                 citations = search_result.get("citations", [])
+
+                # Use RAG if available
+                if self.rag:
+                    context_chunks = []
+                    for i, item in enumerate(search_data):
+                        chunk = {
+                            "source_id": item.get("source_id", ""),
+                            "category": item.get("category", ""),
+                            "score": item.get("score", 0),
+                            "attributes": item.get("attributes", {}),
+                        }
+                        if i < len(citations):
+                            chunk["quote"] = citations[i].get("quote", "")
+                        context_chunks.append(chunk)
+
+                    rag_result = self.rag.generate(
+                        query=message,
+                        context_chunks=context_chunks,
+                        intent=intent_result.intent,
+                    )
+
+                    return self._build_response(
+                        message_id=message_id,
+                        trace_id=trace_id,
+                        route="ANSWER",
+                        intent=intent_result.intent,
+                        confidence=max(intent_result.confidence, 0.6),
+                        grounding_status="grounded" if rag_result.get("grounded") else "partial",
+                        response=rag_result["response"],
+                        citations=citations,
+                    )
+
+                # Template fallback (no LLM)
                 response_parts = ["Mình tìm thấy thông tin liên quan từ tài liệu khóa học:\n"]
                 for i, item in enumerate(search_data[:3], 1):
                     title = citations[i - 1].get("title") if i - 1 < len(citations) else item.get("source_id", "")
@@ -377,15 +440,24 @@ class ChatbotOrchestrator:
                     citations=citations,
                 )
 
-            # Still not found
+            # Still not found - ask for clarification
+            clarification = {
+                "missing_field": "query",
+                "question": "Mình chưa tìm thấy thông tin chính xác về câu hỏi này. Bạn có thể nói rõ hơn chủ đề bạn cần hỗ trợ không? (VD: deadline bài nộp, lịch workshop, XP/rank, team/mentor...)",
+                "suggested_replies": ["Deadline bài nộp", "Lịch sự kiện / Workshop", "XP & Rank", "Kênh hỗ trợ / Ticket"],
+                "original_intent": intent_result.intent,
+                "attempt_count": 1,
+                "known_slots": {},
+            }
             return self._build_response(
                 message_id=message_id,
                 trace_id=trace_id,
-                route="ANSWER",
+                route="CLARIFY",
                 intent=intent_result.intent,
                 confidence=max(intent_result.confidence, 0.5),
                 grounding_status="no_source",
-                response="Mình không tìm thấy thông tin phù hợp trong nguồn chính thức. Bạn vui lòng thử lại với từ khóa khác hoặc hỏi Mod để được hỗ trợ thêm.",
+                response=clarification["question"],
+                clarification=clarification,
             )
 
         # Conflict - escalate
@@ -628,16 +700,53 @@ class ChatbotOrchestrator:
         self,
         search_result: dict[str, Any],
         intent_result: IntentResult,
+        message: str,
         message_id: str,
         trace_id: str,
     ) -> dict[str, Any]:
-        """Handle fallback search when no specific intent matches."""
+        """Handle fallback search when no specific intent matches.
+
+        Uses RAG generator when available for natural language responses.
+        Falls back to template-based response when LLM is unavailable.
+        """
         status = search_result.get("status", "")
         data = search_result.get("data")
         citations = search_result.get("citations", [])
 
+        # Try RAG generation when we have search results and LLM is available
+        if status == "ok" and data and self.rag:
+            # Build context chunks from BM25 results
+            context_chunks = []
+            for i, item in enumerate(data):
+                chunk = {
+                    "source_id": item.get("source_id", ""),
+                    "category": item.get("category", ""),
+                    "score": item.get("score", 0),
+                    "attributes": item.get("attributes", {}),
+                }
+                if i < len(citations):
+                    chunk["quote"] = citations[i].get("quote", "")
+                context_chunks.append(chunk)
+
+            rag_result = self.rag.generate(
+                query=message,
+                context_chunks=context_chunks,
+                intent=intent_result.intent,
+            )
+
+            return self._build_response(
+                message_id=message_id,
+                trace_id=trace_id,
+                route="ANSWER",
+                intent="search_fallback",
+                confidence=max(intent_result.confidence, 0.5),
+                grounding_status="grounded" if rag_result.get("grounded") else "partial",
+                response=rag_result["response"],
+                citations=citations,
+            )
+
+        # Fallback: template-based response (no LLM or no search results)
         if status == "ok" and data:
-            # Found something in search
             response_parts = ["Mình tìm thấy thông tin liên quan từ tài liệu khóa học:\n"]
             for i, item in enumerate(data[:3], 1):
                 title = citations[i - 1].get("title") if i - 1 < len(citations) else item.get("source_id", "")
@@ -658,15 +767,24 @@ class ChatbotOrchestrator:
                 citations=citations,
             )
 
-        # No results at all
+        # No results at all - ask for clarification
+        clarification = {
+            "missing_field": "query",
+            "question": "Mình chưa hiểu rõ câu hỏi hoặc chưa tìm thấy thông tin phù hợp trong nguồn chính thức. Bạn có thể nói rõ hơn chủ đề bạn đang cần không? (VD: deadline bài nộp, lịch workshop, XP/rank, team/mentor...)",
+            "suggested_replies": ["Deadline bài nộp", "Lịch sự kiện / Workshop", "XP & Rank", "Kênh hỗ trợ / Ticket"],
+            "original_intent": "unknown",
+            "attempt_count": 1,
+            "known_slots": {},
+        }
         return self._build_response(
             message_id=message_id,
             trace_id=trace_id,
-            route="ANSWER",
+            route="CLARIFY",
             intent="unknown",
             confidence=0.2,
             grounding_status="no_source",
-            response="Mình chưa tìm thấy thông tin phù hợp. Bạn có thể thử hỏi lại với từ khóa khác hoặc hỏi Mod để được hỗ trợ thêm.",
+            response=clarification["question"],
+            clarification=clarification,
         )
 
     def _generate_clarification(self, intent: str, missing_fields: list[str]) -> str:
