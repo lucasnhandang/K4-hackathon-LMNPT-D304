@@ -174,7 +174,11 @@ async def call_backend_api_async(user_message: str, history: List[Dict[str, str]
     }
 
     try:
-        async with httpx.AsyncClient(timeout=8.0) as client:
+        # 15s: backend's own LLM polish step can take up to ~6-7s (network +
+        # OpenRouter latency) on top of orchestrator processing — 8s here was
+        # tighter than that and caused frequent httpx.ReadTimeout even on a
+        # successful backend call (see DECISIONS.md D-007).
+        async with httpx.AsyncClient(timeout=15.0) as client:
             response = await client.post(BACKEND_URL, json=payload)
             if response.status_code == 200:
                 backend_data = response.json()
@@ -188,6 +192,12 @@ async def call_backend_api_async(user_message: str, history: List[Dict[str, str]
                     "escalate_detail": f"Backend Error Code: {response.status_code}"
                 }
     except Exception as e:
+        # This print() used to crash on Windows when stdout wasn't UTF-8
+        # (cp1252 can't encode Vietnamese diacritics) — that second exception
+        # replaced this one, the function never returned, and the caller's
+        # "is_typing" flag stayed stuck forever (see DECISIONS.md D-007).
+        # Fixed at the source in main.py (sys.stdout.reconfigure(utf-8)), not
+        # here, so every print in the app is safe, not just this one.
         print(f"[Warning] Không thể kết nối Backend API: {e}. Đang chuyển về Local AI Router.")
         return classify_and_route(user_message)
 

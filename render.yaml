@@ -1,0 +1,61 @@
+# render.yaml — Blueprint for deploying both services from this monorepo to
+# Render (https://render.com), in one "New Blueprint" import.
+#
+# Why Render and not Vercel: the frontend (NiceGUI) is a long-running,
+# stateful, WebSocket server — fundamentally incompatible with Vercel's
+# serverless model. See project_setup/architecture/DECISIONS.md D-008.
+#
+# Deploy order matters — see the "After first deploy" note below the two
+# services: backend must go up first so you can copy its live URL into the
+# frontend's BACKEND_URL env var.
+services:
+  # ---------------------------------------------------------------------
+  # Backend — FastAPI + ChatbotOrchestrator, optionally OpenRouter for the
+  # LLM response-polish step (see codebase/backend/llm_client.py, D-006).
+  # ---------------------------------------------------------------------
+  - type: web
+    name: k4-hackathon-backend
+    runtime: python
+    plan: free
+    rootDir: codebase/backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: python server.py
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      # Secret — Render prompts for this in the dashboard on first deploy
+      # instead of reading a value from this file, so it's never committed.
+      - key: OPENROUTER_API_KEY
+        sync: false
+      - key: OPENROUTER_MODEL
+        value: openai/gpt-oss-20b:free
+      - key: OPENROUTER_BASE_URL
+        value: https://openrouter.ai/api/v1
+      - key: OPENROUTER_APP_NAME
+        value: AI20K-Student-Assistant
+      - key: OPENROUTER_SITE_URL
+        value: http://localhost
+
+  # ---------------------------------------------------------------------
+  # Frontend — NiceGUI Discord-clone UI (frontend/main.py).
+  # ---------------------------------------------------------------------
+  - type: web
+    name: k4-hackathon-frontend
+    runtime: python
+    plan: free
+    rootDir: frontend
+    buildCommand: pip install -r requirements.txt
+    startCommand: python main.py
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: USE_LOCAL_MOCK
+        value: "false"
+      # Placeholder — after the backend service above finishes its first
+      # deploy, copy its real URL from the Render dashboard and update this
+      # value to "https://<that-url>/api/v1/chat", then redeploy this
+      # service. Render doesn't support string-concatenating another
+      # service's URL inside render.yaml, so this one step stays manual.
+      - key: BACKEND_URL
+        value: https://k4-hackathon-backend.onrender.com/api/v1/chat

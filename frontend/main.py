@@ -10,6 +10,17 @@ import os
 import re
 from typing import List, Dict, Any
 
+# Windows' default console/redirected-file encoding (cp1252) can't encode
+# Vietnamese diacritics — any print() with Vietnamese text (e.g. the backend
+# connection warning in ai_router.py) would raise UnicodeEncodeError instead
+# of the exception it was trying to report, silently killing the async
+# handler and leaving the chat UI stuck on "đang gõ..." forever (see
+# project_setup/architecture/DECISIONS.md D-007). Must run before any other
+# module (ai_router, custom_styles) has a chance to print.
+if sys.stdout.encoding != "utf-8":
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+
 from nicegui import ui
 
 from custom_styles import DISCORD_CSS

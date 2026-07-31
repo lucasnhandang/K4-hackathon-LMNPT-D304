@@ -22,6 +22,7 @@ from typing import Any
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+import llm_client
 from chatbot_tools.orchestrator import ChatbotOrchestrator
 
 app = FastAPI(title="AI20K Student Assistant API")
@@ -60,7 +61,12 @@ def _to_frontend_citations(citations: list[dict[str, Any]]) -> list[dict[str, st
 
 
 def _build_tracepath(
-    route: str, intent: str, confidence: float, grounding_status: str, latency_ms: int
+    route: str,
+    intent: str,
+    confidence: float,
+    grounding_status: str,
+    latency_ms: int,
+    llm_status: str | None = None,
 ) -> dict[str, Any]:
     tools = [{"name": "Intent Classifier", "icon": "🔍", "status": "success"}]
     tool = _GROUNDING_TOOL.get(grounding_status)
@@ -71,25 +77,38 @@ def _build_tracepath(
     elif route == "ESCALATE":
         tools.append({"name": "Escalation Router", "icon": "🚨", "status": "escalated"})
 
+    steps = [
+        f"Phân loại Intent: {intent} ({int(confidence * 100)}% confidence)",
+        f"Grounding: {grounding_status} | Route: {route}",
+    ]
+    # llm_status is only set when this route was eligible for LLM polishing
+    # (see chat() below) — surfaces whether the real OpenRouter call actually
+    # ran, so it's auditable from the demo instead of a silent side effect.
+    if llm_status is not None:
+        tools.append({"name": "OpenRouter LLM Writer", "icon": "🤖", "status": llm_status})
+        if llm_status == "success":
+            steps.append("Diễn đạt lại câu trả lời bằng LLM thật (OpenRouter) — giữ nguyên số liệu/nguồn")
+        elif llm_status == "not_configured":
+            steps.append("Bỏ qua LLM polish: chưa cấu hình OPENROUTER_API_KEY trong .env")
+        else:
+            steps.append("Bỏ qua LLM polish: gọi OpenRouter lỗi/timeout, dùng câu trả lời gốc")
+
     return {
         "latency_ms": latency_ms,
         "confidence": confidence,
         "intent": intent,
         "tools_used": tools,
-        "steps": [
-            f"Phân loại Intent: {intent} ({int(confidence * 100)}% confidence)",
-            f"Grounding: {grounding_status} | Route: {route}",
-        ],
+        "steps": steps,
     }
 
 
-def _adapt_response(orch_result: dict[str, Any], latency_ms: int) -> dict[str, Any]:
+def _adapt_response(orch_result: dict[str, Any], latency_ms: int, llm_status: str | None = None) -> dict[str, Any]:
     """Map ChatbotOrchestrator's native output to the documented API response shape."""
     route = orch_result["route"]
     intent = orch_result["intent"]
     confidence = orch_result["confidence"]
     grounding = orch_result["grounding_status"]
-    tracepath = _build_tracepath(route, intent, confidence, grounding, latency_ms)
+    tracepath = _build_tracepath(route, intent, confidence, grounding, latency_ms, llm_status)
 
     if route == "CLARIFY":
         clarification = orch_result.get("clarification") or {}
@@ -179,10 +198,35 @@ async def chat(payload: dict[str, Any]) -> dict[str, Any]:
         result.get("clarification") if result["route"] == "CLARIFY" else None
     )
 
-    return _adapt_response(result, latency_ms)
+    # Real AI call happens here: only for grounded direct answers (route ==
+    # "ANSWER" with citations from a deterministic tool lookup) — greetings/
+    # clarifications/escalations keep their structured text untouched.
+    # polish_response() never raises and returns None on any failure, so a
+    # missing key or a network error silently falls back to the original
+    # deterministic response instead of breaking the request.
+    llm_status: str | None = None
+    if result["route"] == "ANSWER" and result.get("citations"):
+        if not llm_client.is_configured():
+            llm_status = "not_configured"
+        else:
+            polished = llm_client.polish_response(result["response"], result["citations"])
+            if polished:
+                result["response"] = polished
+                llm_status = "success"
+            else:
+                llm_status = "error"
+
+    return _adapt_response(result, latency_ms, llm_status)
 
 
 if __name__ == "__main__":
+    import os
+
     import uvicorn
 
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    # PaaS hosts (Render, Railway, ...) assign a dynamic port via $PORT and
+    # route traffic to it — a hardcoded 8000 would make the deployed service
+    # unreachable. Falls back to 8000 for local dev, matching frontend's
+    # BACKEND_URL default (see project_setup/architecture/DECISIONS.md D-008).
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run(app, host="0.0.0.0", port=port)

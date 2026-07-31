@@ -1,0 +1,17 @@
+[
+  {
+    "name": "ai-router-taxonomy",
+    "description": "Sửa logic phân loại câu hỏi, knowledge base, hoặc đấu nối backend AI thật trong frontend/ai_router.py. Dùng khi task nói tới \"phân loại intent\", \"thêm câu trả lời\", \"knowledge base\", \"nối backend thật\", \"escalate/chuyển Mod\", \"4 lớp chỗ khó\", hoặc taxonomy AMBIGUOUS/DIRECT_ANSWER/NO_SOURCE_ESCALATE/OUT_OF_SCOPE.",
+    "file": ".claude/skills/ai-router-taxonomy/SKILL.md"
+  },
+  {
+    "name": "arch-doc-sync",
+    "description": "Đồng bộ project_setup/architecture/*.md sau khi sửa code, để phiên làm việc sau không phải quét lại repo. Dùng ngay sau bất kỳ thay đổi nào ảnh hưởng cấu trúc, taxonomy, schema payload, hoặc luồng dữ liệu — hoặc khi phát hiện code và doc đang lệch nhau.",
+    "file": ".claude/skills/arch-doc-sync/SKILL.md"
+  },
+  {
+    "name": "discord-ui-nicegui",
+    "description": "Sửa layout, style, hoặc thêm loại tin nhắn/embed mới trong giao diện Discord-clone (frontend/main.py, frontend/custom_styles.py). Dùng khi task nói tới \"giao diện\", \"CSS\", \"embed\", \"màu sắc\", \"layout Discord\", \"AI Tracepath box\", hoặc thêm nút bấm/loại phản hồi mới trên UI.",
+    "file": ".claude/skills/discord-ui-nicegui/SKILL.md"
+  }
+]
