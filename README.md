@@ -1,9 +1,40 @@
-# Mini Hackathon AI — Batch 03
+# Mini Hackathon AI — Batch 03 · Nhóm LMNPT · Zone D304
 
 **SPEC → Prototype → Demo.** Đây không phải cuộc thi code — đây là cuộc thi **tư duy sản phẩm AI**.
 
 - Thời lượng: **1,5 ngày** (một ngày build + một buổi demo)
 - Nhóm: **4-5 người** · zone tối đa 5 nhóm · thi theo lớp
+
+## Nhóm & phân công
+
+**Hướng B — Trợ lý Học viên (Discord)**, tối ưu tính năng có sẵn: quyết định `ANSWER / CLARIFY / ESCALATE` cho Trợ lý Kute++. Chi tiết đầy đủ: [`spec.md`](spec.md).
+
+| Người | Mã HV | Owner chính | Phần phụ trách |
+|---|---|---|---|
+| Đặng Văn Nhân | 2A202601050 | Product, evidence, validation | Problem statement, bảng impact 3 ứng viên, evidence log (`spec.md` §1–§3); điều phối 5 willing users; [`validation/feedback-log.md`](validation/feedback-log.md); changelog |
+| Nguyễn Trần Gia Phụng | 2A202601286 | Data, retrieval & tools | Pipeline mining/ẩn danh Discord; index nguồn chính thức; tool retrieve/search/escalate; trace (`codebase/backend/chatbot_tools/retrieval.py`, `tools.py`) |
+| Nguyễn Trương Ngọc Mai | 2A202601652 | Evaluation & quality | Định nghĩa 9 chiều chất lượng, golden set, quality bar, eval runner (`spec.md` §5, §7; [`eval/`](eval/)); ghi log validation |
+| Giáp Hoàng Thịnh | 2A202601492 | AI behavior & backend orchestration | Router `ANSWER / CLARIFY / ESCALATE`, grounding/confidence policy, gọi LLM thật qua OpenRouter (`spec.md` §4, §6; `codebase/backend/chatbot_tools/orchestrator.py`, `llm_client.py`) |
+| Trần Bá Lợi | 2A202601316 | UI, integration, repo & demo | Discord-like UI (`codebase/`, `frontend/`); nối frontend–backend; README này; [`demo-slides.pdf`](demo-slides.pdf); backup demo |
+
+
+### Trạng thái nộp bài
+
+- [x] `README.md` — nhóm, mã HV, phân công (mục này)
+- [x] `spec.md` — AI Spec §1–§9, quality bar chốt ≥80% pass · 100% output hợp lệ schema · không critical failure logistics/privacy/safety
+- [x] `demo-slides.pdf` — slide 6 trang theo `02-guide.md` §5.1
+- [x] `codebase/` — Trợ lý Kute++; lời gọi AI thật qua OpenRouter/Gemini ở quyết định trung tâm (`codebase/backend/chatbot_tools/llm_client.py`, `orchestrator.py`); phần mock ghi trong `spec.md` §4.3 và `codebase/backend/README.md`
+- [x] `eval/` — golden set 40 case ([`eval/golden_set.json`](eval/golden_set.json)) + bảng kết quả lượt chạy mới nhất 97,5% (39/40) ([`eval/eval_goldenset_result.md`](eval/eval_goldenset_result.md))
+- [x] `validation/` — feedback log 5 người ngoài nhóm, có tên/vai + quote nguyên văn ([`validation/feedback-log.md`](validation/feedback-log.md))
+- [x] `reflection/` — 5 file cá nhân, một file mỗi thành viên ([`reflection/`](reflection/))
+
+### Chạy prototype
+
+```bash
+./run_app.sh          # dựng venv, cài requirements, chạy backend (uvicorn) + frontend (NiceGUI)
+```
+
+Hoặc chạy riêng CLI chatbot: `python run_chatbot.py`. Cần biến môi trường `OPENROUTER_API_KEY` (xem `codebase/backend/.env.example`) để bật lời gọi AI thật; thiếu key thì router rơi về keyword/regex fallback — xem `codebase/backend/README.md`.
 
 ## Bắt đầu từ đâu?
 

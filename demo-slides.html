@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>Trợ lý Kute++ — Demo Slides</title>
+<style>
+  @page { size: 13.333in 7.5in; margin: 0; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: "Segoe UI", Arial, "Noto Sans", sans-serif;
+    color: #1b2430;
+    background: #fff;
+  }
+  :root {
+    --accent: #1f6f5c;
+    --accent-dark: #14483d;
+    --accent-light: #e4f2ee;
+    --warn: #b3541e;
+    --warn-light: #fbe9dd;
+    --ink: #1b2430;
+    --muted: #5b6572;
+    --line: #dde3e0;
+  }
+  .slide {
+    width: 13.333in;
+    height: 7.5in;
+    padding: 0.55in 0.75in;
+    page-break-after: always;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  .slide:last-child { page-break-after: auto; }
+
+  .kicker {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.18in;
+  }
+  .kicker .tag {
+    font-size: 13px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+  }
+  .kicker .num {
+    font-size: 13px;
+    color: var(--muted);
+    font-weight: 600;
+  }
+  h1.title {
+    font-size: 30px;
+    margin: 0 0 0.16in 0;
+    color: var(--ink);
+    font-weight: 800;
+  }
+  .sub {
+    font-size: 15px;
+    color: var(--muted);
+    margin-bottom: 0.2in;
+  }
+
+  .evidence {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 8px;
+    background: var(--accent-light);
+    border: 1px solid var(--accent);
+    color: var(--accent-dark);
+    border-radius: 8px;
+    padding: 6px 14px;
+    font-weight: 700;
+    font-size: 15px;
+    margin: 2px 8px 2px 0;
+  }
+  .evidence .big { font-size: 20px; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14.5px;
+    margin-top: 0.1in;
+  }
+  th, td {
+    border: 1px solid var(--line);
+    padding: 8px 10px;
+    text-align: left;
+    vertical-align: top;
+  }
+  th {
+    background: var(--accent-dark);
+    color: #fff;
+    font-weight: 700;
+    font-size: 13px;
+  }
+  tr:nth-child(even) td { background: #f6f9f8; }
+  td.num { text-align: center; font-weight: 700; }
+  .chosen { background: var(--accent-light) !important; }
+  .chosen td { font-weight: 700; }
+
+  .grid2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.35in;
+    flex: 1;
+  }
+  .card {
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 0.2in;
+    background: #fbfcfc;
+  }
+  .card h3 {
+    margin: 0 0 8px 0;
+    font-size: 15px;
+    color: var(--accent-dark);
+  }
+  .card.hard { border-color: var(--warn); background: var(--warn-light); }
+  .card.hard h3 { color: var(--warn); }
+  .msg {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 8px 10px;
+    font-size: 13px;
+    margin-bottom: 6px;
+  }
+  .msg.user { border-left: 4px solid #7a8a99; }
+  .msg.bot { border-left: 4px solid var(--accent); }
+  .msg .who { font-weight: 700; font-size: 11px; text-transform: uppercase; color: var(--muted); margin-bottom: 3px; }
+
+  .footer-note {
+    position: absolute;
+    bottom: 0.4in;
+    left: 0.75in;
+    right: 0.75in;
+    font-size: 12px;
+    color: var(--muted);
+    border-top: 1px solid var(--line);
+    padding-top: 6px;
+  }
+
+  .oneliner {
+    font-size: 17px;
+    line-height: 1.5;
+    background: var(--accent-light);
+    border-left: 5px solid var(--accent);
+    padding: 0.16in 0.22in;
+    border-radius: 6px;
+    margin-bottom: 0.18in;
+  }
+  .oneliner b { color: var(--accent-dark); }
+
+  .cost {
+    font-size: 14.5px;
+    background: var(--warn-light);
+    border-left: 5px solid var(--warn);
+    padding: 0.14in 0.2in;
+    border-radius: 6px;
+    margin-top: 0.14in;
+  }
+
+  ul.tight { margin: 4px 0 0 18px; padding: 0; font-size: 14px; }
+  ul.tight li { margin-bottom: 3px; }
+
+  .statrow { display: flex; gap: 0.3in; margin: 0.12in 0; }
+  .stat {
+    flex: 1;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 0.16in;
+    text-align: center;
+    background: #fbfcfc;
+  }
+  .stat .v { font-size: 30px; font-weight: 800; color: var(--accent-dark); }
+  .stat .l { font-size: 12.5px; color: var(--muted); margin-top: 2px; }
+  .stat.bar .v { color: var(--warn); }
+
+  .quote {
+    border: 1px solid var(--line);
+    border-left: 5px solid var(--accent);
+    border-radius: 8px;
+    padding: 0.14in 0.18in;
+    font-size: 14.5px;
+    margin-bottom: 0.12in;
+    background: #fbfcfc;
+  }
+  .quote .who { font-weight: 700; color: var(--accent-dark); font-size: 12.5px; text-transform: uppercase; margin-bottom: 4px; }
+
+  .badge {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 20px;
+    background: var(--accent-dark);
+    color: #fff;
+    margin-left: 6px;
+  }
+</style>
+</head>
+<body>
+
+<!-- SLIDE 1 — User & Job -->
+<section class="slide">
+  <div class="kicker"><span class="tag">Trợ lý Kute++ · Hướng B</span><span class="num">1 / 6 — User &amp; Job</span></div>
+  <h1 class="title">Học viên bị kẹt trên Discord — và không biết trợ lý có đáng tin không</h1>
+  <div class="sub">Job executor: học viên đang học hoặc làm bài của khoá, bị kẹt và đặt câu hỏi trong Discord để tiếp tục học.</div>
+
+  <div class="oneliner">
+    <b>Core JTBD:</b> Khi bị kẹt trong lúc học hoặc làm bài, học viên muốn nhận được thông tin hoặc bước xử lý đáng tin cậy để có thể tiếp tục học — mà không phải chờ đợi hoặc tự dò nhiều nguồn.
+  </div>
+
+  <div>
+    <span class="evidence"><span class="big">19/20</span> (95%) từng gặp ≥1 vấn đề khi dùng Trợ lý Kute++</span>
+    <span class="evidence"><span class="big">13/20</span> (65%) muốn bot hỏi lại khi câu hỏi chưa đủ thông tin</span>
+    <span class="evidence"><span class="big">10/20</span> (50%) từng bị chuyển Mod ngay lập tức</span>
+  </div>
+
+  <div class="card" style="margin-top:0.22in;">
+    <h3>Ví dụ thật (đã ẩn danh) — khảo sát 20 người ngoài nhóm</h3>
+    <div class="msg user"><div class="who">Học viên</div>“[deadline bao nhiu z]”</div>
+    <div class="msg bot"><div class="who">Trợ lý (hiện trạng)</div>“[Deadline nộp weekly sẽ là 12h00 trưa trước các buổi mentor duty…]” — trong khi thiếu dữ kiện: <b>deadline của bài nào</b>.</div>
+  </div>
+
+  <div class="footer-note">Nguồn: khảo sát trực tiếp 20 người ngoài nhóm — log đủ câu hỏi + từng câu trả lời tại <code>spec.md</code> §1.4A. Cách đếm: lọc câu trả lời cho câu hỏi "Nếu Trợ lý Kute++ có thể làm tốt hơn đúng một việc, bạn muốn đó là gì?", đếm số người chọn "hỏi lại để làm rõ".</div>
+</section>
+
+<!-- SLIDE 2 — Vì sao chọn tính năng này -->
+<section class="slide">
+  <div class="kicker"><span class="tag">Trợ lý Kute++ · Hướng B</span><span class="num">2 / 6 — Vì sao chọn tính năng này</span></div>
+  <h1 class="title">3 ứng viên — chọn quyết định trung tâm, không phải điểm sửa lẻ tẻ</h1>
+
+  <table>
+    <tr>
+      <th style="width:26%">Ứng viên</th>
+      <th style="width:20%">Bao nhiêu người</th>
+      <th style="width:30%">Tần suất / tốn gì mỗi lần</th>
+      <th>Quyết định</th>
+    </tr>
+    <tr class="chosen">
+      <td>Hỏi đúng <b>một câu làm rõ</b> khi thiếu thông tin</td>
+      <td class="num">13/20 (65%)</td>
+      <td>Phải hỏi lại, tự tìm nguồn hoặc chờ hỗ trợ</td>
+      <td>✅ <b>Chọn làm quyết định trung tâm</b></td>
+    </tr>
+    <tr>
+      <td>Giảm chuyển Mod quá sớm</td>
+      <td class="num">10/20 (50%)</td>
+      <td>Học viên chờ; Mod nhận việc lẽ ra xử lý được bằng 1 câu hỏi lại</td>
+      <td>Không tách riêng — xử lý trong route <code>CLARIFY → ESCALATE</code></td>
+    </tr>
+    <tr>
+      <td>Giảm câu trả lời sai chủ đề (chỉ <code>ANSWER</code> khi đủ căn cứ)</td>
+      <td class="num">8/20 (40%)</td>
+      <td>Học viên phải kiểm tra lại; rủi ro hiểu sai/mất điểm</td>
+      <td>Giữ làm điều kiện cứng của route <code>ANSWER</code>, không làm lát cắt riêng</td>
+    </tr>
+  </table>
+
+  <div class="cost" style="margin-top:0.25in;">
+    <b>Ứng viên đã loại:</b> Bản tin cuối ngày cho TA — không có số survey trực tiếp và không giải quyết pain của 13/20 người ưu tiên nhất · Phát hiện học viên "stuck" chủ động nhắn — chưa có dữ liệu hành vi để xác định ngưỡng an toàn, dễ thành phiền.
+  </div>
+</section>
+
+<!-- SLIDE 3 — Giải pháp & demo live -->
+<section class="slide">
+  <div class="kicker"><span class="tag">Trợ lý Kute++ · Hướng B</span><span class="num">3 / 6 — Giải pháp &amp; demo live</span></div>
+  <h1 class="title">Một quyết định — ba lối ra: trả lời, hỏi lại, hoặc chuyển người</h1>
+
+  <div class="oneliner">
+    <b>Lát cắt một câu:</b> Khi một học viên hỏi trên Discord để gỡ vướng trong khoá, trợ lý quyết định câu hỏi đã đủ rõ và có đủ căn cứ để trả lời, cần hỏi lại hay phải chuyển Mod, giúp học viên nhận được một bước xử lý đáng tin cậy thay vì câu trả lời phỏng đoán.
+  </div>
+  <div class="cost">
+    <b>Automation: Conditional.</b> Cost-of-error: trả lời sai deadline/link/quy định có thể làm học viên mất điểm hoặc mất niềm tin; chuyển Mod mọi trường hợp lại làm tăng thời gian chờ và tải cho Mod — nên chỉ tự động hoá khi độ chắc chắn và căn cứ đủ cao.
+  </div>
+
+  <div class="grid2" style="margin-top:0.16in;">
+    <div class="card">
+      <h3>Case chuẩn — <code>case_16</code> · ANSWER<span class="badge">PASS</span></h3>
+      <div class="msg user"><div class="who">Học viên</div>“Bài tập nộp ở đâu vậy?”</div>
+      <div class="msg bot"><div class="who">Trợ lý</div>📌 Nền tảng nộp bài LearnWorlds — bài học/bài tập được truy cập, nộp và nhận phản hồi trên LearnWorlds. 📎 Nguồn kèm locator.</div>
+    </div>
+    <div class="card hard">
+      <h3>Case chỗ khó — <code>case_18</code> · lớp ① nguồn xung đột<span class="badge" style="background:#b3541e">PASS</span></h3>
+      <div class="msg user"><div class="who">Học viên</div>Deadline theo tin ghim kênh khác với lịch chính thức.</div>
+      <div class="msg bot"><div class="who">Trợ lý</div>“Mình chưa tìm thấy thông tin này trong nguồn chính thức, nên không thể trả lời chắc chắn. Bạn có thể nhờ Mod/TA xác nhận.” — không tự chọn nguồn, không đoán.</div>
+    </div>
+  </div>
+
+  <div class="footer-note">Case lỗi được xử lý đúng cũng là bằng chứng — không giấu. Toàn bộ log/trace nằm trong <code>eval/results/</code>; AI call thật qua OpenRouter (<code>google/gemini-2.0-flash-001</code>) tại <code>codebase/backend/chatbot_tools/llm_client.py</code>.</div>
+</section>
+
+<!-- SLIDE 4 — Kết quả đo -->
+<section class="slide">
+  <div class="kicker"><span class="tag">Trợ lý Kute++ · Hướng B</span><span class="num">4 / 6 — Kết quả đo</span></div>
+  <h1 class="title">39/40 case qua golden set — vượt quality bar đã chốt từ 23:59 N1</h1>
+
+  <div class="statrow">
+    <div class="stat"><div class="v">97.5%</div><div class="l">Pass rate (39/40 case)</div></div>
+    <div class="stat bar"><div class="v">≥80%</div><div class="l">Quality bar đã chốt (spec.md §7.3)</div></div>
+    <div class="stat"><div class="v">137/137</div><div class="l">Unit test passed</div></div>
+    <div class="stat"><div class="v">0</div><div class="l">Critical failure (deadline/link/quy định/PII)</div></div>
+  </div>
+
+  <table>
+    <tr><th style="width:30%">Route kỳ vọng</th><th style="width:15%">Tổng số</th><th style="width:15%">Passed</th><th>Pass rate</th></tr>
+    <tr><td>ANSWER</td><td class="num">21</td><td class="num">20</td><td class="num">95.2%</td></tr>
+    <tr><td>CLARIFY</td><td class="num">6</td><td class="num">6</td><td class="num">100%</td></tr>
+    <tr><td>ESCALATE</td><td class="num">13</td><td class="num">13</td><td class="num">100%</td></tr>
+  </table>
+
+  <div class="cost" style="margin-top:0.2in;">
+    <b>Failure đáng kể nhất — <code>case_26</code></b> ("Gate vs Weekly submit khác gì nhau"): câu hỏi đa ý, router coi là thiếu slot nên trả <code>CLARIFY</code>, trong khi kỳ vọng bot tổng hợp cả hai nguồn để <code>ANSWER</code> trực tiếp. Nguyên nhân: router chưa xử lý câu hỏi so sánh nhiều thực thể. Đã đưa vào backlog multi-intent/paraphrase.
+  </div>
+</section>
+
+<!-- SLIDE 5 — User thật nói gì -->
+<section class="slide">
+  <div class="kicker"><span class="tag">Trợ lý Kute++ · Hướng B</span><span class="num">5 / 6 — User thật nói gì</span></div>
+  <h1 class="title">5 willing users ngoài nhóm — 5 góc nhìn khác nhau</h1>
+
+  <div class="grid2">
+    <div>
+      <div class="quote"><div class="who">Khang — Grounding/citation</div>“Đa số dẫn nguồn đúng, nhưng còn false-positive giữa Jira/Codelab và LearnWorlds.” <span class="badge" style="background:#b3541e">Critical</span></div>
+      <div class="quote"><div class="who">My — Thời gian &amp; lịch sự kiện</div>“Chưa xử lý tốt từ chỉ thời gian tương đối như ‘tối nay’ hoặc lịch theo ngày thực tế.” <span class="badge" style="background:#b3541e">Critical</span></div>
+    </div>
+    <div>
+      <div class="quote"><div class="who">Hải — Intent &amp; multi-intent</div>“Tốt với câu đơn giản; còn yếu với câu nhiều ý như ‘Mentoring Duty có XP không?’” <span class="badge">Major</span></div>
+      <div class="quote"><div class="who">Dương — Hài lòng chung</div>“Phản hồi nhanh, đúng với dữ liệu sẵn có và biết từ chối khi thiếu nguồn.” <span class="badge">Minor</span></div>
+    </div>
+  </div>
+
+  <div class="oneliner" style="margin-top:0.06in;">
+    <b>Thay đổi đã làm sau feedback:</b> thêm alias resolver cho Weekly Report, tách intent Mentoring Duty khỏi intent mentor của team, khoá precedence intent cấu trúc trước semantic search — mỗi thay đổi có regression case và dòng Changelog riêng trong <code>spec.md</code> §9.
+  </div>
+  <div class="footer-note">Chi tiết đầy đủ + mức nghiêm trọng + case liên quan: <code>validation/feedback-log.md</code> và <code>eval/user-feedback.md</code>.</div>
+</section>
+
+<!-- SLIDE 6 — Nếu có thêm 1 tuần -->
+<section class="slide">
+  <div class="kicker"><span class="tag">Trợ lý Kute++ · Hướng B</span><span class="num">6 / 6 — Nếu có thêm 1 tuần</span></div>
+  <h1 class="title">Ba việc ưu tiên tiếp theo — và một bài học lớn nhất</h1>
+
+  <ul class="tight" style="font-size:16px; line-height:1.8;">
+    <li><b>Multi-intent &amp; paraphrase</b> — sửa mẫu lỗi của <code>case_26</code>; mở rộng golden set để câu hỏi so sánh nhiều thực thể không còn bị coi là "thiếu slot".</li>
+    <li><b>Time Resolver (Asia/Ho_Chi_Minh)</b> — resolve "tối nay"/thời gian tương đối theo lịch sự kiện thật, theo feedback của My.</li>
+    <li><b>Relevance threshold cho retrieval</b> — chặn citation false-positive Khang phát hiện (Jira/Codelab bị gắn nhầm LearnWorlds); dưới ngưỡng phải trả <code>no_source</code>.</li>
+  </ul>
+
+  <div class="oneliner" style="margin-top:0.25in;">
+    <b>Bài học lớn nhất:</b> với một trợ lý mà câu trả lời sai có hậu quả thật (deadline, điểm, niềm tin), "không chắc thì hỏi lại" phải luôn thắng "cố trả lời cho mượt" — router càng cố tự suy luận thêm dữ kiện người dùng không nói ra, càng dễ biến câu hỏi mơ hồ thành câu trả lời tự tin nhưng sai.
+  </div>
+
+  <div class="footer-note">Nhóm LMNPT · Zone D304 · Mini Hackathon AI Batch 03 · <code>spec.md</code>, <code>eval/</code>, <code>validation/</code>, <code>reflection/</code> trong repo này.</div>
+</section>
+
+</body>
+</html>
