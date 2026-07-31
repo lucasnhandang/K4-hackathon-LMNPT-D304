@@ -10,7 +10,7 @@ Loại: [x] Tối ưu tính năng có sẵn  [ ] Tính năng mới
 - **Job executor:** Học viên đang học hoặc làm bài của khóa, bị kẹt và đặt câu hỏi trong Discord để tiếp tục học.
 - **Workflow hiện tại:**
   1. Học viên gặp vướng mắc về bài học, bài tập, deadline, link hoặc quy định.
-  2. Học viên hỏi Trợ lý Kute trên Discord, đôi khi bằng câu ngắn, tiếng lóng hoặc thiếu tên bài/module.
+  2. Học viên hỏi Trợ lý Kute++ trên Discord, đôi khi bằng câu ngắn, tiếng lóng hoặc thiếu tên bài/module.
   3. Trợ lý trả lời, chuyển Mod hoặc không giải quyết được.
   4. Nếu câu trả lời chưa dùng được, học viên phải hỏi lại, chờ Mod hoặc tự mở nhiều nguồn để kiểm tra.
 - **Đầu vào CP1:** [`Canvas.txt`](Canvas.txt).
@@ -28,8 +28,8 @@ Loại: [x] Tối ưu tính năng có sẵn  [ ] Tính năng mới
 
 #### A. Khảo sát trực tiếp — bằng chứng chính cho nhu cầu hỏi làm rõ
 
-- **Con số mạnh nhất:** **13/20 người khảo sát (65%)** muốn Trợ lý Kute hỏi lại để làm rõ khi câu hỏi chưa đủ thông tin.
-- **Câu hỏi đã dùng:** “Nếu Trợ lý Kute có thể làm tốt hơn đúng một việc, bạn muốn đó là gì?”
+- **Con số mạnh nhất:** **13/20 người khảo sát (65%)** muốn Trợ lý Kute++ hỏi lại để làm rõ khi câu hỏi chưa đủ thông tin.
+- **Câu hỏi đã dùng:** “Nếu Trợ lý Kute++ có thể làm tốt hơn đúng một việc, bạn muốn đó là gì?”
 - **Cách đếm:** Lọc 20 câu trả lời cho câu hỏi trên; đếm số người chọn phương án “hỏi lại để làm rõ khi câu hỏi chưa đủ thông tin”; tỷ lệ = `13 / 20 = 65%`.
 - **Độ phổ biến của pain:** **19/20 người (95%)** cho biết từng gặp ít nhất một vấn đề khi sử dụng chatbot; chỉ 1/20 người trả lời “Hài lòng”.
 - **Các vấn đề cụ thể được ghi nhận:**
@@ -47,7 +47,7 @@ Loại: [x] Tối ưu tính năng có sẵn  [ ] Tính năng mới
 - **Phạm vi transcript:** Rà 700 đoạn transcript; lọc 31 đoạn có từ khóa về lịch, link, tài liệu, nộp bài, Discord/LMS; kiểm tra tay và giữ 9 đoạn thể hiện rõ vướng mắc logistics, truy cập hoặc nguồn phân tán.
 - **Phạm vi chatlog VLearn:** 1.261 cặp hỏi–đáp của 369 học viên trong 585 hội thoại.
 - **Kết quả bổ trợ:** 582/1.261 câu trả lời tutor (46,2%) không có citation; `follow_ups` không được dùng trong 1.261/1.261 lượt; chỉ 3/1.261 lượt có `asked_check_question=True`.
-- **Giới hạn diễn giải:** Đây là dữ liệu VLearn/transcript, không phải mining phản hồi của Trợ lý Kute trên Discord. Chỉ dùng để chứng minh pattern và bối cảnh; không dùng để khẳng định tỷ lệ lỗi của Discord bot.
+- **Giới hạn diễn giải:** Đây là dữ liệu VLearn/transcript, không phải mining phản hồi của Trợ lý Kute++ trên Discord. Chỉ dùng để chứng minh pattern và bối cảnh; không dùng để khẳng định tỷ lệ lỗi của Discord bot.
 
 #### C. Ví dụ có mã nguồn
 
@@ -243,16 +243,24 @@ Chi tiết định nghĩa: [`eval_golden_set.md`](eval_golden_set.md).
 
 ### 8.2 Willing users và validation CP5
 
-- **Willing users ngoài nhóm:** Hải, Khang, Tuyết Mai, My, Dương.
-- **Số người validation cuối:** ≥5 người ngoài nhóm, có ≥2 willing users đã khai ở CP1.
+- **Willing users ngoài nhóm:** Mai, Khang, Hải, My, Dương.
+- **Số người đã ghi nhận phản hồi:** 5 người ngoài nhóm.
 - **Người điều phối:** Nhân.
 - **Người ghi log:** Ngọc Mai.
-- **Task:** “Hãy dùng Trợ lý Kute để tìm câu trả lời hoặc bước xử lý cho một câu hỏi thật về bài tập/deadline/quy định.”
-- **Ba câu hỏi:**
-  1. Điều gì khó hiểu hoặc khó chịu nhất?
-  2. Bạn có tin kết quả này không — vì sao?
-  3. Bạn có dùng thật không — vì sao hoặc vì sao chưa?
-- **Feedback log:** [`validation/feedback-log.md`](validation/feedback-log.md).
+- **Phạm vi đánh giá:** Độ chính xác của câu trả lời; grounding/citation; khả năng hiểu intent; xử lý thời gian/lịch; và mức độ hài lòng chung.
+- **Phân công câu hỏi:** Mai — câu 1; Khang — câu 2; Hải — câu 3; My — câu 4; Dương — câu 5.
+- **Kết quả chi tiết:** [`eval/user-feedback.md`](eval/user-feedback.md).
+- **Log quan sát usability bổ sung:** [`validation/feedback-log.md`](validation/feedback-log.md).
+
+| # | Người phản hồi | Khía cạnh đánh giá | Kết quả chính | Hành động tiếp theo |
+|---:|---|---|---|---|
+| 1 | Mai | Quy định, deadline và tài liệu | Đúng khi Knowledge Base có dữ liệu; còn thiếu hoặc chưa chính xác với deadline Weekly Assignment 4, slide Hackathon và Jira. | Bổ sung và cập nhật định kỳ Knowledge Base. |
+| 2 | Khang | Grounding/citation | Đa số dẫn nguồn đúng, nhưng còn false-positive giữa Jira/Codelab và LearnWorlds. | Siết retrieval; không có tài liệu phù hợp thì trả `no_source`, không gắn nguồn không liên quan. |
+| 3 | Hải | Hiểu intent và câu hỏi nhiều ý | Tốt với câu đơn giản; còn yếu với nhiều ý hoặc cách diễn đạt như “Mentoring Duty có XP không?” và “Lệnh báo cáo tuần là gì?”. | Mở rộng paraphrase, hỗ trợ tách multi-intent và bổ sung regression case. |
+| 4 | My | Thời gian và lịch sự kiện | Chưa xử lý tốt từ chỉ thời gian tương đối như “tối nay” hoặc lịch theo ngày thực tế. | Thêm Time Resolver dùng timestamp hiện tại và lịch sự kiện. |
+| 5 | Dương | Hài lòng chung | Phản hồi nhanh, đúng với dữ liệu sẵn có và biết từ chối khi thiếu nguồn; một số kết quả chưa khớp Golden Test hoặc chưa rõ ràng. | Tối ưu response template, bổ sung dữ liệu và rà lại Golden Case với tài liệu chính thức. |
+
+**Kết luận validation:** Hệ thống đã có nền tảng tốt ở tốc độ phản hồi, trả lời theo dữ liệu sẵn có và từ chối khi thiếu căn cứ. Bốn nhóm cần ưu tiên trước demo là độ phủ Knowledge Base, độ chính xác retrieval/citation, xử lý multi-intent và suy luận thời gian tương đối. Các nhận xét này là dữ liệu định tính vì mỗi người phụ trách một câu hỏi; không dùng để suy ra tỷ lệ hài lòng cho toàn bộ 5 người.
 
 ### 8.3 Multi-prototype
 
@@ -260,7 +268,7 @@ Chi tiết định nghĩa: [`eval_golden_set.md`](eval_golden_set.md).
 - Phương án B: Bot hỏi đúng một câu khi slot quan trọng còn thiếu, chỉ chuyển khi không thể giải quyết bằng nguồn.
 - **Trục khác biệt:** mức chủ động làm rõ trước handoff.
 - **Phương án chọn:** B.
-- **Lý do:** 13/20 người khảo sát (65%) ưu tiên hành vi hỏi làm rõ; `[CẦN BỔ SUNG KẾT QUẢ THỬ A/B NẾU CÓ]`.
+- **Lý do:** 13/20 người khảo sát (65%) ưu tiên hành vi hỏi làm rõ. Phản hồi của Hải tiếp tục cho thấy bot gặp khó với câu hỏi nhiều ý/cách diễn đạt khác nhau; kết quả golden set cũng còn lỗi ở câu hỏi đa ý `case_26`. Nhóm chưa thực hiện thử A/B định lượng, vì vậy quyết định chọn B dựa trên survey, phản hồi định tính và regression evidence hiện có.
 
 ## §9. Changelog
 
@@ -269,3 +277,4 @@ Chi tiết định nghĩa: [`eval_golden_set.md`](eval_golden_set.md).
 | 31/07/2026 | Tạo outline spec §1–§9 | Tổng hợp Canvas, codebase, survey và data pack |
 | 31/07/2026 | Chốt nhóm LMNPT, Zone D304, quality bar 80%; cập nhật survey lên 20 người và willing users | Survey: 13/20 ưu tiên hỏi làm rõ; 19/20 từng gặp ít nhất một vấn đề |
 | 31/07/2026 | Tạo template validation và phân công Ngọc Mai ghi log | Chuẩn bị artifact CP5 cho 5 willing users ngoài nhóm |
+| 31/07/2026 | Ghi nhận phản hồi đánh giá của Mai, Khang, Hải, My và Dương; liên kết với backlog eval | Phản hồi cho thấy cần ưu tiên Knowledge Base, retrieval/citation, multi-intent, Time Resolver và response template |
