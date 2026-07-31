@@ -13,6 +13,15 @@ import json
 import sys
 from pathlib import Path
 
+# Load .env file if present (for API keys, Discord tokens, etc.)
+try:
+    from dotenv import load_dotenv
+    _env_path = Path(__file__).parent / ".env"
+    if _env_path.exists():
+        load_dotenv(_env_path)
+except ImportError:
+    pass
+
 from chatbot_tools.orchestrator import ChatbotOrchestrator
 from chatbot_tools.registry import build_default_registry
 
@@ -28,6 +37,7 @@ def interactive_mode(orchestrator: ChatbotOrchestrator) -> None:
 
     debug_mode = False
     pending_clarification = None  # Track pending clarification state
+    conversation_history: list[dict[str, str]] = []  # Track multi-turn conversation history
 
     while True:
         try:
@@ -48,6 +58,9 @@ def interactive_mode(orchestrator: ChatbotOrchestrator) -> None:
             print(f"🔧 Debug mode: {'ON' if debug_mode else 'OFF'}")
             continue
 
+        # Append user input to history
+        conversation_history.append({"role": "user", "content": user_input})
+
         # Process message with pending clarification if exists
         response = orchestrator.process_message(
             message=user_input,
@@ -55,6 +68,7 @@ def interactive_mode(orchestrator: ChatbotOrchestrator) -> None:
             session_id="cli_session",
             channel_id="cli_channel",
             pending_clarification=pending_clarification,
+            conversation_history=conversation_history,
         )
 
         # Update pending clarification state
@@ -63,6 +77,9 @@ def interactive_mode(orchestrator: ChatbotOrchestrator) -> None:
             pending_clarification = response.get("clarification")
         else:
             pending_clarification = None  # Reset after answer or escalation
+
+        response_text = response.get("response", "")
+        conversation_history.append({"role": "assistant", "content": response_text})
 
         # Display response
         intent = response.get("intent", "unknown")

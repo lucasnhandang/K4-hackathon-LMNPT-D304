@@ -227,6 +227,18 @@ class TestOrchestrator(unittest.TestCase):
         self.assertEqual(response["route"], "ESCALATE")
         self.assertIn("escalation", response)
 
+    def test_ask_datetime(self):
+        response = self.orchestrator.process_message("Hôm nay là ngày mấy?")
+        self.assertEqual(response["route"], "ANSWER")
+        self.assertEqual(response["intent"], "ask_datetime")
+        self.assertIn("Hôm nay", response["response"])
+
+    def test_out_of_domain(self):
+        response = self.orchestrator.process_message("Thời tiết Hà Nội hôm nay thế nào?")
+        self.assertEqual(response["route"], "ANSWER")
+        self.assertEqual(response["intent"], "out_of_domain")
+        self.assertIn("ngoài phạm vi khóa học", response["response"])
+
     def test_deadline_lookup(self):
         response = self.orchestrator.process_message("Deadline Weekly Assignment 3 là khi nào?")
         # Could be ANSWER or CLARIFY depending on slot extraction
@@ -352,8 +364,8 @@ class TestToolIntegration(unittest.TestCase):
 
     def test_tool_definitions_count(self):
         definitions = self.registry.definitions()
-        # Should have 8 tools (7 core + search)
-        self.assertEqual(len(definitions), 8)
+        # Should have 10 tools (8 knowledge + 2 ticket tools)
+        self.assertEqual(len(definitions), 10)
 
     def test_tool_names(self):
         definitions = self.registry.definitions()
@@ -367,6 +379,8 @@ class TestToolIntegration(unittest.TestCase):
             "lookup_team_mentor",
             "lookup_slash_command",
             "search_official_sources",
+            "offer_ticket",
+            "create_ticket",
         }
         self.assertEqual(names, expected)
 

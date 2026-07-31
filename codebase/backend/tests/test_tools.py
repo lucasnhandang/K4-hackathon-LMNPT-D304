@@ -52,6 +52,8 @@ class KnowledgeToolTests(unittest.TestCase):
                 "lookup_team_mentor",
                 "lookup_slash_command",
                 "search_official_sources",
+                "offer_ticket",
+                "create_ticket",
             },
         )
 
@@ -77,6 +79,32 @@ class KnowledgeToolTests(unittest.TestCase):
             {"gate_name": "cp3", "cohort": "k3", "at": None},
         )
         self.assertEqual(result["status"], "ok")
+
+    def test_offer_and_create_ticket_tools(self) -> None:
+        offer_res = self.registry.execute(
+            "offer_ticket",
+            {
+                "category": "deadline",
+                "question": "Hỏi deadline WA3",
+                "known_context": {"assignment": "wa3"},
+                "missing_information": [],
+                "clarification_attempts": 2,
+                "source_ids": [],
+            },
+        )
+        self.assertEqual(offer_res["status"], "ok")
+        self.assertEqual(offer_res["data"]["target_channel"], "assignment-support")
+
+        req_id = offer_res["data"]["request_id"]
+        create_res = self.registry.execute(
+            "create_ticket",
+            {
+                "request_id": req_id,
+                "user_consent": True,
+            },
+        )
+        self.assertEqual(create_res["status"], "ok")
+        self.assertTrue(create_res["data"]["sent"])
 
 
 if __name__ == "__main__":
