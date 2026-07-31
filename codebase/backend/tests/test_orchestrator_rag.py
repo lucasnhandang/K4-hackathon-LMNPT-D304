@@ -62,14 +62,32 @@ class OrchestratorRAGTests(unittest.TestCase):
 
         self.assertEqual(result["route"], "ANSWER")
 
-    def test_deadline_with_tool_result_uses_template(self):
-        """Deadline with successful tool result should use template."""
+    def test_deadline_with_tool_result_uses_openrouter(self):
+        """A successful structured lookup should be phrased by OpenRouter."""
         orch = self._make_orchestrator(llm_available=True)
         result = orch.process_message("Deadline AI Log")
 
-        # Should get a structured response (template) if tool finds data
         self.assertEqual(result["route"], "ANSWER")
-        self.assertIn("intent", result)
+        self.assertEqual(
+            result["response"],
+            "Đây là câu trả lời từ LLM dựa trên context.",
+        )
+        self.assertEqual(result["llm"]["status"], "success")
+        self.assertEqual(result["llm"]["model"], "test/model")
+        self.assertEqual(result["llm"]["usage"]["total_tokens"], 50)
+        orch.rag.client.chat.assert_called_once()
+
+    def test_structured_tool_falls_back_to_template_and_marks_llm_error(self):
+        """Keep grounded data usable when OpenRouter fails, but expose the failure."""
+        orch = self._make_orchestrator(llm_available=True)
+        orch.rag.client.chat.side_effect = Exception("OpenRouter unavailable")
+
+        result = orch.process_message("Deadline AI Log")
+
+        self.assertEqual(result["route"], "ANSWER")
+        self.assertIn("AI LOG", result["response"])
+        self.assertEqual(result["llm"]["status"], "error")
+        self.assertEqual(result["llm"]["model"], "error")
 
     def test_fallback_uses_rag_when_available(self):
         """Unknown question with search results should use RAG."""

@@ -60,7 +60,12 @@ def _to_frontend_citations(citations: list[dict[str, Any]]) -> list[dict[str, st
 
 
 def _build_tracepath(
-    route: str, intent: str, confidence: float, grounding_status: str, latency_ms: int
+    route: str,
+    intent: str,
+    confidence: float,
+    grounding_status: str,
+    latency_ms: int,
+    llm: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     tools = [{"name": "Intent Classifier", "icon": "🔍", "status": "success"}]
     tool = _GROUNDING_TOOL.get(grounding_status)
@@ -71,15 +76,37 @@ def _build_tracepath(
     elif route == "ESCALATE":
         tools.append({"name": "Escalation Router", "icon": "🚨", "status": "escalated"})
 
+    steps = [
+        f"Phân loại Intent: {intent} ({int(confidence * 100)}% confidence)",
+        f"Grounding: {grounding_status} | Route: {route}",
+    ]
+    llm_called = bool(llm and llm.get("called"))
+    llm_model = llm.get("model") if llm else None
+    llm_usage = llm.get("usage", {}) if llm else {}
+    if llm_called:
+        llm_status = llm.get("status", "unknown")
+        tools.append(
+            {
+                "name": f"OpenRouter · {llm_model or 'unknown model'}",
+                "icon": "🤖",
+                "status": llm_status,
+            }
+        )
+        total_tokens = llm_usage.get("total_tokens", 0)
+        steps.append(
+            f"OpenRouter: {llm_status} | model: {llm_model or 'unknown'} "
+            f"| total tokens: {total_tokens}"
+        )
+
     return {
         "latency_ms": latency_ms,
         "confidence": confidence,
         "intent": intent,
+        "llm_called": llm_called,
+        "model": llm_model,
+        "usage": llm_usage,
         "tools_used": tools,
-        "steps": [
-            f"Phân loại Intent: {intent} ({int(confidence * 100)}% confidence)",
-            f"Grounding: {grounding_status} | Route: {route}",
-        ],
+        "steps": steps,
     }
 
 
@@ -89,7 +116,14 @@ def _adapt_response(orch_result: dict[str, Any], latency_ms: int) -> dict[str, A
     intent = orch_result["intent"]
     confidence = orch_result["confidence"]
     grounding = orch_result["grounding_status"]
-    tracepath = _build_tracepath(route, intent, confidence, grounding, latency_ms)
+    tracepath = _build_tracepath(
+        route,
+        intent,
+        confidence,
+        grounding,
+        latency_ms,
+        orch_result.get("llm"),
+    )
 
     if route == "CLARIFY":
         clarification = orch_result.get("clarification") or {}

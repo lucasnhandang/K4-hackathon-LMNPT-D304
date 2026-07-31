@@ -176,4 +176,6 @@ Backend cần trả về kết quả JSON bao gồm trường `tracepath` để 
    - **Xử lý**: Tắt tiến trình python đang chạy bằng `Ctrl + C` hoặc đổi `PORT=8081` trong file `.env`.
 
 2. **Backend chưa khởi chạy**:
-   - Frontend có sẵn cơ chế **Fallback**. Nếu không gọi được Backend API, ứng dụng tự động dùng bộ Local AI Router để buổi Demo chạy liên tục không đứt đoạn.
+   - Nếu không gọi được Backend API, frontend hiển thị lỗi kết nối rõ ràng và
+     **không tự động chuyển sang Local AI Router**, tránh hiển thị dữ liệu mock như
+     thể đó là câu trả lời thật.
