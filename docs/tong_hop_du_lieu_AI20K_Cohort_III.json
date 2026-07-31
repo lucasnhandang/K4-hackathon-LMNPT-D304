@@ -1,0 +1,508 @@
+{
+  "metadata": {
+    "document_title": "AI20K Cohort III - Tổng quan chương trình",
+    "cohort": "Cohort III",
+    "program": "AI20K",
+    "build_cohort_year": 2026,
+    "source_type": "contact_sheet_images",
+    "source_file": "docs-contact-sheet.png",
+    "number_of_slides": 13,
+    "language": "vi",
+    "extraction_basis": "Nội dung nhìn thấy trực tiếp trong các ảnh do người dùng cung cấp"
+  },
+  "program_overview": {
+    "title": "Tổng Quan Chương Trình",
+    "description": "6 tuần Sprint xây dựng sản phẩm AI thực chiến — từ ý tưởng đến Demo Day, dẫn dắt bởi đội ngũ Mentors và một hệ thống vận hành tự động hóa.",
+    "planned_period": {
+      "start": "2026-07-23",
+      "end": "2026-09-01"
+    },
+    "calendar_coverage": {
+      "start": "2026-07-20",
+      "end": "2026-09-06",
+      "official_start": "2026-07-23",
+      "timezone": "Giờ Việt Nam"
+    }
+  },
+  "master_timeline": [
+    {
+      "week": 1,
+      "date": "2026-07-23",
+      "milestone": "Kick-off & lập đội",
+      "gate": null
+    },
+    {
+      "week": 2,
+      "date": null,
+      "milestone": "Khảo sát, phân tích đề bài và thu thập thông tin",
+      "gate": "GATE 1 - Chốt đề tài"
+    },
+    {
+      "week": 3,
+      "date": null,
+      "milestone": "Xây dựng MVP đầu tiên",
+      "gate": null
+    },
+    {
+      "week": 4,
+      "date": null,
+      "milestone": "Tối ưu, cải thiện dựa trên feedback",
+      "gate": "GATE 2 - MVP"
+    },
+    {
+      "week": 5,
+      "date": null,
+      "milestone": "Nộp hồ sơ doanh nghiệp, hoàn thiện sản phẩm cho Demo Day",
+      "gate": "Nộp hồ sơ Demo Day"
+    },
+    {
+      "week": 6,
+      "date": "2026-09-01",
+      "milestone": "Demo Day",
+      "gate": null
+    }
+  ],
+  "timeline_guidance": "Khuyến khích làm việc với khách hàng tiềm năng từ sớm để hiểu pain points và giải đúng nhu cầu thực tế.",
+  "calendar": {
+    "title": "Lịch tổng Cohort 3",
+    "event_categories": [
+      {
+        "name": "Workshop",
+        "legend_color": "blue"
+      },
+      {
+        "name": "Mentor Duty",
+        "legend_color": "purple"
+      },
+      {
+        "name": "Office Hours",
+        "legend_color": "green"
+      },
+      {
+        "name": "Demo Day",
+        "legend_color": "orange"
+      }
+    ],
+    "note": "Lịch có thể được BTC cập nhật theo thông báo chính thức."
+  },
+  "weekly_operating_rhythm": {
+    "base_schedule": [
+      {
+        "activity": "Workshop",
+        "frequency": "2 buổi/tuần",
+        "usual_time": "Tối Thứ 5 và Chủ Nhật",
+        "note": "Có thể tăng cường ở các tuần sau"
+      },
+      {
+        "activity": "Office Hours",
+        "frequency": "Thường 2 buổi/tuần",
+        "usual_time": "Tối Thứ 2 và Thứ 6"
+      },
+      {
+        "activity": "Mentoring Duty",
+        "frequency": "2 buổi/tuần",
+        "usual_time": "Tối Thứ 4 và Thứ 7",
+        "purposes": [
+          "Theo dõi tiến độ",
+          "Chấm điểm",
+          "Gỡ khó"
+        ]
+      }
+    ],
+    "from_week_4": [
+      "Bổ sung Build Hours vào buổi chiều",
+      "Tập trung Optimize, Deploy và chuẩn bị Demo",
+      "Tăng tốc hoàn thiện sản phẩm cuối"
+    ]
+  },
+  "team_formation_and_topic_selection": {
+    "team_process": [
+      "Học viên tự do ghép hoặc lập đội trên nền tảng.",
+      "Team chọn đề tài từ ngân hàng đề.",
+      "Mỗi đề tài có tối đa 2 team.",
+      "Được tự do ghép hoặc lập đội đến hết ngày 25/07.",
+      "Sau thời hạn, hệ thống tự động ghép đội."
+    ],
+    "naming_conventions": {
+      "github_repository": {
+        "pattern": "P-XXX",
+        "example": "P-042"
+      },
+      "discord_channel": {
+        "pattern": "t-XXX",
+        "example": "t-042"
+      },
+      "deploy_url": {
+        "pattern": "c3-app-XXX",
+        "example_visible_in_source": "c3-app-042.ja.vn",
+        "cohort_4_pattern": "c4-app-XXX"
+      },
+      "zoom_name": {
+        "pattern": "G-YY - TXXX - Họ và tên",
+        "example": "G01-T004-Nguyễn Văn An"
+      }
+    }
+  },
+  "weekly_program": {
+    "daily_standup": {
+      "frequency": "Hằng ngày",
+      "updates": [
+        "Việc đã làm hôm qua",
+        "Việc đang làm hôm nay",
+        "Những việc đang gặp vấn đề"
+      ]
+    },
+    "coaching_breakout_room": {
+      "mentor_assignment": "Mentor cố định nhóm team trong suốt 6 tuần",
+      "weekly_report_rule": "Mỗi team cần submit weekly report trước mỗi buổi Coaching (Mentor Duty)"
+    },
+    "mentoring_1_1": {
+      "rule": "Tùy theo thang điểm, Mentor hoặc BTC hỗ trợ trực tiếp"
+    }
+  },
+  "workshop_schedule": [
+    {
+      "order": 1,
+      "title": "Kick-off",
+      "content": "Chia nhóm, chọn đề, khởi tạo repo"
+    },
+    {
+      "order": 2,
+      "title": "Problem → MVP Canvas",
+      "content": null
+    },
+    {
+      "order": 3,
+      "title": "PM & team cowork",
+      "content": "Soft skills, rules, xử lý xung đột"
+    },
+    {
+      "order": 4,
+      "title": "Vibe coding 101",
+      "content": "By team"
+    },
+    {
+      "order": 5,
+      "title": "AI Product Design",
+      "content": "UX patterns & prototyping"
+    },
+    {
+      "order": 6,
+      "title": "Tư duy Product",
+      "content": "Cho người làm sản phẩm"
+    },
+    {
+      "order": 7,
+      "title": "First Working Agent",
+      "content": "LLM + tool calling"
+    },
+    {
+      "order": 8,
+      "title": "RAG Pipeline",
+      "content": "Ingestion, chunking, retrieval"
+    },
+    {
+      "order": 9,
+      "title": "Multi-Step Agent",
+      "content": "Plan → execute → validate"
+    },
+    {
+      "order": 10,
+      "title": "MCP & Multi-Agent",
+      "content": "Protocol & orchestration"
+    },
+    {
+      "order": 11,
+      "title": "Optimize & Evaluate",
+      "content": "Quality, latency, cost"
+    },
+    {
+      "order": 12,
+      "title": "Guardrails & Reliability",
+      "content": "Safety & error handling"
+    },
+    {
+      "order": 13,
+      "title": "Go Live",
+      "content": "CI/CD, cloud deploy, observability"
+    },
+    {
+      "order": 14,
+      "title": "The Pitch",
+      "content": "Product narrative & investor demo"
+    }
+  ],
+  "supplementary_workshop_topics": [
+    "Data pipeline",
+    "Recommendation"
+  ],
+  "support_and_automation": {
+    "server_system": {
+      "functions": [
+        "Nhắc stand-up",
+        "Nhắc deadline",
+        "Theo dõi độ active của học viên",
+        "Cảnh báo team gặp rủi ro (at-risk)"
+      ]
+    },
+    "kutebot": {
+      "role": "Chatbot hỗ trợ hỏi đáp",
+      "functions": [
+        "Hỏi đáp về thông tin chương trình Build Phase",
+        "Trợ lý 24/7 hỗ trợ giải đáp thắc mắc"
+      ],
+      "mention": "@Trợ lý Kute"
+    }
+  },
+  "xp_system": {
+    "description": "Điểm tích lũy trong suốt hành trình Build Phase, được cộng qua việc tham gia các hoạt động của chương trình.",
+    "earning_rules": [
+      {
+        "activity": "/daily",
+        "xp": 5,
+        "unit": "XP/thành viên/lần nộp"
+      },
+      {
+        "activity": "/weekly submit",
+        "xp": 10,
+        "unit": "XP/thành viên"
+      },
+      {
+        "activity": "/gate submit",
+        "xp": 100,
+        "unit": "XP/gate"
+      },
+      {
+        "activity": "Tham gia Workshop",
+        "xp": 30,
+        "unit": "XP/buổi"
+      },
+      {
+        "activity": "Hỗ trợ cộng đồng",
+        "xp_range": {
+          "min": 5,
+          "max": 20
+        },
+        "unit": "XP/lần"
+      },
+      {
+        "activity": "Showcase và feedback sản phẩm",
+        "xp": null,
+        "unit": "XP thưởng thêm"
+      }
+    ],
+    "levels": [
+      {
+        "level": "LV1",
+        "name": "Active Builder",
+        "required_xp": 200
+      },
+      {
+        "level": "LV2",
+        "name": "Solid Builder",
+        "required_xp": 500
+      },
+      {
+        "level": "LV3",
+        "name": "Star Builder",
+        "required_xp": 1000
+      },
+      {
+        "level": "LV4",
+        "name": "Elite Builder",
+        "required_xp": 1500
+      }
+    ]
+  },
+  "discord_commands": {
+    "usage_hint": "Gõ / trong Discord để xem gợi ý",
+    "reports": [
+      {
+        "command": "/daily",
+        "description": "Nộp daily stand-up"
+      },
+      {
+        "command": "/weekly submit",
+        "description": "Nộp báo cáo tuần"
+      },
+      {
+        "command": "/weekly view",
+        "description": "Xem báo cáo tuần"
+      },
+      {
+        "command": "/weekly update",
+        "description": "Sửa báo cáo đã nộp"
+      },
+      {
+        "command": "/weekly history",
+        "description": "Lịch sử báo cáo tuần"
+      },
+      {
+        "command": "/weekly support",
+        "description": "Gợi ý 'Done' và daily"
+      }
+    ],
+    "exam": [
+      {
+        "command": "/exam available",
+        "description": "Mã đề còn trống"
+      },
+      {
+        "command": "/exam pick",
+        "description": "Chọn đề cho team"
+      },
+      {
+        "command": "/exam view",
+        "description": "Xem đề đang chọn"
+      }
+    ],
+    "personal_and_team": [
+      {
+        "command": "/system members",
+        "description": "Xem thành viên team"
+      },
+      {
+        "command": "/rank",
+        "description": "Kiểm tra điểm XP và thứ hạng"
+      }
+    ],
+    "gate": [
+      {
+        "command": "/gate list",
+        "description": "Các gate đang active"
+      },
+      {
+        "command": "/gate status",
+        "description": "Trạng thái gate của team"
+      },
+      {
+        "command": "/gate submit",
+        "description": "Nộp gate cho team"
+      },
+      {
+        "command": "/gate view",
+        "description": "Chi tiết một gate"
+      }
+    ],
+    "ticket": [
+      {
+        "command": "/ticket create",
+        "description": "Tạo ticket hỗ trợ"
+      },
+      {
+        "command": "/ticket close",
+        "description": "Đóng ticket hiện tại"
+      }
+    ]
+  },
+  "quality_control_and_demo_day": {
+    "gates": {
+      "definition": "Gate là các checkpoint định kỳ để đánh giá tiến độ.",
+      "support": "Mentor đề xuất hỗ trợ khẩn cấp khi team chưa đạt chuẩn."
+    },
+    "scoring_rubric": [
+      "Xác định và giải quyết vấn đề người dùng",
+      "Hoàn thiện sản phẩm",
+      "Kỹ năng AI",
+      "Triển khai hệ thống",
+      "Chất lượng code"
+    ],
+    "mandatory_deliverables": [
+      "Source code",
+      "README",
+      "Sơ đồ kiến trúc",
+      "Các tài liệu đặc tả, thiết kế",
+      "Tài liệu kiểm thử",
+      "Nhật ký tuần",
+      "Live URL",
+      "Video Demo",
+      "Pitch Deck",
+      "AI Log"
+    ]
+  },
+  "ai_log": {
+    "title": "Setup AI Log",
+    "definition": "AI Log là lịch sử prompts.",
+    "requirement": "Là 1 trong 10 deliverables bắt buộc.",
+    "instruction": "Xem video hướng dẫn thiết lập.",
+    "link_note": "Mỗi vài tháng link có thể thay đổi theo cohort thực tế."
+  },
+  "exam_bank": {
+    "title": "Ngân hàng đề thi",
+    "resource_label": "Truy cập ngân hàng đề thi",
+    "core_principle": "Scope down sớm tốt hơn scope creep",
+    "principle_explanation": "Giới hạn phạm vi sản phẩm sớm thay vì để nó lan man."
+  },
+  "source_slides": [
+    {
+      "slide": 1,
+      "source_label": "image.png",
+      "topic": "Tổng quan chương trình"
+    },
+    {
+      "slide": 2,
+      "source_label": "image-1.png",
+      "topic": "Master Timeline"
+    },
+    {
+      "slide": 3,
+      "source_label": "image-2.png",
+      "topic": "Lịch tổng Cohort 3"
+    },
+    {
+      "slide": 4,
+      "source_label": "image-3.png",
+      "topic": "Nhịp vận hành hằng tuần"
+    },
+    {
+      "slide": 5,
+      "source_label": "image-4.png",
+      "topic": "Hình thành team và chọn đề tài"
+    },
+    {
+      "slide": 6,
+      "source_label": "image-5.png",
+      "topic": "Chương trình hằng tuần"
+    },
+    {
+      "slide": 7,
+      "source_label": "image-6.png",
+      "topic": "Lịch trình Workshop"
+    },
+    {
+      "slide": 8,
+      "source_label": "image-7.png",
+      "topic": "Hệ thống hỗ trợ và tự động hóa"
+    },
+    {
+      "slide": 9,
+      "source_label": "image-8.png",
+      "topic": "Hệ thống điểm XP"
+    },
+    {
+      "slide": 10,
+      "source_label": "image-9.png",
+      "topic": "Discord Commands"
+    },
+    {
+      "slide": 11,
+      "source_label": "image-10.png",
+      "topic": "Kiểm soát chất lượng và Demo Day"
+    },
+    {
+      "slide": 12,
+      "source_label": "image-11.png",
+      "topic": "Setup AI Log"
+    },
+    {
+      "slide": 13,
+      "source_label": "image-12.png",
+      "topic": "Ngân hàng đề thi"
+    }
+  ],
+  "extraction_notes": [
+    "Các đường dẫn thực tế không được suy đoán khi ảnh chỉ hiển thị nhãn liên kết.",
+    "Các ô sự kiện nhỏ trong ảnh lịch tổng không được chép chi tiết vì độ phân giải của contact sheet không đủ rõ; chỉ các mốc và nhóm sự kiện đọc được chắc chắn mới được đưa vào JSON.",
+    "Dữ liệu được giữ theo thuật ngữ và cách tổ chức xuất hiện trong ảnh."
+  ]
+}

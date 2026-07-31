@@ -1,5 +1,5 @@
 {
-  "fixture_notice": "Dữ liệu trích xuất từ handbook AI20K Cohort III (23/07/2026 - 01/09/2026)",
+  "fixture_notice": "Knowledge tổng hợp từ fixture, JSON đã kiểm duyệt và các fact Discord đạt repeated-consensus. Raw Discord/HAR không được nhập trực tiếp.",
   "records": [
     {
       "source_id": "official_timeline_k3_master",
@@ -77,62 +77,6 @@
       "official": true
     },
     {
-      "source_id": "official_xp_daily_k3",
-      "title": "Quy định XP — Checkin hàng ngày",
-      "locator": "XP System / /daily",
-      "category": "xp",
-      "text": "Dùng /daily để checkin hàng ngày, nhận 5 XP. LV1: 0-50 XP, LV2: 51-150 XP, LV3: 151-300 XP, LV4: 301+ XP.",
-      "updated_at": "2026-07-23T00:00:00+07:00",
-      "valid_from": null,
-      "valid_to": null,
-      "attributes": {
-        "activity": "daily",
-        "cohort": "k3",
-        "xp": 5,
-        "command": "/daily",
-        "levels": {
-          "LV1": "0-50",
-          "LV2": "51-150",
-          "LV3": "151-300",
-          "LV4": "301+"
-        }
-      },
-      "official": true
-    },
-    {
-      "source_id": "official_xp_weekly_k3",
-      "title": "Quy định XP — Nộp weekly assignment",
-      "locator": "XP System / /weekly",
-      "category": "xp",
-      "text": "Dùng /weekly submit để nộp weekly assignment, nhận 10 XP.",
-      "updated_at": "2026-07-23T00:00:00+07:00",
-      "valid_from": null,
-      "valid_to": null,
-      "attributes": {
-        "activity": "weekly_submit",
-        "cohort": "k3",
-        "xp": 10,
-        "command": "/weekly submit"
-      },
-      "official": true
-    },
-    {
-      "source_id": "official_xp_gate_k3",
-      "title": "Quy định XP — Vượt gate",
-      "locator": "XP System / Gate",
-      "category": "xp",
-      "text": "Vượt gate thành công nhận 100 XP.",
-      "updated_at": "2026-07-23T00:00:00+07:00",
-      "valid_from": null,
-      "valid_to": null,
-      "attributes": {
-        "activity": "gate_pass",
-        "cohort": "k3",
-        "xp": 100
-      },
-      "official": true
-    },
-    {
       "source_id": "official_xp_peer_review_k3",
       "title": "Quy định XP — Peer review",
       "locator": "XP System / Peer Review",
@@ -146,22 +90,6 @@
         "cohort": "k3",
         "xp": 20,
         "weekly_cap": 3
-      },
-      "official": true
-    },
-    {
-      "source_id": "official_command_daily_k3",
-      "title": "Hướng dẫn lệnh Discord — /daily",
-      "locator": "/daily",
-      "category": "slash_command",
-      "text": "Dùng /daily để checkin hàng ngày và nhận 5 XP.",
-      "updated_at": "2026-07-23T00:00:00+07:00",
-      "valid_from": null,
-      "valid_to": null,
-      "attributes": {
-        "command": "/daily",
-        "usage": "/daily",
-        "description": "Checkin hàng ngày, nhận 5 XP"
       },
       "official": true
     },
@@ -230,22 +158,6 @@
       "official": true
     },
     {
-      "source_id": "official_command_rank_k3",
-      "title": "Hướng dẫn lệnh Discord — /rank",
-      "locator": "/rank",
-      "category": "slash_command",
-      "text": "Dùng /rank để xem thứ hạng và XP hiện tại.",
-      "updated_at": "2026-07-23T00:00:00+07:00",
-      "valid_from": null,
-      "valid_to": null,
-      "attributes": {
-        "command": "/rank",
-        "usage": "/rank",
-        "description": "Xem thứ hạng và XP"
-      },
-      "official": true
-    },
-    {
       "source_id": "official_command_ticket_k3",
       "title": "Hướng dẫn lệnh Discord — /ticket",
       "locator": "/ticket",
@@ -278,22 +190,6 @@
       "official": true
     },
     {
-      "source_id": "official_gate_cp1_k3",
-      "title": "Checkpoint 1 — AI20K Cohort III",
-      "locator": "CP1",
-      "category": "gate",
-      "text": "CP1 yêu cầu hoàn thành setup môi trường và nộp AI Log đầu tiên.",
-      "updated_at": "2026-07-23T00:00:00+07:00",
-      "valid_from": null,
-      "valid_to": null,
-      "attributes": {
-        "gate_name": "cp1",
-        "cohort": "k3",
-        "requirements": ["setup_environment", "first_ai_log"]
-      },
-      "official": true
-    },
-    {
       "source_id": "official_gate_cp2_k3",
       "title": "Checkpoint 2 — AI20K Cohort III",
       "locator": "CP2",
@@ -305,7 +201,10 @@
       "attributes": {
         "gate_name": "cp2",
         "cohort": "k3",
-        "requirements": ["3_workshops", "2_ai_logs"]
+        "requirements": [
+          "3_workshops",
+          "2_ai_logs"
+        ]
       },
       "official": true
     },
@@ -321,7 +220,11 @@
       "attributes": {
         "gate_name": "cp3",
         "cohort": "k3",
-        "requirements": ["real_ai_call", "golden_set_20", "first_eval_result"]
+        "requirements": [
+          "real_ai_call",
+          "golden_set_20",
+          "first_eval_result"
+        ]
       },
       "official": true
     },
@@ -337,26 +240,10 @@
       "attributes": {
         "gate_name": "final",
         "cohort": "k3",
-        "requirements": ["demo_day_success", "10_deliverables"]
-      },
-      "official": true
-    },
-    {
-      "source_id": "official_team_naming_k3",
-      "title": "Quy tắc đặt tên team — AI20K Cohort III",
-      "locator": "Team Naming",
-      "category": "team_mentor",
-      "text": "Team đặt tên theo format: P-XXX (project), #t-XXX (kênh team), c3-app-XXX (app).",
-      "updated_at": "2026-07-23T00:00:00+07:00",
-      "valid_from": null,
-      "valid_to": null,
-      "attributes": {
-        "naming_convention": {
-          "project": "P-XXX",
-          "channel": "#t-XXX",
-          "app": "c3-app-XXX"
-        },
-        "cohort": "k3"
+        "requirements": [
+          "demo_day_success",
+          "10_deliverables"
+        ]
       },
       "official": true
     },
@@ -419,6 +306,1049 @@
           "wireframe",
           "presentation"
         ]
+      },
+      "official": true
+    },
+    {
+      "source_id": "handbook_attendance_policy",
+      "title": "Quy định chuyên cần và xin nghỉ",
+      "locator": "Sổ tay học viên / attendance_policy",
+      "category": "policy_attendance",
+      "text": "Học viên được nghỉ tối đa 4 buổi. Không nghỉ 02 buổi liên tiếp trong cùng một tuần.; Nghỉ vượt giới hạn phải được Giám đốc Chương trình phê duyệt.; Trong giai đoạn doanh nghiệp, vắng mặt phải được Project Lead chấp thuận.. Quy trình xin nghỉ: Báo trước cho giảng viên hoặc mentor.; Nêu rõ lý do và thời gian vắng mặt.; Phải được xác nhận trước khi nghỉ..",
+      "updated_at": "2026-07-31T00:00:00+07:00",
+      "valid_from": null,
+      "valid_to": null,
+      "attributes": {
+        "topic": "attendance",
+        "maximum_absence_sessions": 4,
+        "restrictions": [
+          "Không nghỉ 02 buổi liên tiếp trong cùng một tuần.",
+          "Nghỉ vượt giới hạn phải được Giám đốc Chương trình phê duyệt.",
+          "Trong giai đoạn doanh nghiệp, vắng mặt phải được Project Lead chấp thuận."
+        ],
+        "procedure": [
+          "Báo trước cho giảng viên hoặc mentor.",
+          "Nêu rõ lý do và thời gian vắng mặt.",
+          "Phải được xác nhận trước khi nghỉ."
+        ],
+        "source_file": "tong_hop_so_tay_hoc_vien_AI_thuc_chien.json",
+        "source_version": "1.0"
+      },
+      "official": true
+    },
+    {
+      "source_id": "handbook_online_learning_policy",
+      "title": "Hình thức học và chính sách học online",
+      "locator": "Sổ tay học viên / attendance_policy.online_policy; FAQ 3",
+      "category": "policy_online",
+      "text": "Chương trình học trực tiếp theo kế hoạch của Ban Tổ chức. Không hỗ trợ hình thức học online thông thường.",
+      "updated_at": "2026-07-31T00:00:00+07:00",
+      "valid_from": null,
+      "valid_to": null,
+      "attributes": {
+        "topic": "online_learning",
+        "study_mode": "Toàn thời gian",
+        "online_policy": "Không hỗ trợ hình thức học online thông thường.",
+        "source_file": "tong_hop_so_tay_hoc_vien_AI_thuc_chien.json",
+        "source_version": "1.0"
+      },
+      "official": true
+    },
+    {
+      "source_id": "handbook_laptop_requirements",
+      "title": "Cấu hình laptop tối thiểu",
+      "locator": "Sổ tay học viên / FAQ 8",
+      "category": "policy_laptop",
+      "text": "Laptop cần CPU Intel Core i7, Apple M2 hoặc tương đương; RAM tối thiểu 16GB; ít nhất 256GB SSD; hỗ trợ Windows 10/11, macOS hoặc Linux; kết nối mạng ổn định.",
+      "updated_at": "2026-07-31T00:00:00+07:00",
+      "valid_from": null,
+      "valid_to": null,
+      "attributes": {
+        "topic": "laptop_requirements",
+        "cpu": "Intel Core i7, Apple M2 hoặc tương đương",
+        "ram": "Tối thiểu 16GB",
+        "storage": "Ít nhất 256GB SSD",
+        "os": [
+          "Windows 10/11",
+          "macOS",
+          "Linux"
+        ],
+        "network": "Ổn định",
+        "source_file": "tong_hop_so_tay_hoc_vien_AI_thuc_chien.json",
+        "source_version": "1.0"
+      },
+      "official": true
+    },
+    {
+      "source_id": "handbook_learning_platform",
+      "title": "Nền tảng học tập LearnWorlds",
+      "locator": "Sổ tay học viên / learning_platform",
+      "category": "learning_material",
+      "text": "Sử dụng LearnWorlds để Truy cập tài liệu và bài giảng; Theo dõi tiến độ và kết quả; Nộp bài và nhận phản hồi; Thảo luận và học trực tuyến.",
+      "updated_at": "2026-07-31T00:00:00+07:00",
+      "valid_from": null,
+      "valid_to": null,
+      "attributes": {
+        "topic": "learning_platform",
+        "platform": "LearnWorlds",
+        "uses": [
+          "Truy cập tài liệu và bài giảng",
+          "Theo dõi tiến độ và kết quả",
+          "Nộp bài và nhận phản hồi",
+          "Thảo luận và học trực tuyến"
+        ],
+        "source_file": "tong_hop_so_tay_hoc_vien_AI_thuc_chien.json",
+        "source_version": "1.0"
+      },
+      "official": true
+    },
+    {
+      "source_id": "handbook_submission_platform",
+      "title": "Nền tảng nộp bài LearnWorlds",
+      "locator": "Sổ tay học viên / learning_platform",
+      "category": "submission_channel",
+      "text": "Bài học và bài tập của chương trình được truy cập, nộp bài và nhận phản hồi trên LearnWorlds.",
+      "updated_at": "2026-07-31T00:00:00+07:00",
+      "valid_from": null,
+      "valid_to": null,
+      "attributes": {
+        "topic": "assignment_submission",
+        "platform": "LearnWorlds",
+        "uses": [
+          "Truy cập tài liệu và bài giảng",
+          "Theo dõi tiến độ và kết quả",
+          "Nộp bài và nhận phản hồi",
+          "Thảo luận và học trực tuyến"
+        ],
+        "source_file": "tong_hop_so_tay_hoc_vien_AI_thuc_chien.json",
+        "source_version": "1.0"
+      },
+      "official": true
+    },
+    {
+      "source_id": "handbook_reservation_policy",
+      "title": "Quy định bảo lưu",
+      "locator": "Sổ tay học viên / reservation_policy",
+      "category": "policy",
+      "text": "Không áp dụng bảo lưu. Ngoại lệ: Trường hợp khẩn cấp; Sự kiện bất khả kháng. Yêu cầu: Đề xuất bằng văn bản; Được phê duyệt trước khi tạm dừng.",
+      "updated_at": "2026-07-31T00:00:00+07:00",
+      "valid_from": null,
+      "valid_to": null,
+      "attributes": {
+        "topic": "reservation",
+        "general_rule": "Không áp dụng bảo lưu.",
+        "exceptions": [
+          "Trường hợp khẩn cấp",
+          "Sự kiện bất khả kháng"
+        ],
+        "requirements": [
+          "Đề xuất bằng văn bản",
+          "Được phê duyệt trước khi tạm dừng"
+        ],
+        "source_file": "tong_hop_so_tay_hoc_vien_AI_thuc_chien.json",
+        "source_version": "1.0"
+      },
+      "official": true
+    },
+    {
+      "source_id": "handbook_completion_requirements",
+      "title": "Điều kiện hoàn thành chương trình",
+      "locator": "Sổ tay học viên / completion_requirements",
+      "category": "policy",
+      "text": "Điều kiện đạt: Đạt điểm tổng kết từ Pass trở lên; Hoàn thành đầy đủ thành phần đánh giá bắt buộc; Đáp ứng thời lượng tham gia tối thiểu; Không vi phạm nghiêm trọng. Điều kiện không đạt: Không đạt điểm tối thiểu; Thiếu thành phần đánh giá; Không đạt chuyên cần; Vi phạm nghiêm trọng.",
+      "updated_at": "2026-07-31T00:00:00+07:00",
+      "valid_from": null,
+      "valid_to": null,
+      "attributes": {
+        "topic": "completion",
+        "pass_conditions": [
+          "Đạt điểm tổng kết từ Pass trở lên",
+          "Hoàn thành đầy đủ thành phần đánh giá bắt buộc",
+          "Đáp ứng thời lượng tham gia tối thiểu",
+          "Không vi phạm nghiêm trọng"
+        ],
+        "fail_conditions": [
+          "Không đạt điểm tối thiểu",
+          "Thiếu thành phần đánh giá",
+          "Không đạt chuyên cần",
+          "Vi phạm nghiêm trọng"
+        ],
+        "source_file": "tong_hop_so_tay_hoc_vien_AI_thuc_chien.json",
+        "source_version": "1.0"
+      },
+      "official": true
+    },
+    {
+      "source_id": "handbook_tuition_allowance",
+      "title": "Học phí, trợ cấp và điều kiện",
+      "locator": "Sổ tay học viên / tuition_and_allowance",
+      "category": "policy",
+      "text": "Chương trình tài trợ 100% học phí và trợ cấp 8,000,000 đồng/tháng nếu đáp ứng điều kiện: Tuân thủ thỏa thuận và cam kết; Duy trì chuyên cần; Hoàn thành yêu cầu học tập; Tuân thủ kỷ luật, đạo đức và bảo mật; Không tự ý nghỉ hoặc rút khỏi chương trình.",
+      "updated_at": "2026-07-31T00:00:00+07:00",
+      "valid_from": null,
+      "valid_to": null,
+      "attributes": {
+        "topic": "tuition_allowance",
+        "tuition_support_percent": 100,
+        "monthly_allowance_vnd": 8000000,
+        "conditions": [
+          "Tuân thủ thỏa thuận và cam kết",
+          "Duy trì chuyên cần",
+          "Hoàn thành yêu cầu học tập",
+          "Tuân thủ kỷ luật, đạo đức và bảo mật",
+          "Không tự ý nghỉ hoặc rút khỏi chương trình"
+        ],
+        "repayment_cases": [
+          "Tự ý nghỉ hoặc rút khỏi chương trình",
+          "Vi phạm nghiêm trọng kỷ luật hoặc bảo mật",
+          "Cung cấp thông tin sai lệch"
+        ],
+        "source_file": "tong_hop_so_tay_hoc_vien_AI_thuc_chien.json",
+        "source_version": "1.0"
+      },
+      "official": true
+    },
+    {
+      "source_id": "handbook_post_program_opportunities",
+      "title": "Cơ hội sau chương trình",
+      "locator": "Sổ tay học viên / FAQ 15",
+      "category": "career",
+      "text": "Cơ hội sau chương trình: Ứng tuyển MSc hoặc PhD tại VinUni; Ứng tuyển Research Assistant; Tham gia dự án doanh nghiệp; Cơ hội tuyển dụng tùy năng lực và nhu cầu.",
+      "updated_at": "2026-07-31T00:00:00+07:00",
+      "valid_from": null,
+      "valid_to": null,
+      "attributes": {
+        "topic": "post_program_opportunities",
+        "source_file": "tong_hop_so_tay_hoc_vien_AI_thuc_chien.json",
+        "source_version": "1.0"
+      },
+      "official": true
+    },
+    {
+      "source_id": "docs_weekly_rhythm_k3",
+      "title": "Nhịp vận hành hàng tuần — AI20K Cohort III",
+      "locator": "Tổng quan Cohort III / weekly_operating_rhythm",
+      "category": "event",
+      "text": "Lịch cơ bản: Workshop tối Thứ 5 và Chủ Nhật, thường 2 buổi/tuần; Office Hours tối Thứ 2 và Thứ 6, thường 2 buổi/tuần; Mentoring Duty tối Thứ 4 và Thứ 7, 2 buổi/tuần để theo dõi tiến độ, chấm điểm và gỡ khó. Lịch có thể được BTC cập nhật theo thông báo chính thức. Mentoring Duty diễn ra 20:00–22:00; lịch cập nhật được theo dõi tại kênh #thông-báo.",
+      "updated_at": "2026-07-31T00:00:00+07:00",
+      "valid_from": "2026-07-20T00:00:00+07:00",
+      "valid_to": "2026-09-06T23:59:59+07:00",
+      "attributes": {
+        "event_name": "weekly_rhythm",
+        "activities": [
+          {
+            "activity": "Workshop",
+            "frequency": "2 buổi/tuần",
+            "usual_time": "Tối Thứ 5 và Chủ Nhật",
+            "note": "Có thể tăng cường ở các tuần sau"
+          },
+          {
+            "activity": "Office Hours",
+            "frequency": "Thường 2 buổi/tuần",
+            "usual_time": "Tối Thứ 2 và Thứ 6"
+          },
+          {
+            "activity": "Mentoring Duty",
+            "frequency": "2 buổi/tuần",
+            "usual_time": "Tối Thứ 4 và Thứ 7",
+            "purposes": [
+              "Theo dõi tiến độ",
+              "Chấm điểm",
+              "Gỡ khó"
+            ]
+          }
+        ],
+        "cohort": "k3",
+        "source_file": "tong_hop_du_lieu_AI20K_Cohort_III.json",
+        "mentoring_time": "20:00-22:00",
+        "discord_verification": {
+          "method": "repeated_consensus",
+          "fact": "mentoring_schedule",
+          "evidence_message_ids": [
+            "1531693648423420125",
+            "1531693702152454204",
+            "1532003261010411551",
+            "1532003325048913941",
+            "1532241103758037094",
+            "1532241221312053449"
+          ],
+          "source_file": "discord_messages.json"
+        }
+      },
+      "official": true
+    },
+    {
+      "source_id": "docs_workshop_rhythm_k3",
+      "title": "Lịch Workshop hàng tuần — AI20K Cohort III",
+      "locator": "Tổng quan Cohort III / weekly_operating_rhythm / Workshop",
+      "category": "event",
+      "text": "Workshop diễn ra 2 buổi/tuần, thường vào Tối Thứ 5 và Chủ Nhật. Lịch cụ thể có thể được BTC cập nhật theo thông báo chính thức.",
+      "updated_at": "2026-07-31T00:00:00+07:00",
+      "valid_from": "2026-07-20T00:00:00+07:00",
+      "valid_to": "2026-09-06T23:59:59+07:00",
+      "attributes": {
+        "event_name": "workshop",
+        "activity": "Workshop",
+        "frequency": "2 buổi/tuần",
+        "usual_time": "Tối Thứ 5 và Chủ Nhật",
+        "note": "Có thể tăng cường ở các tuần sau",
+        "cohort": "k3",
+        "source_file": "tong_hop_du_lieu_AI20K_Cohort_III.json"
+      },
+      "official": true
+    },
+    {
+      "source_id": "docs_office_hours_rhythm_k3",
+      "title": "Lịch Office Hours hàng tuần — AI20K Cohort III",
+      "locator": "Tổng quan Cohort III / weekly_operating_rhythm / Office Hours",
+      "category": "event",
+      "text": "Office Hours diễn ra Thường 2 buổi/tuần, thường vào Tối Thứ 2 và Thứ 6.",
+      "updated_at": "2026-07-31T00:00:00+07:00",
+      "valid_from": "2026-07-20T00:00:00+07:00",
+      "valid_to": "2026-09-06T23:59:59+07:00",
+      "attributes": {
+        "event_name": "office hour",
+        "activity": "Office Hours",
+        "frequency": "Thường 2 buổi/tuần",
+        "usual_time": "Tối Thứ 2 và Thứ 6",
+        "cohort": "k3",
+        "source_file": "tong_hop_du_lieu_AI20K_Cohort_III.json"
+      },
+      "official": true
+    },
+    {
+      "source_id": "docs_mentoring_duty_rhythm_k3",
+      "title": "Lịch Mentoring Duty hàng tuần — AI20K Cohort III",
+      "locator": "Tổng quan Cohort III / weekly_operating_rhythm / Mentoring Duty",
+      "category": "event",
+      "text": "Mentoring Duty diễn ra 2 buổi/tuần, thường vào Tối Thứ 4 và Thứ 7; mục đích: Theo dõi tiến độ; Chấm điểm; Gỡ khó. Khung giờ được lặp lại nhất quán trong lịch sử Q&A là 20:00–22:00.",
+      "updated_at": "2026-07-31T00:00:00+07:00",
+      "valid_from": "2026-07-20T00:00:00+07:00",
+      "valid_to": "2026-09-06T23:59:59+07:00",
+      "attributes": {
+        "event_name": "mentoring",
+        "activity": "Mentoring Duty",
+        "frequency": "2 buổi/tuần",
+        "usual_time": "Tối Thứ 4 và Thứ 7",
+        "purposes": [
+          "Theo dõi tiến độ",
+          "Chấm điểm",
+          "Gỡ khó"
+        ],
+        "cohort": "k3",
+        "source_file": "tong_hop_du_lieu_AI20K_Cohort_III.json",
+        "start_time": "20:00",
+        "end_time": "22:00",
+        "discord_verification": {
+          "method": "repeated_consensus",
+          "fact": "mentoring_schedule",
+          "evidence_message_ids": [
+            "1531693648423420125",
+            "1531693702152454204",
+            "1532003261010411551",
+            "1532003325048913941",
+            "1532241103758037094",
+            "1532241221312053449"
+          ],
+          "source_file": "discord_messages.json"
+        }
+      },
+      "official": true
+    },
+    {
+      "source_id": "docs_team_topic_selection_k3",
+      "title": "Ghép team và chọn đề tài — AI20K Cohort III",
+      "locator": "Tổng quan Cohort III / team_formation_and_topic_selection",
+      "category": "topic_availability",
+      "text": "Học viên tự do ghép hoặc lập đội trên nền tảng.; Team chọn đề tài từ ngân hàng đề.; Mỗi đề tài có tối đa 2 team.; Được tự do ghép hoặc lập đội đến hết ngày 25/07.; Sau thời hạn, hệ thống tự động ghép đội.. Dùng /exam available để xem các mã đề còn trống; mỗi đề tài có tối đa 2 team.",
+      "updated_at": "2026-07-31T00:00:00+07:00",
+      "valid_from": "2026-07-20T00:00:00+07:00",
+      "valid_to": "2026-09-06T23:59:59+07:00",
+      "attributes": {
+        "topic": "team_topic_selection",
+        "rules": [
+          "Học viên tự do ghép hoặc lập đội trên nền tảng.",
+          "Team chọn đề tài từ ngân hàng đề.",
+          "Mỗi đề tài có tối đa 2 team.",
+          "Được tự do ghép hoặc lập đội đến hết ngày 25/07.",
+          "Sau thời hạn, hệ thống tự động ghép đội."
+        ],
+        "cohort": "k3",
+        "source_file": "tong_hop_du_lieu_AI20K_Cohort_III.json"
+      },
+      "official": true
+    },
+    {
+      "source_id": "official_team_naming_k3",
+      "title": "Quy tắc đặt tên team — AI20K Cohort III",
+      "locator": "Tổng quan Cohort III / naming_conventions",
+      "category": "team_naming",
+      "text": "Quy ước đặt tên: GitHub repository P-XXX; kênh Discord t-XXX; deploy URL c3-app-XXX; tên Zoom G-YY - TXXX - Họ và tên.",
+      "updated_at": "2026-07-31T00:00:00+07:00",
+      "valid_from": "2026-07-20T00:00:00+07:00",
+      "valid_to": "2026-09-06T23:59:59+07:00",
+      "attributes": {
+        "topic": "team_naming",
+        "naming_convention": {
+          "github_repository": {
+            "pattern": "P-XXX",
+            "example": "P-042"
+          },
+          "discord_channel": {
+            "pattern": "t-XXX",
+            "example": "t-042"
+          },
+          "deploy_url": {
+            "pattern": "c3-app-XXX",
+            "example_visible_in_source": "c3-app-042.ja.vn",
+            "cohort_4_pattern": "c4-app-XXX"
+          },
+          "zoom_name": {
+            "pattern": "G-YY - TXXX - Họ và tên",
+            "example": "G01-T004-Nguyễn Văn An"
+          }
+        },
+        "cohort": "k3",
+        "source_file": "tong_hop_du_lieu_AI20K_Cohort_III.json"
+      },
+      "official": true
+    },
+    {
+      "source_id": "docs_weekly_report_k3",
+      "title": "Quy định Weekly Report trước Mentoring Duty",
+      "locator": "Tổng quan Cohort III / weekly_program / coaching_breakout_room",
+      "category": "deadline",
+      "text": "Mỗi team cần submit weekly report trước mỗi buổi Coaching (Mentor Duty). Dùng lệnh /weekly submit để nộp báo cáo tuần. Lịch sử Q&A thống nhất hạn nộp là 12h00 trưa trước buổi Mentoring Duty.",
+      "updated_at": "2026-07-31T00:00:00+07:00",
+      "valid_from": "2026-07-20T00:00:00+07:00",
+      "valid_to": "2026-09-06T23:59:59+07:00",
+      "attributes": {
+        "assignment": "weekly_report",
+        "cohort": "k3",
+        "source_file": "tong_hop_du_lieu_AI20K_Cohort_III.json",
+        "cutoff_time": "12:00",
+        "discord_verification": {
+          "method": "repeated_consensus",
+          "fact": "weekly_deadline",
+          "evidence_message_ids": [
+            "1531612130321764453",
+            "1531612141709299763",
+            "1531644965002936470",
+            "1531644977686253740"
+          ],
+          "source_file": "discord_messages.json"
+        }
+      },
+      "official": true
+    },
+    {
+      "source_id": "docs_weekly_report_submission_k3",
+      "title": "Nộp báo cáo tuần cho Mentoring Duty",
+      "locator": "Tổng quan Cohort III / weekly_program / coaching_breakout_room",
+      "category": "submission_channel",
+      "text": "Báo cáo tuần cho buổi Mentoring Duty được nộp bằng lệnh /weekly submit; mỗi team nộp trước mỗi buổi Coaching.",
+      "updated_at": "2026-07-31T00:00:00+07:00",
+      "valid_from": "2026-07-20T00:00:00+07:00",
+      "valid_to": "2026-09-06T23:59:59+07:00",
+      "attributes": {
+        "topic": "weekly_report_submission",
+        "command": "/weekly submit",
+        "cohort": "k3",
+        "source_file": "tong_hop_du_lieu_AI20K_Cohort_III.json"
+      },
+      "official": true
+    },
+    {
+      "source_id": "official_xp_daily_k3",
+      "title": "Quy định XP — Daily stand-up",
+      "locator": "Tổng quan Cohort III / xp_system / /daily",
+      "category": "xp",
+      "text": "/daily dùng để nộp daily stand-up và nhận 5 XP cho mỗi thành viên mỗi lần nộp.",
+      "updated_at": "2026-07-31T00:00:00+07:00",
+      "valid_from": "2026-07-20T00:00:00+07:00",
+      "valid_to": "2026-09-06T23:59:59+07:00",
+      "attributes": {
+        "activity": "daily",
+        "xp": 5,
+        "unit": "XP/thành viên/lần nộp",
+        "cohort": "k3",
+        "source_file": "tong_hop_du_lieu_AI20K_Cohort_III.json"
+      },
+      "official": true
+    },
+    {
+      "source_id": "official_xp_weekly_k3",
+      "title": "Quy định XP — Weekly report",
+      "locator": "Tổng quan Cohort III / xp_system / /weekly submit",
+      "category": "xp",
+      "text": "/weekly submit dùng để nộp báo cáo tuần và nhận 10 XP cho mỗi thành viên.",
+      "updated_at": "2026-07-31T00:00:00+07:00",
+      "valid_from": "2026-07-20T00:00:00+07:00",
+      "valid_to": "2026-09-06T23:59:59+07:00",
+      "attributes": {
+        "activity": "weekly",
+        "xp": 10,
+        "unit": "XP/thành viên",
+        "cohort": "k3",
+        "source_file": "tong_hop_du_lieu_AI20K_Cohort_III.json"
+      },
+      "official": true
+    },
+    {
+      "source_id": "official_xp_gate_k3",
+      "title": "Quy định XP — Gate",
+      "locator": "Tổng quan Cohort III / xp_system / /gate submit",
+      "category": "xp",
+      "text": "/gate submit dùng để nộp gate cho team; mỗi gate được cộng 100 XP.",
+      "updated_at": "2026-07-31T00:00:00+07:00",
+      "valid_from": "2026-07-20T00:00:00+07:00",
+      "valid_to": "2026-09-06T23:59:59+07:00",
+      "attributes": {
+        "activity": "gate",
+        "xp": 100,
+        "unit": "XP/gate",
+        "cohort": "k3",
+        "source_file": "tong_hop_du_lieu_AI20K_Cohort_III.json"
+      },
+      "official": true
+    },
+    {
+      "source_id": "docs_xp_workshop_k3",
+      "title": "Quy định XP — Tham gia Workshop",
+      "locator": "Tổng quan Cohort III / xp_system / Workshop",
+      "category": "xp",
+      "text": "Tham gia Workshop được cộng 30 XP mỗi buổi.",
+      "updated_at": "2026-07-31T00:00:00+07:00",
+      "valid_from": "2026-07-20T00:00:00+07:00",
+      "valid_to": "2026-09-06T23:59:59+07:00",
+      "attributes": {
+        "activity": "workshop",
+        "xp": 30,
+        "unit": "XP/buổi",
+        "cohort": "k3",
+        "source_file": "tong_hop_du_lieu_AI20K_Cohort_III.json"
+      },
+      "official": true
+    },
+    {
+      "source_id": "docs_workshop_catalog_k3",
+      "title": "Danh mục 14 Workshop — AI20K Cohort III",
+      "locator": "Tổng quan Cohort III / workshop_schedule",
+      "category": "learning_material",
+      "text": "Workshop 1: Kick-off — Chia nhóm, chọn đề, khởi tạo repo; Workshop 2: Problem → MVP Canvas; Workshop 3: PM & team cowork — Soft skills, rules, xử lý xung đột; Workshop 4: Vibe coding 101 — By team; Workshop 5: AI Product Design — UX patterns & prototyping; Workshop 6: Tư duy Product — Cho người làm sản phẩm; Workshop 7: First Working Agent — LLM + tool calling; Workshop 8: RAG Pipeline — Ingestion, chunking, retrieval; Workshop 9: Multi-Step Agent — Plan → execute → validate; Workshop 10: MCP & Multi-Agent — Protocol & orchestration; Workshop 11: Optimize & Evaluate — Quality, latency, cost; Workshop 12: Guardrails & Reliability — Safety & error handling; Workshop 13: Go Live — CI/CD, cloud deploy, observability; Workshop 14: The Pitch — Product narrative & investor demo",
+      "updated_at": "2026-07-31T00:00:00+07:00",
+      "valid_from": "2026-07-20T00:00:00+07:00",
+      "valid_to": "2026-09-06T23:59:59+07:00",
+      "attributes": {
+        "topic": "workshop_catalog",
+        "workshops": [
+          {
+            "order": 1,
+            "title": "Kick-off",
+            "content": "Chia nhóm, chọn đề, khởi tạo repo"
+          },
+          {
+            "order": 2,
+            "title": "Problem → MVP Canvas",
+            "content": null
+          },
+          {
+            "order": 3,
+            "title": "PM & team cowork",
+            "content": "Soft skills, rules, xử lý xung đột"
+          },
+          {
+            "order": 4,
+            "title": "Vibe coding 101",
+            "content": "By team"
+          },
+          {
+            "order": 5,
+            "title": "AI Product Design",
+            "content": "UX patterns & prototyping"
+          },
+          {
+            "order": 6,
+            "title": "Tư duy Product",
+            "content": "Cho người làm sản phẩm"
+          },
+          {
+            "order": 7,
+            "title": "First Working Agent",
+            "content": "LLM + tool calling"
+          },
+          {
+            "order": 8,
+            "title": "RAG Pipeline",
+            "content": "Ingestion, chunking, retrieval"
+          },
+          {
+            "order": 9,
+            "title": "Multi-Step Agent",
+            "content": "Plan → execute → validate"
+          },
+          {
+            "order": 10,
+            "title": "MCP & Multi-Agent",
+            "content": "Protocol & orchestration"
+          },
+          {
+            "order": 11,
+            "title": "Optimize & Evaluate",
+            "content": "Quality, latency, cost"
+          },
+          {
+            "order": 12,
+            "title": "Guardrails & Reliability",
+            "content": "Safety & error handling"
+          },
+          {
+            "order": 13,
+            "title": "Go Live",
+            "content": "CI/CD, cloud deploy, observability"
+          },
+          {
+            "order": 14,
+            "title": "The Pitch",
+            "content": "Product narrative & investor demo"
+          }
+        ],
+        "cohort": "k3",
+        "source_file": "tong_hop_du_lieu_AI20K_Cohort_III.json"
+      },
+      "official": true
+    },
+    {
+      "source_id": "docs_ai_log_setup_k3",
+      "title": "Hướng dẫn Setup AI Log",
+      "locator": "Tổng quan Cohort III / ai_log",
+      "category": "learning_material",
+      "text": "AI Log là lịch sử prompts. Là 1 trong 10 deliverables bắt buộc. Xem video hướng dẫn thiết lập.",
+      "updated_at": "2026-07-31T00:00:00+07:00",
+      "valid_from": "2026-07-20T00:00:00+07:00",
+      "valid_to": "2026-09-06T23:59:59+07:00",
+      "attributes": {
+        "topic": "ai_log",
+        "title": "Setup AI Log",
+        "definition": "AI Log là lịch sử prompts.",
+        "requirement": "Là 1 trong 10 deliverables bắt buộc.",
+        "instruction": "Xem video hướng dẫn thiết lập.",
+        "link_note": "Mỗi vài tháng link có thể thay đổi theo cohort thực tế.",
+        "cohort": "k3",
+        "source_file": "tong_hop_du_lieu_AI20K_Cohort_III.json"
+      },
+      "official": true
+    },
+    {
+      "source_id": "docs_demo_day_deliverables_k3",
+      "title": "10 deliverable bắt buộc cho Demo Day",
+      "locator": "Tổng quan Cohort III / quality_control_and_demo_day",
+      "category": "deadline",
+      "text": "10 deliverable bắt buộc: Source code; README; Sơ đồ kiến trúc; Các tài liệu đặc tả, thiết kế; Tài liệu kiểm thử; Nhật ký tuần; Live URL; Video Demo; Pitch Deck; AI Log.",
+      "updated_at": "2026-07-31T00:00:00+07:00",
+      "valid_from": "2026-07-20T00:00:00+07:00",
+      "valid_to": "2026-09-06T23:59:59+07:00",
+      "attributes": {
+        "assignment": "demo_day_deliverables",
+        "items": [
+          "Source code",
+          "README",
+          "Sơ đồ kiến trúc",
+          "Các tài liệu đặc tả, thiết kế",
+          "Tài liệu kiểm thử",
+          "Nhật ký tuần",
+          "Live URL",
+          "Video Demo",
+          "Pitch Deck",
+          "AI Log"
+        ],
+        "count": 10,
+        "cohort": "k3",
+        "source_file": "tong_hop_du_lieu_AI20K_Cohort_III.json"
+      },
+      "official": true
+    },
+    {
+      "source_id": "official_command_daily_k3",
+      "title": "Hướng dẫn lệnh Discord — /daily",
+      "locator": "Tổng quan Cohort III / discord_commands / reports",
+      "category": "slash_command",
+      "text": "/daily: Nộp daily stand-up.",
+      "updated_at": "2026-07-31T00:00:00+07:00",
+      "valid_from": "2026-07-20T00:00:00+07:00",
+      "valid_to": "2026-09-06T23:59:59+07:00",
+      "attributes": {
+        "command": "/daily",
+        "description": "Nộp daily stand-up",
+        "cohort": "k3",
+        "source_file": "tong_hop_du_lieu_AI20K_Cohort_III.json"
+      },
+      "official": true
+    },
+    {
+      "source_id": "docs_command_weekly_submit_k3",
+      "title": "Hướng dẫn lệnh Discord — /weekly submit",
+      "locator": "Tổng quan Cohort III / discord_commands / reports",
+      "category": "slash_command",
+      "text": "/weekly submit: Nộp báo cáo tuần.",
+      "updated_at": "2026-07-31T00:00:00+07:00",
+      "valid_from": "2026-07-20T00:00:00+07:00",
+      "valid_to": "2026-09-06T23:59:59+07:00",
+      "attributes": {
+        "command": "/weekly submit",
+        "description": "Nộp báo cáo tuần",
+        "cohort": "k3",
+        "source_file": "tong_hop_du_lieu_AI20K_Cohort_III.json"
+      },
+      "official": true
+    },
+    {
+      "source_id": "docs_command_weekly_view_k3",
+      "title": "Hướng dẫn lệnh Discord — /weekly view",
+      "locator": "Tổng quan Cohort III / discord_commands / reports",
+      "category": "slash_command",
+      "text": "/weekly view: Xem báo cáo tuần.",
+      "updated_at": "2026-07-31T00:00:00+07:00",
+      "valid_from": "2026-07-20T00:00:00+07:00",
+      "valid_to": "2026-09-06T23:59:59+07:00",
+      "attributes": {
+        "command": "/weekly view",
+        "description": "Xem báo cáo tuần",
+        "cohort": "k3",
+        "source_file": "tong_hop_du_lieu_AI20K_Cohort_III.json"
+      },
+      "official": true
+    },
+    {
+      "source_id": "docs_command_weekly_update_k3",
+      "title": "Hướng dẫn lệnh Discord — /weekly update",
+      "locator": "Tổng quan Cohort III / discord_commands / reports",
+      "category": "slash_command",
+      "text": "/weekly update: Sửa báo cáo đã nộp.",
+      "updated_at": "2026-07-31T00:00:00+07:00",
+      "valid_from": "2026-07-20T00:00:00+07:00",
+      "valid_to": "2026-09-06T23:59:59+07:00",
+      "attributes": {
+        "command": "/weekly update",
+        "description": "Sửa báo cáo đã nộp",
+        "cohort": "k3",
+        "source_file": "tong_hop_du_lieu_AI20K_Cohort_III.json"
+      },
+      "official": true
+    },
+    {
+      "source_id": "docs_command_weekly_history_k3",
+      "title": "Hướng dẫn lệnh Discord — /weekly history",
+      "locator": "Tổng quan Cohort III / discord_commands / reports",
+      "category": "slash_command",
+      "text": "/weekly history: Lịch sử báo cáo tuần.",
+      "updated_at": "2026-07-31T00:00:00+07:00",
+      "valid_from": "2026-07-20T00:00:00+07:00",
+      "valid_to": "2026-09-06T23:59:59+07:00",
+      "attributes": {
+        "command": "/weekly history",
+        "description": "Lịch sử báo cáo tuần",
+        "cohort": "k3",
+        "source_file": "tong_hop_du_lieu_AI20K_Cohort_III.json"
+      },
+      "official": true
+    },
+    {
+      "source_id": "docs_command_weekly_support_k3",
+      "title": "Hướng dẫn lệnh Discord — /weekly support",
+      "locator": "Tổng quan Cohort III / discord_commands / reports",
+      "category": "slash_command",
+      "text": "/weekly support: Gợi ý 'Done' và daily.",
+      "updated_at": "2026-07-31T00:00:00+07:00",
+      "valid_from": "2026-07-20T00:00:00+07:00",
+      "valid_to": "2026-09-06T23:59:59+07:00",
+      "attributes": {
+        "command": "/weekly support",
+        "description": "Gợi ý 'Done' và daily",
+        "cohort": "k3",
+        "source_file": "tong_hop_du_lieu_AI20K_Cohort_III.json"
+      },
+      "official": true
+    },
+    {
+      "source_id": "docs_command_exam_available_k3",
+      "title": "Hướng dẫn lệnh Discord — /exam available",
+      "locator": "Tổng quan Cohort III / discord_commands / exam",
+      "category": "slash_command",
+      "text": "/exam available: Mã đề còn trống.",
+      "updated_at": "2026-07-31T00:00:00+07:00",
+      "valid_from": "2026-07-20T00:00:00+07:00",
+      "valid_to": "2026-09-06T23:59:59+07:00",
+      "attributes": {
+        "command": "/exam available",
+        "description": "Mã đề còn trống",
+        "cohort": "k3",
+        "source_file": "tong_hop_du_lieu_AI20K_Cohort_III.json"
+      },
+      "official": true
+    },
+    {
+      "source_id": "docs_command_exam_pick_k3",
+      "title": "Hướng dẫn lệnh Discord — /exam pick",
+      "locator": "Tổng quan Cohort III / discord_commands / exam",
+      "category": "slash_command",
+      "text": "/exam pick: Chọn đề cho team.",
+      "updated_at": "2026-07-31T00:00:00+07:00",
+      "valid_from": "2026-07-20T00:00:00+07:00",
+      "valid_to": "2026-09-06T23:59:59+07:00",
+      "attributes": {
+        "command": "/exam pick",
+        "description": "Chọn đề cho team",
+        "cohort": "k3",
+        "source_file": "tong_hop_du_lieu_AI20K_Cohort_III.json"
+      },
+      "official": true
+    },
+    {
+      "source_id": "docs_command_exam_view_k3",
+      "title": "Hướng dẫn lệnh Discord — /exam view",
+      "locator": "Tổng quan Cohort III / discord_commands / exam",
+      "category": "slash_command",
+      "text": "/exam view: Xem đề đang chọn.",
+      "updated_at": "2026-07-31T00:00:00+07:00",
+      "valid_from": "2026-07-20T00:00:00+07:00",
+      "valid_to": "2026-09-06T23:59:59+07:00",
+      "attributes": {
+        "command": "/exam view",
+        "description": "Xem đề đang chọn",
+        "cohort": "k3",
+        "source_file": "tong_hop_du_lieu_AI20K_Cohort_III.json"
+      },
+      "official": true
+    },
+    {
+      "source_id": "docs_command_system_members_k3",
+      "title": "Hướng dẫn lệnh Discord — /system members",
+      "locator": "Tổng quan Cohort III / discord_commands / personal_and_team",
+      "category": "slash_command",
+      "text": "/system members: Xem thành viên team.",
+      "updated_at": "2026-07-31T00:00:00+07:00",
+      "valid_from": "2026-07-20T00:00:00+07:00",
+      "valid_to": "2026-09-06T23:59:59+07:00",
+      "attributes": {
+        "command": "/system members",
+        "description": "Xem thành viên team",
+        "cohort": "k3",
+        "source_file": "tong_hop_du_lieu_AI20K_Cohort_III.json"
+      },
+      "official": true
+    },
+    {
+      "source_id": "official_command_rank_k3",
+      "title": "Hướng dẫn lệnh Discord — /rank",
+      "locator": "Tổng quan Cohort III / discord_commands / personal_and_team",
+      "category": "slash_command",
+      "text": "/rank: Kiểm tra điểm XP và thứ hạng.",
+      "updated_at": "2026-07-31T00:00:00+07:00",
+      "valid_from": "2026-07-20T00:00:00+07:00",
+      "valid_to": "2026-09-06T23:59:59+07:00",
+      "attributes": {
+        "command": "/rank",
+        "description": "Kiểm tra điểm XP và thứ hạng",
+        "cohort": "k3",
+        "source_file": "tong_hop_du_lieu_AI20K_Cohort_III.json"
+      },
+      "official": true
+    },
+    {
+      "source_id": "docs_command_gate_list_k3",
+      "title": "Hướng dẫn lệnh Discord — /gate list",
+      "locator": "Tổng quan Cohort III / discord_commands / gate",
+      "category": "slash_command",
+      "text": "/gate list: Các gate đang active.",
+      "updated_at": "2026-07-31T00:00:00+07:00",
+      "valid_from": "2026-07-20T00:00:00+07:00",
+      "valid_to": "2026-09-06T23:59:59+07:00",
+      "attributes": {
+        "command": "/gate list",
+        "description": "Các gate đang active",
+        "cohort": "k3",
+        "source_file": "tong_hop_du_lieu_AI20K_Cohort_III.json"
+      },
+      "official": true
+    },
+    {
+      "source_id": "docs_command_gate_status_k3",
+      "title": "Hướng dẫn lệnh Discord — /gate status",
+      "locator": "Tổng quan Cohort III / discord_commands / gate",
+      "category": "slash_command",
+      "text": "/gate status: Trạng thái gate của team.",
+      "updated_at": "2026-07-31T00:00:00+07:00",
+      "valid_from": "2026-07-20T00:00:00+07:00",
+      "valid_to": "2026-09-06T23:59:59+07:00",
+      "attributes": {
+        "command": "/gate status",
+        "description": "Trạng thái gate của team",
+        "cohort": "k3",
+        "source_file": "tong_hop_du_lieu_AI20K_Cohort_III.json"
+      },
+      "official": true
+    },
+    {
+      "source_id": "docs_command_gate_submit_k3",
+      "title": "Hướng dẫn lệnh Discord — /gate submit",
+      "locator": "Tổng quan Cohort III / discord_commands / gate",
+      "category": "slash_command",
+      "text": "/gate submit: Nộp gate cho team.",
+      "updated_at": "2026-07-31T00:00:00+07:00",
+      "valid_from": "2026-07-20T00:00:00+07:00",
+      "valid_to": "2026-09-06T23:59:59+07:00",
+      "attributes": {
+        "command": "/gate submit",
+        "description": "Nộp gate cho team",
+        "cohort": "k3",
+        "source_file": "tong_hop_du_lieu_AI20K_Cohort_III.json"
+      },
+      "official": true
+    },
+    {
+      "source_id": "docs_command_gate_view_k3",
+      "title": "Hướng dẫn lệnh Discord — /gate view",
+      "locator": "Tổng quan Cohort III / discord_commands / gate",
+      "category": "slash_command",
+      "text": "/gate view: Chi tiết một gate.",
+      "updated_at": "2026-07-31T00:00:00+07:00",
+      "valid_from": "2026-07-20T00:00:00+07:00",
+      "valid_to": "2026-09-06T23:59:59+07:00",
+      "attributes": {
+        "command": "/gate view",
+        "description": "Chi tiết một gate",
+        "cohort": "k3",
+        "source_file": "tong_hop_du_lieu_AI20K_Cohort_III.json"
+      },
+      "official": true
+    },
+    {
+      "source_id": "docs_command_ticket_create_k3",
+      "title": "Hướng dẫn lệnh Discord — /ticket create",
+      "locator": "Tổng quan Cohort III / discord_commands / ticket",
+      "category": "slash_command",
+      "text": "/ticket create: Tạo ticket hỗ trợ.",
+      "updated_at": "2026-07-31T00:00:00+07:00",
+      "valid_from": "2026-07-20T00:00:00+07:00",
+      "valid_to": "2026-09-06T23:59:59+07:00",
+      "attributes": {
+        "command": "/ticket create",
+        "description": "Tạo ticket hỗ trợ",
+        "cohort": "k3",
+        "source_file": "tong_hop_du_lieu_AI20K_Cohort_III.json"
+      },
+      "official": true
+    },
+    {
+      "source_id": "docs_command_ticket_close_k3",
+      "title": "Hướng dẫn lệnh Discord — /ticket close",
+      "locator": "Tổng quan Cohort III / discord_commands / ticket",
+      "category": "slash_command",
+      "text": "/ticket close: Đóng ticket hiện tại.",
+      "updated_at": "2026-07-31T00:00:00+07:00",
+      "valid_from": "2026-07-20T00:00:00+07:00",
+      "valid_to": "2026-09-06T23:59:59+07:00",
+      "attributes": {
+        "command": "/ticket close",
+        "description": "Đóng ticket hiện tại",
+        "cohort": "k3",
+        "source_file": "tong_hop_du_lieu_AI20K_Cohort_III.json"
+      },
+      "official": true
+    },
+    {
+      "source_id": "discord_verified_rank_xp_k3",
+      "title": "Tra cứu XP bằng lệnh /rank",
+      "locator": "Discord historical Q&A / repeated consensus",
+      "category": "xp",
+      "text": "Dùng lệnh /rank để xem lịch sử XP và điểm kinh nghiệm hiện có.",
+      "updated_at": "2026-07-31T00:00:00+07:00",
+      "valid_from": null,
+      "valid_to": null,
+      "attributes": {
+        "activity": "rank",
+        "command": "/rank",
+        "evidence_message_ids": [
+          "1531698255988129833",
+          "1531698267497435300",
+          "1531963882065760266",
+          "1531963893029671065",
+          "1532220467262259200",
+          "1532220473356587029"
+        ],
+        "cohort": "k3",
+        "source_file": "discord_messages.json",
+        "verification_method": "repeated_consensus"
+      },
+      "official": true
+    },
+    {
+      "source_id": "discord_verified_team_change_k3",
+      "title": "Yêu cầu đổi nhóm hoặc đổi đề tài",
+      "locator": "Discord historical Q&A / repeated consensus",
+      "category": "team_change",
+      "text": "Khi cần đổi nhóm hoặc đổi đề tài, tạo ticket để Mod xử lý trước thời hạn; hệ thống không tự đổi.",
+      "updated_at": "2026-07-31T00:00:00+07:00",
+      "valid_from": null,
+      "valid_to": null,
+      "attributes": {
+        "topic": "team_change",
+        "command": "/ticket create",
+        "evidence_message_ids": [
+          "1531553767378653215",
+          "1531553779273437195",
+          "1531557521523998761",
+          "1531557530814124092",
+          "1531580969654685718",
+          "1531581016592875520",
+          "1531662968717049887",
+          "1531662981543235774",
+          "1531663176813252718",
+          "1531663187907444768"
+        ],
+        "cohort": "k3",
+        "source_file": "discord_messages.json",
+        "verification_method": "repeated_consensus"
+      },
+      "official": true
+    },
+    {
+      "source_id": "official_gate_cp1_k3",
+      "title": "Gate 1 — Chốt đề tài",
+      "locator": "Discord historical Q&A / repeated consensus",
+      "category": "gate",
+      "text": "Gate 1 (CP1) chốt đề tài, deadline 23:59 ngày 02/08/2026. Deliverables gồm Brief, PRD, Wireframe/UI Flow, GitHub Repo Setup và AI Log; nộp một link chứa đủ deliverables.",
+      "updated_at": "2026-07-31T00:00:00+07:00",
+      "valid_from": null,
+      "valid_to": "2026-08-02T23:59:00+07:00",
+      "attributes": {
+        "gate_name": "cp1",
+        "deadline": "2026-08-02T23:59:00+07:00",
+        "requirements": [
+          "brief",
+          "prd",
+          "wireframe_ui_flow",
+          "github_repo_setup",
+          "ai_log"
+        ],
+        "evidence_message_ids": [
+          "1531674574675116062",
+          "1531674587056836628",
+          "1531678600552513696",
+          "1531678612011487262",
+          "1531691813901963447",
+          "1531691826568757278",
+          "1532036234933964942",
+          "1532036246593994884",
+          "1532221098836361366",
+          "1532221109804597288",
+          "1532221150497865849",
+          "1532221161155596370"
+        ],
+        "cohort": "k3",
+        "source_file": "discord_messages.json",
+        "verification_method": "repeated_consensus"
       },
       "official": true
     }

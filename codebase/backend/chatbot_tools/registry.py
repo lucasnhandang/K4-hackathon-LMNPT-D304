@@ -84,8 +84,33 @@ TOOL_SCHEMAS: dict[str, dict[str, Any]] = {
             "category": {"type": ["string", "null"]},
             "at": {"type": ["string", "null"]},
             "limit": {"type": "integer", "minimum": 1, "maximum": 10},
+            "min_score": {"type": "number", "minimum": 0},
+            "required_terms": {
+                "type": ["array", "null"],
+                "items": {"type": "string"},
+            },
         },
         ["query"],
+    ),
+    "offer_ticket": _object_schema(
+        {
+            "category": {"type": "string"},
+            "question": {"type": "string"},
+            "known_context": {"type": "object"},
+            "missing_information": {"type": "array", "items": {"type": "string"}},
+            "clarification_attempts": {"type": "integer"},
+            "source_ids": {"type": ["array", "null"], "items": {"type": "string"}},
+            "priority": {"type": ["string", "null"]},
+            "sentiment": {"type": ["string", "null"]},
+        },
+        ["category", "question", "known_context", "missing_information", "clarification_attempts"],
+    ),
+    "create_ticket": _object_schema(
+        {
+            "request_id": {"type": "string"},
+            "user_consent": {"type": "boolean"},
+        },
+        ["request_id", "user_consent"],
     ),
 }
 
@@ -99,6 +124,8 @@ DESCRIPTIONS = {
     "lookup_team_mentor": "Tra mentor và kênh hỗ trợ của team.",
     "lookup_slash_command": "Tra hướng dẫn slash command chính thức.",
     "search_official_sources": "Tìm kiếm BM25 trong nguồn chính thức có lọc loại và thời gian.",
+    "offer_ticket": "Gợi ý tạo bản nháp ticket hỗ trợ tới kênh phù hợp (chỉ đề xuất khi cần Mod/TA hỗ trợ).",
+    "create_ticket": "Gửi ticket hỗ trợ tới kênh Discord phù hợp sau khi nhận xác nhận của người dùng.",
 }
 
 
@@ -106,13 +133,17 @@ class ToolRegistry:
     def __init__(
         self,
         knowledge: KnowledgeTools,
+        tickets: Any | None = None,
     ):
+        from .tools import TicketTools
         self.knowledge = knowledge
-        self._handlers: dict[str, Callable[..., ToolResult]] = {
-            name: getattr(knowledge, name)
-            for name in TOOL_SCHEMAS
-            if hasattr(knowledge, name)
-        }
+        self.tickets = tickets or TicketTools()
+        self._handlers: dict[str, Callable[..., ToolResult]] = {}
+        for name in TOOL_SCHEMAS:
+            if hasattr(self.knowledge, name):
+                self._handlers[name] = getattr(self.knowledge, name)
+            elif hasattr(self.tickets, name):
+                self._handlers[name] = getattr(self.tickets, name)
 
     def definitions(self) -> list[dict[str, Any]]:
         return [
@@ -151,7 +182,10 @@ class ToolRegistry:
 
 def build_default_registry(
     data_path: str | Path | None = None,
+    ticket_tools: Any | None = None,
 ) -> ToolRegistry:
+    from .tools import TicketTools
     path = Path(data_path) if data_path else Path(__file__).parent / "data" / "official_sources.json"
     store = OfficialSourceStore.from_json(path)
-    return ToolRegistry(KnowledgeTools(store))
+    tickets = ticket_tools or TicketTools()
+    return ToolRegistry(KnowledgeTools(store), tickets)

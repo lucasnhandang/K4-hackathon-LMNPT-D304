@@ -6,7 +6,7 @@ from typing import Any, Protocol
 from uuid import uuid4
 
 from .models import Citation, ToolResult
-from .retrieval import BM25Index
+from .retrieval import BM25Index, normalize_text
 from .store import OfficialSourceStore, SourceRecord
 
 
@@ -192,6 +192,8 @@ class KnowledgeTools:
         category: str | None = None,
         at: str | None = None,
         limit: int = 5,
+        min_score: float = 0.0,
+        required_terms: list[str] | None = None,
     ) -> ToolResult:
         if not query.strip():
             return ToolResult(
@@ -201,8 +203,17 @@ class KnowledgeTools:
             )
         if limit < 1 or limit > 10:
             return ToolResult(status="rejected", message="limit phải nằm trong khoảng 1..10.")
+        if min_score < 0:
+            return ToolResult(status="rejected", message="min_score phải không âm.")
 
-        hits = self.index.search(query, category=category, at=at, limit=limit)
+        hits = self.index.search(
+            query,
+            category=category,
+            at=at,
+            limit=limit,
+            min_score=min_score,
+            required_terms=required_terms,
+        )
         if not hits:
             return ToolResult(
                 status="not_found",
@@ -261,6 +272,30 @@ class InMemoryTicketGateway:
         return ticket_id
 
 
+def analyze_sentiment_and_priority(text: str) -> dict[str, str]:
+    """Feature 5: Analyze sentiment and priority from user question."""
+    norm = normalize_text(text)
+    urgent_keywords = [
+        "gap", "khan cap", "trui", "quay roi", "quay roi em", "bi tru diem oan",
+        "cham sai", "sos", "urgent", "help urgent", "gap lam", "xung dot",
+        "nghi hoc", "bao luu", "khong chay duoc", "loi nang", "loi out of memory", "giai quyet"
+    ]
+    frustrated_keywords = ["cham sai", "tru diem oan", "bat cong", "buc xuc", "khieu nai"]
+    stressed_keywords = ["gap", "khan cap", "cuu", "tre han", "lo han", "muon", "nghi hoc", "bao luu", "quay roi"]
+
+    is_urgent = any(kw in norm for kw in urgent_keywords)
+    priority = "URGENT" if is_urgent else "NORMAL"
+
+    if any(kw in norm for kw in frustrated_keywords):
+        sentiment = "frustrated"
+    elif any(kw in norm for kw in stressed_keywords):
+        sentiment = "stressed_or_urgent"
+    else:
+        sentiment = "neutral"
+
+    return {"priority": priority, "sentiment": sentiment}
+
+
 @dataclass(frozen=True)
 class TicketDraft:
     request_id: str
@@ -272,6 +307,8 @@ class TicketDraft:
     clarification_attempts: int
     source_ids: list[str]
     created_at: str
+    priority: str = "NORMAL"
+    sentiment: str = "neutral"
 
 
 class TicketTools:
@@ -310,6 +347,8 @@ class TicketTools:
         missing_information: list[str],
         clarification_attempts: int,
         source_ids: list[str] | None = None,
+        priority: str | None = None,
+        sentiment: str | None = None,
     ) -> ToolResult:
         if category not in self.CHANNEL_ALLOWLIST:
             return ToolResult(status="rejected", message="Loại ticket không được phép.")
@@ -334,6 +373,10 @@ class TicketTools:
                 message="Context chứa trường không được phép đưa vào ticket.",
             )
 
+        analysis = analyze_sentiment_and_priority(question)
+        final_priority = priority or analysis["priority"]
+        final_sentiment = sentiment or analysis["sentiment"]
+
         request_id = f"REQ-{uuid4().hex[:10].upper()}"
         draft = TicketDraft(
             request_id=request_id,
@@ -345,6 +388,8 @@ class TicketTools:
             clarification_attempts=clarification_attempts,
             source_ids=source_ids or [],
             created_at=datetime.now(timezone.utc).isoformat(),
+            priority=final_priority,
+            sentiment=final_sentiment,
         )
         self.drafts[request_id] = draft
         return ToolResult(

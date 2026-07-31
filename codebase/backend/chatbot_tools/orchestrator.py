@@ -25,13 +25,17 @@ from __future__ import annotations
 
 import json
 import logging
+import os
+import re
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
 from .intent_classifier import IntentResult, classify_intent, normalize_vietnamese
+from .llm_client import LLMClient, LLMConfig
 from .models import ToolResult
+from .rag_generator import RAGGenerator
 from .registry import ToolRegistry, build_default_registry
 from .response_generator import generate_response
 
@@ -59,6 +63,37 @@ INTENT_TOOL_MAP: dict[str, str] = {
     "ask_slash_command": "lookup_slash_command",
 }
 
+SEARCH_CATEGORY_BY_INTENT: dict[str, str] = {
+    "ask_attendance_policy": "policy_attendance",
+    "ask_online_learning_availability": "policy_online",
+    "ask_laptop_requirements": "policy_laptop",
+    "ask_submission_channel": "submission_channel",
+    "ask_learning_material": "learning_material",
+    "ask_team_naming": "team_naming",
+    "ask_topic_availability": "topic_availability",
+    "ask_holiday_schedule": "holiday_schedule",
+    "ask_scholarship_info": "scholarship_info",
+}
+
+AUTHORITY_INTENTS = {
+    "request_deadline_exception",
+    "request_leave_of_absence",
+    "request_grade_review",
+    "request_team_change",
+    "report_harassment",
+}
+
+REFUSAL_INTENTS = {
+    "reject_answer_key_request": (
+        "Mình không thể cung cấp đáp án bài kiểm tra. "
+        "Bạn có thể gửi phần kiến thức hoặc bước làm đang vướng để mình hướng dẫn."
+    ),
+    "reject_do_assignment_for_user": (
+        "Mình không thể làm hoặc nộp bài thay bạn. "
+        "Bạn hãy gửi phần đang kẹt để mình hướng dẫn cách tự hoàn thành."
+    ),
+}
+
 
 # ---------------------------------------------------------------------------
 # Chatbot orchestrator
@@ -71,9 +106,21 @@ class ChatbotOrchestrator:
     response generation -> confidence checking.
     """
 
-    def __init__(self, registry: ToolRegistry | None = None):
+    def __init__(
+        self,
+        registry: ToolRegistry | None = None,
+        llm_config: LLMConfig | None = None,
+        default_cohort: str | None = None,
+    ):
         self.registry = registry or build_default_registry()
         self._clarification_state: dict[str, dict[str, Any]] = {}
+        self.default_cohort = default_cohort or os.environ.get("DEFAULT_COHORT", "k3")
+
+        # LLM / RAG integration
+        llm_client = LLMClient(llm_config) if llm_config else LLMClient()
+        self.rag = RAGGenerator(llm_client) if llm_client.is_available() else None
+        if self.rag:
+            logger.info("RAG generator initialized with OpenRouter LLM")
 
     def process_message(
         self,
@@ -83,6 +130,8 @@ class ChatbotOrchestrator:
         channel_id: str = "support_general",
         pending_clarification: dict[str, Any] | None = None,
         conversation_history: list[dict[str, str]] | None = None,
+        cohort: str | None = None,
+        at: str | None = None,
     ) -> dict[str, Any]:
         """Process a user message through the full chatbot pipeline.
 
@@ -99,9 +148,17 @@ class ChatbotOrchestrator:
         """
         trace_id = f"trace_{uuid.uuid4().hex[:12]}"
         message_id = f"msg_{uuid.uuid4().hex[:12]}"
+        resolved_cohort = cohort or self.default_cohort
 
         # Step 1: Normalize and classify intent
         intent_result = classify_intent(message)
+
+        # Inherit context slots from conversation history if present
+        if conversation_history:
+            history_slots = self._extract_history_slots(conversation_history)
+            for k, v in history_slots.items():
+                if k not in intent_result.slots and v:
+                    intent_result.slots[k] = v
 
         logger.info(
             "Intent classified: intent=%s, confidence=%.2f, slots=%s",
@@ -125,7 +182,55 @@ class ChatbotOrchestrator:
                 ),
             )
 
-        # Step 3: Handle simple intents (greeting, thanks, help)
+        if intent_result.intent in REFUSAL_INTENTS:
+            return self._build_response(
+                message_id=message_id,
+                trace_id=trace_id,
+                route="ANSWER",
+                intent=intent_result.intent,
+                confidence=max(intent_result.confidence, 0.9),
+                grounding_status="not_required",
+                response=REFUSAL_INTENTS[intent_result.intent],
+            )
+
+        # Step 3: Handle simple intents (greeting, thanks, help, ask_datetime, out_of_domain)
+        if intent_result.intent == "ask_datetime":
+            weekdays = ["Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy", "Chủ Nhật"]
+            try:
+                now = datetime.fromisoformat(at.replace("Z", "+00:00")) if at else datetime.now()
+            except ValueError:
+                logger.warning("Invalid request timestamp %r; using system time", at)
+                now = datetime.now()
+            weekday_name = weekdays[now.weekday()]
+            time_str = now.strftime("%H:%M")
+            date_str = now.strftime("%d/%m/%Y")
+            resp_text = f"Hôm nay là **{weekday_name}**, ngày **{date_str}**. Hiện tại là **{time_str}** (giờ hệ thống). 🕒"
+            return self._build_response(
+                message_id=message_id,
+                trace_id=trace_id,
+                route="ANSWER",
+                intent=intent_result.intent,
+                confidence=1.0,
+                grounding_status="not_required",
+                response=resp_text,
+            )
+
+        if intent_result.intent == "out_of_domain":
+            resp_text = (
+                "Xin lỗi bạn, mình là trợ lý AI chuyên hỗ trợ thông tin khóa học AI20K Build Phase. "
+                "Mình không thể giải đáp các câu hỏi nằm ngoài phạm vi khóa học. "
+                "Bạn vui lòng hỏi về thông tin khóa học (như deadline, lịch học, gate, XP, team/mentor...) nha! 😊"
+            )
+            return self._build_response(
+                message_id=message_id,
+                trace_id=trace_id,
+                route="ANSWER",
+                intent=intent_result.intent,
+                confidence=1.0,
+                grounding_status="no_source",
+                response=resp_text,
+            )
+
         if intent_result.intent in ("greeting", "thanks", "help"):
             result = generate_response(intent=intent_result.intent, route="ANSWER")
             return self._build_response(
@@ -138,26 +243,7 @@ class ChatbotOrchestrator:
                 response=result["response"],
             )
 
-        # Step 4: Handle escalation intents
-        if intent_result.intent in ("request_deadline_exception", "report_issue", "report_harassment"):
-            escalation_info = {
-                "reason_code": "requires_human_authority",
-                "target": "MOD",
-                "summary": f"Yêu cầu: {intent_result.intent}",
-                "required_information": [],
-            }
-            return self._build_response(
-                message_id=message_id,
-                trace_id=trace_id,
-                route="ESCALATE",
-                intent=intent_result.intent,
-                confidence=max(intent_result.confidence, 0.8),
-                grounding_status="no_source",
-                response="Mình sẽ chuyển yêu cầu này cho Mod để xử lý.",
-                escalation=escalation_info,
-            )
-
-        # Step 5: Handle pending clarification response
+        # Step 4: Continue an existing clarification before routing a new intent.
         if pending_clarification:
             return self._handle_clarification_response(
                 message=message,
@@ -167,36 +253,49 @@ class ChatbotOrchestrator:
                 trace_id=trace_id,
                 user_id=user_id,
                 channel_id=channel_id,
+                cohort=resolved_cohort,
+                at=at,
+            )
+
+        # Step 5: Vague technical reports need one useful detail before handoff.
+        if intent_result.intent == "report_issue":
+            missing_fields = [
+                field
+                for field in self._get_required_slots(intent_result.intent)
+                if not intent_result.slots.get(field)
+            ]
+            if missing_fields:
+                return self._build_clarification_response(
+                    intent_result=intent_result,
+                    missing_fields=missing_fields,
+                    message_id=message_id,
+                    trace_id=trace_id,
+                )
+            return self._build_authority_escalation(
+                intent=intent_result.intent,
+                message=message,
+                known_context=intent_result.slots,
+                message_id=message_id,
+                trace_id=trace_id,
+            )
+
+        if intent_result.intent in AUTHORITY_INTENTS:
+            return self._build_authority_escalation(
+                intent=intent_result.intent,
+                message=message,
+                known_context=intent_result.slots,
+                message_id=message_id,
+                trace_id=trace_id,
             )
 
         # Step 6: Execute tool for structured lookup
         if intent_result.intent in INTENT_TOOL_MAP:
-            # Check missing slots BEFORE calling tool - ask clarification first
-            required_slots = self._get_required_slots(intent_result.intent)
-            missing = [s for s in required_slots if not intent_result.slots.get(s)]
-
-            if missing:
-                clarification = {
-                    "missing_field": missing[0],
-                    "question": self._generate_clarification(intent_result.intent, missing),
-                    "suggested_replies": self._generate_suggestions(intent_result.intent, missing),
-                    "original_intent": intent_result.intent,  # Preserve original intent
-                    "attempt_count": 1,
-                    "known_slots": intent_result.slots,
-                }
-                return self._build_response(
-                    message_id=message_id,
-                    trace_id=trace_id,
-                    route="CLARIFY",
-                    intent=intent_result.intent,
-                    confidence=max(intent_result.confidence, 0.6),
-                    grounding_status="no_source",
-                    response=clarification["question"],
-                    clarification=clarification,
-                )
-
             tool_name = INTENT_TOOL_MAP[intent_result.intent]
-            tool_args = self._build_tool_args(intent_result)
+            tool_args = self._build_tool_args(
+                intent_result,
+                cohort=resolved_cohort,
+                at=at,
+            )
 
             tool_result = self.registry.execute(tool_name, tool_args)
 
@@ -208,23 +307,167 @@ class ChatbotOrchestrator:
                 message=message,
             )
 
-        # Step 7: Fallback - search official sources
+        # An unclassified statement is too weak a retrieval query. Asking for a
+        # topic prevents common words from producing an unrelated BM25 answer.
+        if intent_result.intent == "unknown":
+            return self._build_clarification_response(
+                intent_result=IntentResult(
+                    intent="unknown",
+                    confidence=intent_result.confidence,
+                    slots=intent_result.slots,
+                    normalized_query=intent_result.normalized_query,
+                ),
+                missing_fields=["query"],
+                message_id=message_id,
+                trace_id=trace_id,
+            )
+
+        # Step 7: Fallback - search official sources + RAG
         search_result = self.registry.execute(
             "search_official_sources",
             {
                 "query": message,
-                "category": None,
-                "at": None,
-                "limit": 3,
+                "category": SEARCH_CATEGORY_BY_INTENT.get(intent_result.intent),
+                "at": at,
+                "limit": 5,
+                "min_score": 2.5,
+                "required_terms": self._retrieval_anchor_terms(
+                    intent_result.normalized_query
+                ),
             },
         )
 
         return self._handle_search_fallback(
             search_result=search_result,
             intent_result=intent_result,
+            message=message,
             message_id=message_id,
             trace_id=trace_id,
         )
+
+    @staticmethod
+    def _retrieval_anchor_terms(normalized_query: str) -> list[str]:
+        """Keep named resources from being dropped by broad lexical matching."""
+        anchors: list[str] = []
+        for named_resource in ("jira", "codelab", "codelabs", "hackathon"):
+            if named_resource in normalized_query:
+                anchors.append(named_resource)
+
+        workshop_match = re.search(r"\bworkshop\s*(\d+)\b", normalized_query)
+        if workshop_match:
+            anchors.extend(["workshop", workshop_match.group(1)])
+        return anchors
+
+    def _build_clarification_response(
+        self,
+        *,
+        intent_result: IntentResult,
+        missing_fields: list[str],
+        message_id: str,
+        trace_id: str,
+        attempt_count: int = 1,
+        known_slots: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        clarification = {
+            "missing_field": missing_fields[0],
+            "question": self._generate_clarification(intent_result.intent, missing_fields),
+            "suggested_replies": self._generate_suggestions(
+                intent_result.intent,
+                missing_fields,
+            ),
+            "original_intent": intent_result.intent,
+            "attempt_count": attempt_count,
+            "known_slots": known_slots if known_slots is not None else intent_result.slots,
+        }
+        return self._build_response(
+            message_id=message_id,
+            trace_id=trace_id,
+            route="CLARIFY",
+            intent=intent_result.intent,
+            confidence=max(intent_result.confidence, 0.6),
+            grounding_status="no_source",
+            response=clarification["question"],
+            clarification=clarification,
+        )
+
+    def _build_authority_escalation(
+        self,
+        *,
+        intent: str,
+        message: str,
+        known_context: dict[str, Any],
+        message_id: str,
+        trace_id: str,
+    ) -> dict[str, Any]:
+        category_map = {
+            "request_deadline_exception": "deadline",
+            "request_leave_of_absence": "learning",
+            "request_grade_review": "learning",
+            "request_team_change": "learning",
+            "report_issue": "technical",
+            "report_harassment": "safety",
+        }
+        category = category_map.get(intent, "other")
+
+        from .tools import TicketTools
+        clean_context = {
+            key: value
+            for key, value in known_context.items()
+            if key in TicketTools.CONTEXT_ALLOWLIST and value
+        }
+        ticket_tool_result = self.registry.execute(
+            "offer_ticket",
+            {
+                "category": category,
+                "question": message,
+                "known_context": clean_context,
+                "missing_information": [],
+                "clarification_attempts": 2,
+                "source_ids": [],
+            },
+        )
+        ticket_data = (
+            ticket_tool_result.get("data", {})
+            if ticket_tool_result.get("status") == "ok"
+            else {}
+        )
+        target_channel = ticket_data.get(
+            "target_channel",
+            TicketTools.CHANNEL_ALLOWLIST[category],
+        )
+        response_text = (
+            "Yêu cầu này cần Mod/TA có thẩm quyền xử lý.\n\n"
+            f"📢 **Kênh gửi ticket**: `#{target_channel}` (dùng lệnh `/ticket`)\n"
+            f"📝 **Nội dung đề xuất**: {message.strip()} 🎫"
+        )
+        return self._build_response(
+            message_id=message_id,
+            trace_id=trace_id,
+            route="ESCALATE",
+            intent=intent,
+            confidence=0.8,
+            grounding_status="no_source",
+            response=response_text,
+            escalation={
+                "reason_code": "requires_human_authority",
+                "target": "MOD",
+                "target_channel": target_channel,
+                "ticket_draft": ticket_data,
+                "summary": f"Yêu cầu: {intent}",
+                "required_information": [],
+            },
+        )
+
+    def _extract_history_slots(self, history: list[dict[str, str]]) -> dict[str, Any]:
+        """Extract slots from recent conversation history."""
+        extracted: dict[str, Any] = {}
+        for item in reversed(history):
+            if isinstance(item, dict) and item.get("role") == "user":
+                res = classify_intent(item.get("content", ""))
+                for k, v in res.slots.items():
+                    if k not in extracted and v:
+                        extracted[k] = v
+        return extracted
 
     def _get_required_slots(self, intent: str) -> list[str]:
         """Get required slots for each intent that needs clarification.
@@ -240,10 +483,17 @@ class ChatbotOrchestrator:
             "ask_xp": ["activity"],
             "ask_team_mentor": ["team"],
             "ask_slash_command": ["command"],
+            "report_issue": ["operation"],
         }
         return required.get(intent, [])
 
-    def _build_tool_args(self, intent_result: IntentResult) -> dict[str, Any]:
+    def _build_tool_args(
+        self,
+        intent_result: IntentResult,
+        *,
+        cohort: str,
+        at: str | None,
+    ) -> dict[str, Any]:
         """Build tool arguments from intent classification result."""
         slots = intent_result.slots
 
@@ -260,49 +510,60 @@ class ChatbotOrchestrator:
             return {
                 "assignment": assignment,
                 "module": slots.get("module"),
-                "cohort": "k3",  # Current cohort
-                "at": None,
+                "cohort": cohort,
+                "at": at,
             }
 
         if intent_result.intent == "ask_event_schedule":
             return {
                 "event_name": slots.get("event_name"),
-                "cohort": "k3",
-                "at": None,
+                "cohort": cohort,
+                "at": at,
             }
 
         if intent_result.intent == "ask_gate":
+            gate_name = slots.get("gate_name")
+            if gate_name and gate_name.isdigit():
+                gate_name = f"cp{gate_name}"
             return {
-                "gate_name": slots.get("gate_name"),
-                "cohort": "k3",
-                "at": None,
+                "gate_name": gate_name,
+                "cohort": cohort,
+                "at": at,
             }
 
         if intent_result.intent == "ask_exam_slot":
             return {
                 "exam_name": slots.get("exam_name"),
-                "cohort": "k3",
+                "cohort": cohort,
                 "team": slots.get("team"),
-                "at": None,
+                "at": at,
             }
 
         if intent_result.intent == "ask_xp":
+            activity = slots.get("activity")
+            if activity and "tong diem kinh nghiem" in normalize_vietnamese(activity):
+                activity = "rank"
+            elif activity and "mentor" in normalize_vietnamese(activity):
+                activity = "mentoring_duty"
             return {
-                "activity": slots.get("activity"),
-                "cohort": "k3",
-                "at": None,
+                "activity": activity,
+                "cohort": cohort,
+                "at": at,
             }
 
         if intent_result.intent == "ask_team_mentor":
             return {
-                "cohort": "k3",
+                "cohort": cohort,
                 "team": slots.get("team"),
-                "at": None,
+                "at": at,
             }
 
         if intent_result.intent == "ask_slash_command":
+            command = slots.get("command")
+            if command and normalize_vietnamese(command) == "bao cao tuan":
+                command = "/weekly"
             return {
-                "command": slots.get("command"),
+                "command": command,
             }
 
         return {}
@@ -321,71 +582,36 @@ class ChatbotOrchestrator:
         citations = tool_result.get("citations", [])
         missing_fields = tool_result.get("missing_fields", [])
 
-        # Ambiguous - need clarification
-        if status == "ambiguous" and missing_fields:
-            clarification = {
-                "missing_field": missing_fields[0],
-                "question": self._generate_clarification(intent_result.intent, missing_fields),
-                "suggested_replies": self._generate_suggestions(intent_result.intent, missing_fields),
-            }
-            return self._build_response(
+        # Missing a required slot always wins over retrieval: never let RAG guess it.
+        if status == "ambiguous":
+            fields = missing_fields or ["query"]
+            return self._build_clarification_response(
+                intent_result=intent_result,
+                missing_fields=fields,
                 message_id=message_id,
                 trace_id=trace_id,
-                route="CLARIFY",
-                intent=intent_result.intent,
-                confidence=max(intent_result.confidence, 0.6),
-                grounding_status="no_source",
-                response=clarification["question"],
-                clarification=clarification,
             )
 
-        # Not found - fallback to BM25 search
+        # A complete structured query with no official record must not be rescued
+        # by a broad lexical search. Explain the source gap and hand off.
         if status == "not_found":
-            # Try BM25 search as fallback
-            search_result = self.registry.execute(
-                "search_official_sources",
-                {
-                    "query": message,
-                    "category": None,
-                    "at": None,
-                    "limit": 3,
-                },
-            )
-            search_status = search_result.get("status", "")
-            search_data = search_result.get("data")
-
-            if search_status == "ok" and search_data:
-                # Found something via search
-                citations = search_result.get("citations", [])
-                response_parts = ["Mình tìm thấy thông tin liên quan từ tài liệu khóa học:\n"]
-                for i, item in enumerate(search_data[:3], 1):
-                    title = citations[i - 1].get("title") if i - 1 < len(citations) else item.get("source_id", "")
-                    quote = citations[i - 1].get("quote", "") if i - 1 < len(citations) else ""
-                    if quote:
-                        response_parts.append(f"📌 **{title}**:\n{quote}\n")
-                    else:
-                        response_parts.append(f"📌 **{title}**\n")
-
-                return self._build_response(
-                    message_id=message_id,
-                    trace_id=trace_id,
-                    route="ANSWER",
-                    intent=intent_result.intent,
-                    confidence=max(intent_result.confidence, 0.6),
-                    grounding_status="grounded",
-                    response="\n".join(response_parts),
-                    citations=citations,
-                )
-
-            # Still not found
             return self._build_response(
                 message_id=message_id,
                 trace_id=trace_id,
-                route="ANSWER",
+                route="ESCALATE",
                 intent=intent_result.intent,
-                confidence=max(intent_result.confidence, 0.5),
+                confidence=max(intent_result.confidence, 0.7),
                 grounding_status="no_source",
-                response="Mình không tìm thấy thông tin phù hợp trong nguồn chính thức. Bạn vui lòng thử lại với từ khóa khác hoặc hỏi Mod để được hỗ trợ thêm.",
+                response=(
+                    "Mình chưa tìm thấy thông tin này trong nguồn chính thức, "
+                    "nên không thể trả lời chắc chắn. Bạn có thể nhờ Mod/TA xác nhận."
+                ),
+                escalation={
+                    "reason_code": "official_source_not_found",
+                    "target": "MOD",
+                    "summary": message,
+                    "required_information": [],
+                },
             )
 
         # Conflict - escalate
@@ -445,23 +671,70 @@ class ChatbotOrchestrator:
         known_context: dict[str, Any],
         missing: list[str],
     ) -> dict[str, Any]:
-        """Suggest creating a ticket and provide target ticket channel after failed clarification attempts."""
-        channel_map = {
-            "ask_deadline": "assignment-support",
-            "ask_event_schedule": "learning-support",
-            "ask_gate": "learning-support",
-            "ask_exam_slot": "learning-support",
-            "ask_xp": "learning-support",
-            "ask_team_mentor": "mentor-support",
-            "ask_slash_command": "learning-support",
-            "report_issue": "technical-support",
-            "report_harassment": "private-mod-support",
+        """Suggest creating a ticket and provide target ticket channel and ticket question content."""
+        cat_map = {
+            "ask_deadline": "deadline",
+            "ask_event_schedule": "learning",
+            "ask_gate": "learning",
+            "ask_exam_slot": "learning",
+            "ask_xp": "learning",
+            "ask_team_mentor": "team_mentor",
+            "ask_slash_command": "learning",
+            "report_issue": "technical",
+            "report_harassment": "safety",
         }
-        target_channel = channel_map.get(intent, "student-support")
+        topic_map = {
+            "ask_deadline": "Hạn nộp bài / Deadline",
+            "ask_event_schedule": "Lịch sự kiện / Workshop",
+            "ask_gate": "Điều kiện Gate / Checkpoint",
+            "ask_exam_slot": "Lịch thi / Ca thi",
+            "ask_xp": "Quy tắc XP / Thứ hạng",
+            "ask_team_mentor": "Thông tin Team / Mentor",
+            "ask_slash_command": "Lệnh Discord / Slash Command",
+            "report_issue": "Báo lỗi kỹ thuật",
+            "report_harassment": "Báo cáo vi phạm",
+        }
+        category = cat_map.get(intent, "other")
+        if category == "other" and ("assignment" in missing or "assignment" in known_context or "deadline" in intent):
+            category = "deadline"
+            topic_name = "Hạn nộp bài / Deadline"
+        else:
+            topic_name = topic_map.get(intent, f"thắc mắc về {intent}")
+
+        # Execute offer_ticket tool in registry
+        from .tools import TicketTools
+        clean_context = {k: v for k, v in known_context.items() if k in TicketTools.CONTEXT_ALLOWLIST}
+
+        # Build proposed question content for the ticket
+        context_parts = [f"{k}: {v}" for k, v in clean_context.items() if v]
+        question_content = f"Cần hỗ trợ về {topic_name}"
+        if context_parts:
+            question_content += f" ({', '.join(context_parts)})"
+        if missing:
+            question_content += f" — Thông tin cần làm rõ thêm: {', '.join(missing)}"
+
+        ticket_tool_result = self.registry.execute(
+            "offer_ticket",
+            {
+                "category": category,
+                "question": question_content,
+                "known_context": clean_context,
+                "missing_information": missing,
+                "clarification_attempts": max(attempts, 2),
+                "source_ids": [],
+            },
+        )
+
+        ticket_data = ticket_tool_result.get("data", {}) if ticket_tool_result.get("status") == "ok" else {}
+        target_channel = ticket_data.get("target_channel", "student-support")
+        priority = ticket_data.get("priority", "NORMAL")
+        priority_tag = "🔴 URGENT (Ưu tiên cao - Xử lý ngay)" if priority == "URGENT" else "🔵 NORMAL (Bình thường)"
 
         response_text = (
-            f"Sau {attempts} lần hỏi làm rõ, mình vẫn chưa tìm thấy câu trả lời phù hợp trong nguồn chính thức. "
-            f"Bạn vui lòng gửi ticket hỗ trợ tới kênh `#{target_channel}` (dùng lệnh `/ticket`) để Mod/TA hỗ trợ trực tiếp nha! 🎫"
+            f"Gợi ý gửi ticket hỗ trợ tới Mod/TA:\n\n"
+            f"🚨 **Độ ưu tiên**: {priority_tag}\n"
+            f"📢 **Kênh gửi ticket**: `#{target_channel}` (dùng lệnh `/ticket`)\n"
+            f"📝 **Nội dung câu hỏi đề xuất**: {question_content} 🎫"
         )
 
         escalation_info = {
@@ -471,6 +744,7 @@ class ChatbotOrchestrator:
             "clarification_attempts": attempts,
             "known_context": known_context,
             "missing_information": missing,
+            "ticket_draft": ticket_data,
             "summary": f"Không tìm thấy câu trả lời sau {attempts} lần hỏi làm rõ.",
         }
 
@@ -494,6 +768,8 @@ class ChatbotOrchestrator:
         trace_id: str,
         user_id: str,
         channel_id: str,
+        cohort: str,
+        at: str | None,
     ) -> dict[str, Any]:
         """Handle user response to a clarification question."""
         current_attempt = pending_clarification.get("attempt_count", 1)
@@ -513,7 +789,21 @@ class ChatbotOrchestrator:
 
         # Try to fill the missing field from user response
         missing_field = pending_clarification.get("missing_field")
-        if missing_field and (missing_field not in merged_slots or clean_msg != normalized_msg):
+        non_answers = {
+            "khong biet",
+            "khong biet nua",
+            "van khong biet",
+            "van khong biet ne",
+            "khong ro",
+            "chịu",
+            "chiu",
+        }
+        is_non_answer = clean_msg in non_answers or len(clean_msg) < 2
+        if (
+            missing_field
+            and not is_non_answer
+            and (missing_field not in merged_slots or clean_msg != normalized_msg)
+        ):
             merged_slots[missing_field] = clean_msg
 
         # Check if required slots are now satisfied
@@ -558,43 +848,25 @@ class ChatbotOrchestrator:
                     clarification=clarification,
                 )
 
+        if new_intent.intent == "report_issue":
+            return self._build_authority_escalation(
+                intent=new_intent.intent,
+                message=message,
+                known_context=merged_slots,
+                message_id=message_id,
+                trace_id=trace_id,
+            )
+
         # Execute tool with merged slots
         if new_intent.intent in INTENT_TOOL_MAP:
             tool_name = INTENT_TOOL_MAP[new_intent.intent]
-            tool_args = self._build_tool_args(new_intent)
+            tool_args = self._build_tool_args(
+                new_intent,
+                cohort=cohort,
+                at=at,
+            )
 
             tool_result = self.registry.execute(tool_name, tool_args)
-            status = tool_result.get("status")
-
-            if status in ("not_found", "ambiguous"):
-                if current_attempt >= 2:
-                    return self._suggest_ticket_response(
-                        intent=original_intent,
-                        message_id=message_id,
-                        trace_id=trace_id,
-                        attempts=current_attempt,
-                        known_context=merged_slots,
-                        missing=still_missing or [missing_field or "assignment"],
-                    )
-                else:
-                    clarification = {
-                        "missing_field": missing_field or "assignment",
-                        "question": f"Mình chưa tìm thấy thông tin cho '{clean_msg}'. Bạn có thể chọn hoặc nhập lại tên bài/sự kiện chính xác không?",
-                        "suggested_replies": self._generate_suggestions(original_intent, [missing_field] if missing_field else []),
-                        "original_intent": original_intent,
-                        "attempt_count": current_attempt + 1,
-                        "known_slots": {},
-                    }
-                    return self._build_response(
-                        message_id=message_id,
-                        trace_id=trace_id,
-                        route="CLARIFY",
-                        intent=original_intent,
-                        confidence=max(intent_result.confidence, 0.6),
-                        grounding_status="no_source",
-                        response=clarification["question"],
-                        clarification=clarification,
-                    )
 
             return self._handle_tool_result(
                 tool_result=tool_result,
@@ -628,16 +900,58 @@ class ChatbotOrchestrator:
         self,
         search_result: dict[str, Any],
         intent_result: IntentResult,
+        message: str,
         message_id: str,
         trace_id: str,
     ) -> dict[str, Any]:
-        """Handle fallback search when no specific intent matches."""
+        """Handle fallback search when no specific intent matches.
+
+        Uses RAG generator when available for natural language responses.
+        Falls back to template-based response when LLM is unavailable.
+        """
         status = search_result.get("status", "")
         data = search_result.get("data")
         citations = search_result.get("citations", [])
 
+        # Try RAG generation when we have search results and LLM is available
+        if status == "ok" and data and self.rag:
+            # Build context chunks from BM25 results
+            context_chunks = []
+            for i, item in enumerate(data):
+                chunk = {
+                    "source_id": item.get("source_id", ""),
+                    "category": item.get("category", ""),
+                    "score": item.get("score", 0),
+                    "attributes": item.get("attributes", {}),
+                }
+                if i < len(citations):
+                    chunk["quote"] = citations[i].get("quote", "")
+                context_chunks.append(chunk)
+
+            rag_result = self.rag.generate(
+                query=message,
+                context_chunks=context_chunks,
+                intent=intent_result.intent,
+            )
+
+            return self._build_response(
+                message_id=message_id,
+                trace_id=trace_id,
+                route="ANSWER",
+                intent="search_fallback",
+                confidence=max(intent_result.confidence, 0.5),
+                grounding_status="grounded" if rag_result.get("grounded") else "partial",
+                response=rag_result["response"],
+                citations=citations,
+            )
+
+        # Fallback: template-based response (no LLM or no search results)
         if status == "ok" and data:
-            # Found something in search
+            top_score = max(float(item.get("score", 0.0)) for item in data)
+            retrieval_confidence = min(
+                0.95,
+                max(intent_result.confidence, 0.7 + top_score / 30),
+            )
             response_parts = ["Mình tìm thấy thông tin liên quan từ tài liệu khóa học:\n"]
             for i, item in enumerate(data[:3], 1):
                 title = citations[i - 1].get("title") if i - 1 < len(citations) else item.get("source_id", "")
@@ -652,21 +966,52 @@ class ChatbotOrchestrator:
                 trace_id=trace_id,
                 route="ANSWER",
                 intent="search_fallback",
-                confidence=0.5,
+                confidence=retrieval_confidence,
                 grounding_status="grounded",
                 response="\n".join(response_parts),
                 citations=citations,
             )
 
-        # No results at all
+        # A recognized, specific topic with no matching official category is a
+        # source gap, not an invitation for the model to guess.
+        if intent_result.intent in SEARCH_CATEGORY_BY_INTENT:
+            return self._build_response(
+                message_id=message_id,
+                trace_id=trace_id,
+                route="ESCALATE",
+                intent=intent_result.intent,
+                confidence=max(intent_result.confidence, 0.7),
+                grounding_status="no_source",
+                response=(
+                    "Mình chưa tìm thấy thông tin này trong nguồn chính thức, "
+                    "nên không thể trả lời chắc chắn. Bạn có thể nhờ Mod/TA xác nhận."
+                ),
+                escalation={
+                    "reason_code": "official_source_not_found",
+                    "target": "MOD",
+                    "summary": message,
+                    "required_information": [],
+                },
+            )
+
+        # Unknown topic with no results: ask the user to narrow the query.
+        clarification = {
+            "missing_field": "query",
+            "question": "Mình chưa hiểu rõ câu hỏi hoặc chưa tìm thấy thông tin phù hợp trong nguồn chính thức. Bạn có thể nói rõ hơn chủ đề bạn đang cần không? (VD: deadline bài nộp, lịch workshop, XP/rank, team/mentor...)",
+            "suggested_replies": ["Deadline bài nộp", "Lịch sự kiện / Workshop", "XP & Rank", "Kênh hỗ trợ / Ticket"],
+            "original_intent": "unknown",
+            "attempt_count": 1,
+            "known_slots": {},
+        }
         return self._build_response(
             message_id=message_id,
             trace_id=trace_id,
-            route="ANSWER",
+            route="CLARIFY",
             intent="unknown",
             confidence=0.2,
             grounding_status="no_source",
-            response="Mình chưa tìm thấy thông tin phù hợp. Bạn có thể thử hỏi lại với từ khóa khác hoặc hỏi Mod để được hỗ trợ thêm.",
+            response=clarification["question"],
+            clarification=clarification,
         )
 
     def _generate_clarification(self, intent: str, missing_fields: list[str]) -> str:
@@ -680,6 +1025,10 @@ class ChatbotOrchestrator:
             "team": "Bạn thuộc team nào?",
             "activity": "Bạn muốn biết XP của hoạt động nào?",
             "command": "Bạn muốn biết về lệnh nào?",
+            "operation": (
+                "Bạn gặp lỗi khi đang làm thao tác nào? "
+                "(VD: đăng nhập, nộp bài, tải slide hoặc mở link)"
+            ),
             "query": "Bạn có thể nói rõ hơn về vấn đề cần hỗ trợ không?",
         }
 
@@ -706,6 +1055,9 @@ class ChatbotOrchestrator:
             },
             "ask_slash_command": {
                 "command": ["/daily", "/weekly", "/exam", "/gate", "/myteam", "/rank", "/ticket", "/ask"],
+            },
+            "report_issue": {
+                "operation": ["Đăng nhập", "Nộp bài", "Tải tài liệu", "Mở link"],
             },
         }
 

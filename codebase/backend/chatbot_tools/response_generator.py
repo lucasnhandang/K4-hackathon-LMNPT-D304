@@ -14,12 +14,12 @@ from typing import Any
 
 GREETING_RESPONSES = [
     "Xin chào! Mình là trợ lý AI của AI20K Build Phase. Bạn cần hỗ trợ gì nha? 😊",
-    "Chào bạn! Mình sẵn sàng giúp đỡ về deadline, lịch sự kiện, XP, team/mentor. Hỏi mình nha! 🚀",
+    "Chào bạn! Mình là trợ lý AI, sẵn sàng giúp đỡ về deadline, lịch sự kiện, XP, team/mentor. Hỏi mình nha! 🚀",
     "Hi bạn! Mình là trợ lý AI, có thể giúp bạn tìm thông tin về khóa học. Bạn cần gì? ✨",
 ]
 
 THANKS_RESPONSES = [
-    "Không có gì! Nếu cần thêm thông tin thì cứ hỏi mình nha 😊",
+    "Không có gì! Mình rất vui được hỗ trợ, nếu cần thêm thông tin thì cứ hỏi nha 😊",
     "Rất vui được giúp bạn! Chúc bạn học tốt nhé 🚀",
     "OK nha! Mình luôn sẵn sàng hỗ trợ khi bạn cần 💪",
 ]
